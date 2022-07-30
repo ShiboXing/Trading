@@ -1,12 +1,13 @@
 CC=g++
-CFLAGS = -g -c -Wall -pedantic -std=c++14
+CFLAGS= -g -c -Wall -pedantic -std=c++14
+LFLAGS= -lcurl
 
-default: 
-	$(CC) -o main main.o
+default: main.o
+	$(CC) -o main main.o ${LFLAGS}
 
-%.o:
+%.o: %.cpp 
 	$(CC) $(CFLAGS) $*.cpp
 
-clean:
+clean: 
 	rm *.o
 	rm main
