@@ -48,7 +48,7 @@ class ts_helper:
         df = pd.DataFrame()
         window = 50
         for i in range(0, len(codes), window):
-            end = max(i+window+1, len(codes))
+            end = max(i+window, len(codes))
             part_codes = ",".join(codes[i:end])
             end_date = date.today()
             start_date = end_date - timedelta(days=N)
@@ -59,6 +59,19 @@ class ts_helper:
             tmp = _pro_ts.daily(
                 ts_code=part_codes, start_date=start_date_str, end_dat=end_date_str)
 
+            df = pd.concat((df, tmp), axis=0)
+
+        return df
+
+    def get_real_time_quotes(self, codes: list):
+        window = 30
+        df = pd.DataFrame()
+
+        for i in range(0, len(codes), window):
+            end = max(i+window, window)
+            part_codes = [code[:-3] for code in codes[i:end]] # rid code of exchange code
+            
+            tmp = _ts.get_realtime_quotes(part_codes)
             df = pd.concat((df, tmp), axis=0)
 
         return df

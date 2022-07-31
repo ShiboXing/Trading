@@ -1,5 +1,5 @@
 from .tushare_helper import ts_helper as th
-# from Data.utils.cache_helper import tushare_helper as ch
+from .cache_helper import cache_helper as ch
 
 
 class loader:
@@ -7,10 +7,15 @@ class loader:
     def __init__(self, train_days):
         self.train_days = train_days
         self.th = th()
-        # self.ch = ch()
+        self.ch = ch()
         self.stock_codes = self.th.get_stock_list()
 
     def fetch_daily_prices(self):
+        assert self.stock_codes is not None, "must fetch stock codes first"
         self.train_data = self.th.get_stock_price_daily(
             self.stock_codes.values.flatten(), self.train_days)
-    
+
+    def update_quotes(self):
+        assert self.stock_codes is not None, "must fetch stock codes first"
+        self.quotes = self.th.get_real_time_quotes(
+            self.stock_codes.values.flatten())
