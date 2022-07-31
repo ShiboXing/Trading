@@ -1,9 +1,9 @@
-from re import L
+
 import tushare as _ts
 import pandas as pd
 from datetime import date, timedelta
 
-from Data.utils.tushare_helper import *
+from . import _TOKEN, _hs300_url, _zz500_url
 
 
 class ts_helper:
@@ -15,7 +15,6 @@ class ts_helper:
         _pro_ts = _ts.pro_api()
 
     def get_stock_list(self):
-
         code_col_name = "成分券代码Constituent Code"
         ex_col_name = "交易所英文名称Exchange(Eng)"
         hs = pd.read_excel(_hs300_url)
@@ -30,18 +29,18 @@ class ts_helper:
             if code_len < 6:
                 stock_list.iloc[i, 0] = '0' * \
                     (6-code_len) + stock_list.iloc[i, 0]
-            
+
             # add exchange code into stock code
             stock_ex = stock_list.iloc[i, 1].lower()
             if 'shenzhen' in stock_ex:
                 stock_list.iloc[i, 0] += '.SZ'
             if 'shanghai' in stock_ex:
                 stock_list.iloc[i, 0] += '.SH'
-
         stock_list = stock_list[[code_col_name]]
+
         return stock_list
 
-    def get_stock_price_daily(codes: list, N):
+    def get_stock_price_daily(self, codes: list, N):
         '''
         get the daily bars of a stock starting from today to N days back
         '''
