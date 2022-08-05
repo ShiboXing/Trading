@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 
 import tushare as _ts
 import pandas as pd
@@ -37,7 +38,8 @@ class ts_helper:
             if 'shanghai' in stock_ex:
                 stock_list.iloc[i, 0] += '.SH'
         stock_list = stock_list[[code_col_name]]
-
+        
+        print("gotten stock list: ", stock_list.values.shape)
         return stock_list
 
     def get_stock_price_daily(self, codes: list, N):

@@ -1,11 +1,11 @@
 import pandas as pd
 import subprocess as sp
-import datetime as dt
 import os
 import pickle
+from datetime import datetime as dt
 from . import _CACHE_PATH
 
-_train_data_pth = os.path.join(_CACHE_PATH, "stock_hist.pkl")
+_hist_data_pth = os.path.join(_CACHE_PATH, "stock_hist.pkl")
 _stock_list_pth = os.path.join(_CACHE_PATH, "stock_lst.pkl")
 _timestamp_pth = os.path.join(_CACHE_PATH, "ts_lst.pkl")
 
@@ -26,17 +26,22 @@ class cache_helper:
     def cache_timestamp(self, pth):
         self.ts[pth] = dt.now()
 
-    def cache_train_data(self, df: pd.DataFrame):
-        self.cache_timestamp(_train_data_pth)
-        return df.to_pickle(_train_data_pth)
-        
-
+    def cache_hist_data(self, df: pd.DataFrame):
+        self.cache_timestamp(_hist_data_pth)
+        df.to_pickle(_hist_data_pth)
+        print("hist data cached: ", df.values.shape)
+    
     def cache_stock_list(self, df: pd.DataFrame):
         self.cache_timestamp(_stock_list_pth)
         df.to_pickle(_stock_list_pth)
+        print("stock list cached: ", df.values.shape)
 
-    def load_train_data(self):
-        return pd.read_pickle(_train_data_pth)
+    def load_train_data(self) -> pd.DataFrame:
+        df = pd.read_pickle(_hist_data_pth)
+        print("hist data loaded: ", df.values.shape)
+        return df
 
-    def get_list_pth(self):
-        return pd.read_pickle(_stock_list_pth)
+    def load_stock_list(self) -> pd.DataFrame:
+        df = pd.read_pickle(_stock_list_pth)
+        print("stock list loaded: ", df.values.shape)
+        return df
