@@ -8,15 +8,22 @@ class loader:
         self.train_days = train_days
         self.th = th()
         self.ch = ch()
-        self.stock_codes = self.th.get_stock_list()
-        self.ch.cache_stock_list(self.stock_codes)
+
+        if self.ch.cache_is_expired('list'):
+            self.stock_codes = self.th.get_stock_list()
+            self.ch.cache_stock_list(self.stock_codes)
+        else:
+            self.stock_codes = self.ch.load_stock_list()
 
     def fetch_daily_prices(self):
         assert self.stock_codes is not None, "must fetch stock codes first"
-        self.train_data = self.th.get_stock_price_daily(
-            self.stock_codes.values.flatten(), self.train_days)
+        if self.ch.cache_is_expired("hist"):
+            self.train_data = self.th.get_stock_price_daily(
+                self.stock_codes.values.flatten(), self.train_days)
+            self.ch.cache_hist_data(self.train_data)
+        else:
+            self.train_data = self.ch.load_train_data()
 
-        self.ch.cache_hist_data(self.train_data)
 
     def update_quotes(self):
         assert self.stock_codes is not None, "must fetch stock codes first"
