@@ -8,19 +8,22 @@ class loader:
         self.th = th()
         self.ch = ch()
 
-        _dtype = "list"
+        _dtype = "quotes"
         if self.ch.cache_is_expired(_dtype):
-            self.stock_codes = self.th.get_stock_list()
+            self.stock_codes = self.th.get_all_quotes()
             self.ch.cache_data(self.stock_codes, _dtype)
         else:
             self.stock_codes = self.ch.load_data(_dtype)
 
-    def fetch_all_quotes(self):
+    def load_all_quotes(self):
         """
         directly overwrites today's realtime quotes data
         """
-        self.quotes = self.th.fetch_all_quotes()
+        self.quotes = self.th.get_all_quotes()
         self.ch.cache_data(self.quotes, "quotes")
+
+    def fetch_all_hist(self):
+        pass
 
     def fetch_daily_prices(self):
         assert self.stock_codes is not None, "must fetch stock codes first"

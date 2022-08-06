@@ -14,8 +14,15 @@ class ts_helper:
         _ts.set_token(_TOKEN)
         _pro_ts = _ts.pro_api()
 
-    def fetch_all_quotes(self):
+    def get_all_quotes(self):
         quotes = _ts.get_today_all()[["code", "name", "open", "turnoverratio", "per"]]
+        stock_info = _pro_ts.query("stock_basic")[
+            ["ts_code", "symbol", "industry", "market"]
+        ]  # get all listed stocks' info
+        quotes = quotes.set_index("code").join(
+            stock_info.set_index("symbol"), how="inner"
+        )
+
         return quotes
 
     def get_stock_list(self):
