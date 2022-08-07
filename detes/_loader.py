@@ -10,32 +10,22 @@ class loader:
 
         _dtype = "quotes"
         if self.ch.cache_is_expired(_dtype):
-            self.stock_codes = self.th.get_all_quotes()
-            self.ch.cache_data(self.stock_codes, _dtype)
+            self.quotes = self.th.get_all_quotes()
+            self.ch.cache_data(self.quotes, _dtype)
         else:
-            self.stock_codes = self.ch.load_data(_dtype)
-
-    def load_all_quotes(self):
-        """
-        directly overwrites today's realtime quotes data
-        """
-        self.quotes = self.th.get_all_quotes()
-        self.ch.cache_data(self.quotes, "quotes")
+            self.quotes = self.ch.load_data(_dtype)
 
     def fetch_all_hist(self):
-        pass
-
-    def fetch_daily_prices(self):
-        assert self.stock_codes is not None, "must fetch stock codes first"
+        assert self.quotes is not None, "must fetch stock codes first"
         _dtype = "hist"
         if self.ch.cache_is_expired(_dtype):
-            self.train_data = self.th.get_stock_price_daily(
-                self.stock_codes.values.flatten(), self.train_days
+            self.hist_data = self.th.get_stock_hist(
+                self.quotes["ts_code"], self.train_days
             )
-            self.ch.cache_data(self.train_data, _dtype)
+            self.ch.cache_data(self.hist_data, _dtype)
         else:
-            self.train_data = self.ch.load_data(_dtype)
+            self.hist_data = self.ch.load_data(_dtype)
 
     def update_quotes(self):
-        assert self.stock_codes is not None, "must fetch stock codes first"
-        self.quotes = self.th.get_real_time_quotes(self.stock_codes.values.flatten())
+        assert self.quotes is not None, "must fetch stock quotes first"
+        self.quotes = self.th.get_real_time_quotes(self.quotes.values.flatten())

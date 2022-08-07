@@ -1,4 +1,5 @@
 from detes import loader
 
-ld = loader(60)
-ld.load_all_quotes()
+ld = loader(365)
+ld.fetch_all_hist()
+
