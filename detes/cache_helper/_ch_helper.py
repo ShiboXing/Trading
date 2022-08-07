@@ -3,12 +3,7 @@ import subprocess as sp
 import os
 import pickle
 from datetime import datetime as dt
-from . import _CACHE_PATH
-
-_hist_data_pth = os.path.join(_CACHE_PATH, "stock_hist.pkl")
-_stock_list_pth = os.path.join(_CACHE_PATH, "stock_lst.pkl")
-_timestamp_pth = os.path.join(_CACHE_PATH, "timestamp_lst.pkl")
-_quotes_pth = os.path.join(_CACHE_PATH, "quotes.pkl")
+from . import _CACHE_PATH, _hist_data_pth, _stock_list_pth, _quotes_pth, _timestamp_pth
 
 
 class cache_helper:
