@@ -7,7 +7,7 @@ from . import _CACHE_PATH
 
 _hist_data_pth = os.path.join(_CACHE_PATH, "stock_hist.pkl")
 _stock_list_pth = os.path.join(_CACHE_PATH, "stock_lst.pkl")
-_timestamp_pth = os.path.join(_CACHE_PATH, "ts_lst.pkl")
+_timestamp_pth = os.path.join(_CACHE_PATH, "timestamp_lst.pkl")
 _quotes_pth = os.path.join(_CACHE_PATH, "quotes.pkl")
 
 
@@ -16,23 +16,30 @@ class cache_helper:
         if not os.path.exists(cache_pth):
             sp.run(f"mkdir -p {cache_pth}", check=True, shell=True)
 
-        self.ts = {}
         self.ts_type = {
             "hist": _hist_data_pth,
             "list": _stock_list_pth,
             "quotes": _quotes_pth,
         }
-        if os.path.exists(_timestamp_pth):
-            try:
-                self.ts = pickle.load(open(_timestamp_pth, "rb"))
-            except EOFError:
-                print("loading empty timestamp")
+
+    def __pickle_load_all(self, pth):
+        with open(pth, "rb") as f:
+            while True:
+                try:
+                    ts = pickle.load(f)
+                except EOFError:
+                    return ts
+
+    def __pickle_dump_all(self, obj, pth):
+        with open(pth, "wb") as f:
+            pickle.dump(obj, f)
 
     def cache_is_expired(self, type="hist"):
-        pth = self.ts_type[type]
-        if pth not in self.ts or self.ts[pth].date() < dt.now().date():
-            return True
+        write_pth = self.ts_type[type]
+        ts = self.__pickle_load_all(_timestamp_pth)
 
+        if write_pth not in ts or ts[write_pth].date() < dt.now().date():
+            return True
         return False
 
     def cache_timestamp(self, pth):
@@ -40,24 +47,19 @@ class cache_helper:
         change the pth's timestamp only, I/O bound
         """
 
-        with open(_timestamp_pth, "wb+") as f:
-            _ts = {}
-            try:    
-                _ts = pickle.load(f)
-            except EOFError:
-                pass
-            _ts[pth] = dt.now()
-            pickle.dump(_ts, f)
-            print(f"{pth} timestamp cached")
+        ts = self.__pickle_load_all(_timestamp_pth)
+        ts[pth] = dt.now()
+        self.__pickle_dump_all(ts, _timestamp_pth)
+        print(f"{pth} timestamp cached")
 
     def cache_data(self, df, type="quotes"):
         write_pth = self.ts_type[type]
+        self.__pickle_dump_all(df, write_pth)
         self.cache_timestamp(write_pth)
-        pickle.dump(df, open(write_pth, "wb"))
         print(f"{type} cached: ", df.values.shape)
 
     def load_data(self, type="quotes") -> pd.DataFrame:
         read_pth = self.ts_type[type]
-        df = pd.read_pickle(read_pth)
-        print(f"{type} loaded: ", df.values.shape)
+        df = pd.read_pickle(read_pth)  # loads the entire dataframe
+        print(f"{type} loaded from cache: ", df.values.shape)
         return df
