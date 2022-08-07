@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import date, timedelta
 
 from . import _TOKEN, _hs300_url, _zz500_url
+from urllib3.exceptions import ReadTimeoutError
 
 
 class ts_helper:
@@ -52,27 +53,37 @@ class ts_helper:
         print("gotten stock list: ", stock_list.values.shape)
         return stock_list
 
-    def get_stock_price_daily(self, codes: list, N):
+    def get_stock_hist(self, ts_codes: list, N):
         """
         get the daily bars of a stock starting from today to N days back
+        TODO: use multithreading in c++
         """
-
+        print("downloading stock hist...")
         df = pd.DataFrame()
-        window = 50
-        for i in range(0, len(codes), window):
-            end = max(i + window, len(codes))
-            part_codes = ",".join(codes[i:end])
-            end_date = date.today()
-            start_date = end_date - timedelta(days=N)
+        end_date = date.today()
+        start_date = end_date - timedelta(days=N)
+        window = 5000 // N  # tushare allows 5000 lines of data for every requests
+
+        for i in range(0, len(ts_codes), window):
+            end = min(i + window, len(ts_codes))
+            part_codes = ",".join(ts_codes[i:end])
 
             end_date_str = end_date.strftime("%Y%m%d")
             start_date_str = start_date.strftime("%Y%m%d")
 
-            tmp = _pro_ts.daily(
-                ts_code=part_codes, start_date=start_date_str, end_dat=end_date_str
-            )
+            while True:  # TODO: revise timeout handling
+                try:
+                    tmp = _pro_ts.daily(
+                        ts_code=part_codes,
+                        start_date=start_date_str,
+                        end_dat=end_date_str,
+                    )
+                    df = pd.concat((df, tmp), axis=0)
+                    break
+                except ReadTimeoutError:
+                    print("daily bar request timed out")
 
-            df = pd.concat((df, tmp), axis=0)
+            print(f"{round(end/len(ts_codes) * 100, 2)}% fetched")
 
         return df
 
