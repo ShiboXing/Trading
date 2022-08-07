@@ -1,5 +1,4 @@
-from detes import loader
+from detes import fetcher
 
-ld = loader(365)
+ld = fetcher(365)
 ld.fetch_all_hist()
-

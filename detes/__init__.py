@@ -1,3 +1,3 @@
-__all__ = ["loader"]
+__all__ = ["fetcher"]
 
-from ._loader import loader
+from ._loader import fetcher

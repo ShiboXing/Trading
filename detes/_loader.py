@@ -1,8 +1,10 @@
+from re import L
 from .tushare_helper import ts_helper as th
 from .cache_helper import cache_helper as ch
+from pandas import DataFrame as DF
 
 
-class loader:
+class fetcher:
     def __init__(self, train_days):
         self.train_days = train_days
         self.th = th()
