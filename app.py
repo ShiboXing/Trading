@@ -1,4 +1,5 @@
 from detes import fetcher
 
-ld = fetcher(365)
-ld.fetch_all_hist()
+ft = fetcher(365)
+ft.update_quotes()
+ft.fetch_all_hist()

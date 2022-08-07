@@ -6,6 +6,7 @@ from datetime import date, timedelta
 
 from . import _TOKEN, _hs300_url, _zz500_url
 from urllib3.exceptions import ReadTimeoutError
+from requests.exceptions import ConnectionError
 
 
 class ts_helper:
@@ -16,6 +17,7 @@ class ts_helper:
         _pro_ts = _ts.pro_api()
 
     def get_all_quotes(self):
+        print("downloading all stock quotes")
         quotes = _ts.get_today_all()[["code", "name", "open", "turnoverratio", "per"]]
         stock_info = _pro_ts.query("stock_basic")[
             ["ts_code", "symbol", "industry", "market"]
@@ -80,8 +82,8 @@ class ts_helper:
                     )
                     df = pd.concat((df, tmp), axis=0)
                     break
-                except ReadTimeoutError:
-                    print("daily bar request timed out")
+                except (ReadTimeoutError, ConnectionError) as e:
+                    print("daily bar request error, retrying...", e)
 
             print(f"{round(end/len(ts_codes) * 100, 2)}% fetched")
 
