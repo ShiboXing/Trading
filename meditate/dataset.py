@@ -9,5 +9,8 @@ class dataset:
         self.b_size = batch_size
 
     def build(self, domain: Callable):
+        """
+        TODO: load the data from disk by batches and process them with domain func
+        """
         self.mat = pd.read_pickle(_stock_list_pth)
-        pass
+        self.mat = domain(self.mat)
