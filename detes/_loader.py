@@ -16,6 +16,8 @@ class fetcher:
         if self.ch.cache_is_expired(_dtype):
             hist_data = self.th.get_stock_hist(self.quotes["ts_code"], self.train_days)
             self.ch.cache_data(hist_data, _dtype)
+        else:
+            print("hist data is not expired")
 
     def update_quotes(self):
         _dtype = "quotes"
