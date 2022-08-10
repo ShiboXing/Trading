@@ -18,6 +18,9 @@ class cache_helper:
         }
 
     def __pickle_load_all(self, pth):
+        if not os.path.exists(pth):
+            print(f"{pth} doesn't exist, returning empty")
+            return None
         with open(pth, "rb") as f:
             while True:
                 try:
@@ -43,6 +46,8 @@ class cache_helper:
         """
 
         ts = self.__pickle_load_all(_timestamp_pth)
+        if ts == None:
+            ts = {}
         ts[pth] = dt.now()
         self.__pickle_dump_all(ts, _timestamp_pth)
         print(f"{pth} timestamp cached")
