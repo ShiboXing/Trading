@@ -10,4 +10,3 @@ if __name__ == "__main__":
     _ch = ch()
     hist = _ch.load_data("hist")
     sig5 = day_streak(hist, 5, False)
-
