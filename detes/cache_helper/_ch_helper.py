@@ -3,8 +3,14 @@ import subprocess as sp
 import os
 import pickle
 from datetime import datetime as dt
-from . import _CACHE_PATH, _hist_data_pth, _stock_list_pth, _quotes_pth, _timestamp_pth
-
+from . import (
+    _CACHE_PATH,
+    _hist_data_pth,
+    _stock_list_pth,
+    _quotes_pth,
+    _timestamp_pth,
+    _train_pth,
+)
 
 class cache_helper:
     def __init__(self, cache_pth: str = _CACHE_PATH):
@@ -15,6 +21,7 @@ class cache_helper:
             "hist": _hist_data_pth,
             "list": _stock_list_pth,
             "quotes": _quotes_pth,
+            "train": _train_pth,
         }
 
     def __pickle_load_all(self, pth):
