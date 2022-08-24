@@ -4,7 +4,7 @@ import os
 import pickle
 from datetime import datetime as dt
 from . import (
-    _CACHE_PATH,
+    _TRAIN_PATH,
     _hist_data_pth,
     _stock_list_pth,
     _quotes_pth,
@@ -13,9 +13,9 @@ from . import (
 )
 
 class cache_helper:
-    def __init__(self, cache_pth: str = _CACHE_PATH):
-        if not os.path.exists(cache_pth):
-            sp.run(f"mkdir -p {cache_pth}", check=True, shell=True)
+    def __init__(self):
+        if not os.path.exists(_TRAIN_PATH):
+            sp.run(f"mkdir -p {_TRAIN_PATH}", check=True, shell=True)
 
         self.ts_type = {
             "hist": _hist_data_pth,
