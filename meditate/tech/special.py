@@ -91,3 +91,13 @@ def day_streak(df: DF, days, is_up_streak=False):
     print(f"{days} day_streak calculation took {(end_secs - start_secs) / 60} minutes")
     
     return signals
+
+def day_streak_1up(df: DF, days):
+    """
+    convert day streaks of [days] long to [days+1] 
+    """
+    df = df.sort_values(["ts_code", "trade_date"])
+    new_streaks = DF(df.columns)
+    for i in range(1, len(df)):
+        if df.iloc[i]["ts_code"] == df.iloc[i-1]["ts_code"]: # TODO: implement
+            
