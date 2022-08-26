@@ -84,7 +84,7 @@ class ts_helper:
                     )
                     df = pd.concat((df, tmp), axis=0)
                     break
-                except (ReadTimeoutError, ConnectionError, socket.timeout) as e:
+                except (ReadTimeoutError, ConnectionError,  OSError) as e:
                     print("daily bar request error, retrying...", e)
 
             print(f"{round(end/len(ts_codes) * 100, 2)}% fetched")
