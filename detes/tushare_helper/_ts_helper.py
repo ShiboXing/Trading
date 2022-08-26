@@ -2,11 +2,13 @@
 
 import tushare as _ts
 import pandas as pd
-from datetime import date, timedelta
+import socket
+from datetime import date, timedelta, datetime
 
 from . import _TOKEN, _hs300_url, _zz500_url
 from urllib3.exceptions import ReadTimeoutError
 from requests.exceptions import ConnectionError
+
 
 
 class ts_helper:
@@ -82,7 +84,7 @@ class ts_helper:
                     )
                     df = pd.concat((df, tmp), axis=0)
                     break
-                except (ReadTimeoutError, ConnectionError) as e:
+                except (ReadTimeoutError, ConnectionError, socket.timeout) as e:
                     print("daily bar request error, retrying...", e)
 
             print(f"{round(end/len(ts_codes) * 100, 2)}% fetched")
@@ -106,6 +108,9 @@ class ts_helper:
 
     def get_calendar(self, N=732):
         return _pro_ts.trade_cal(exchange="")
+    
+    def trade_is_on(self, ex=""):
+        dt = datetime.now()
 
     def __today(self):
         """
