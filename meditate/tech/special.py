@@ -29,16 +29,14 @@ def __code_day_streak(data):
     signal is valid is the final state is reached
     """
     state = 0
-    signals = DF(cols)
+    signals = DF(columns=["ts_code", "trade_date"])
     window = deque([])  # cache for finite state machine
-    cols = {} # signal results
+    cols = {}  # signal results
     for i in range(days):
         window.append(df.iloc[i][features])
         if len(window) > 1:
             state = (
-                min(state + 1, days)
-                if comp(window[-1].close, window[-2].close)
-                else 0
+                min(state + 1, days) if comp(window[-1].close, window[-2].close) else 0
             )
 
     for row in range(days, len(df)):
@@ -47,11 +45,7 @@ def __code_day_streak(data):
         """
         window.popleft()
         window.append(df.iloc[row][features])
-        state = (
-            min(state + 1, days)
-            if comp(window[-1].close, window[-2].close)
-            else 0
-        )
+        state = min(state + 1, days) if comp(window[-1].close, window[-2].close) else 0
 
         assert days >= state >= 0
 
@@ -59,15 +53,13 @@ def __code_day_streak(data):
         collect signals
         """
         if state == days:
-            for i in range(len(window)):
-                for f in features:
-                    cols[f"{f}{i}"] = [window[i][f]]
-            cols["ts_code"] = df.iloc[row].ts_code
-            cols["trade_date"] = df.iloc[row].trade_date
+            cols["ts_code"] = [df.iloc[row].ts_code]
+            cols["trade_date"] = [df.iloc[row].trade_date]
             tmp_df = DF(cols)
             signals = pd.concat((signals, tmp_df))
-        
+
     return signals
+
 
 def day_streak(df: DF, days, is_up_streak=False):
     start_secs = time()
@@ -79,8 +71,12 @@ def day_streak(df: DF, days, is_up_streak=False):
     codes = set(df.ts_code)
 
     # calculate the streaks in multi-processes
-    with Pool(os.cpu_count()-1) as p:
-        signal_lst = p.map(__code_day_streak, [(df[df.ts_code == c], days, is_up_streak) for c in codes])
+    with Pool(os.cpu_count() - 1) as p:
+        signal_lst = p.map(
+            __code_day_streak,
+            ((df[df.ts_code == c], days, is_up_streak) for c in codes),
+            chunksize=10,
+        )
 
     signals = pd.concat(signal_lst)
     signals = signals.sort_values(["ts_code", "trade_date"])
@@ -89,15 +85,17 @@ def day_streak(df: DF, days, is_up_streak=False):
     )  # reset index for better lookup runtime (unique and sorted)
     end_secs = time()
     print(f"{days} day_streak calculation took {(end_secs - start_secs) / 60} minutes")
-    
+
     return signals
+
 
 def day_streak_1up(df: DF, days):
     """
-    convert day streaks of [days] long to [days+1] 
+    convert day streaks of [days] long to [days+1]
     """
     df = df.sort_values(["ts_code", "trade_date"])
     new_streaks = DF(df.columns)
     for i in range(1, len(df)):
-        if df.iloc[i]["ts_code"] == df.iloc[i-1]["ts_code"]: # TODO: implement
-            
+        if df.iloc[i]["ts_code"] == df.iloc[i - 1]["ts_code"]:
+            pass
+            # TODO: implement
