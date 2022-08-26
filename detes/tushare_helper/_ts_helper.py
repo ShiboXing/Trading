@@ -103,3 +103,18 @@ class ts_helper:
             df = pd.concat((df, tmp), axis=0)
 
         return df
+
+    def get_calendar(self, N=732):
+        return _pro_ts.trade_cal(exchange="")
+
+    def __today(self):
+        """
+        get today's date string
+        """
+        return date.today().strftime("%Y%m%d")
+
+    def __Nday(self, N: int):
+        """
+        get minus N day's date string
+        """
+        return (date.today() - timedelta(days=N)).strftime("%Y%m%d")
