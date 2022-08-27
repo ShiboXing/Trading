@@ -108,9 +108,6 @@ class ts_helper:
 
     def get_calendar(self, N=732):
         return _pro_ts.trade_cal(exchange="")
-    
-    def trade_is_on(self, ex=""):
-        dt = datetime.now()
 
     def __today(self):
         """
