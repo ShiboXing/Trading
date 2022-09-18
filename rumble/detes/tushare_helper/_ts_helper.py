@@ -10,7 +10,6 @@ from urllib3.exceptions import ReadTimeoutError
 from requests.exceptions import ConnectionError
 
 
-
 class ts_helper:
     def __init__(self):
         global _ts
@@ -58,10 +57,6 @@ class ts_helper:
         return stock_list
 
     def get_stock_hist(self, ts_codes: list, N):
-        """
-        get the daily bars of a stock starting from today to N days back
-        TODO: use multithreading in c++
-        """
         print("downloading stock hist...")
         df = pd.DataFrame()
         end_date = date.today()
@@ -84,7 +79,7 @@ class ts_helper:
                     )
                     df = pd.concat((df, tmp), axis=0)
                     break
-                except (ReadTimeoutError, ConnectionError,  OSError) as e:
+                except (ReadTimeoutError, ConnectionError, OSError) as e:
                     print("daily bar request error, retrying...", e)
 
             print(f"{round(end/len(ts_codes) * 100, 2)}% fetched")
