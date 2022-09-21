@@ -15,13 +15,14 @@ struct custom_obj
 PyObject *day_streak(PyObject *self, PyObject *df)
 {
     custom_obj *obj;
-    PyObject res;
+    PyObject *res;
 
-    if (!PyArg_ParseTuple(df, "O", &obj))
+    if (!PyArg_ParseTuple(df, "O", &res))
         return NULL;
-    cout << "object: " << obj->x << "  " << obj->y << "  " << obj->z << endl;
+    cout << "obj: " << (char *)res << endl;
+    // cout << "object: " << obj->x << "  " << obj->y << "  " << obj->z << endl;
 
-    return &res;
+    return res;
 }
 
 static PyMethodDef tech_methods[] = {
@@ -30,7 +31,7 @@ static PyMethodDef tech_methods[] = {
 
 static PyModuleDef tech_module = {
     PyModuleDef_HEAD_INIT,
-    "tech",
+    "tech_cpp",
     "technical analysis signals",
     0,
     tech_methods};
