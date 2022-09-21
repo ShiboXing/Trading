@@ -6,15 +6,22 @@
 
 using namespace std;
 
+struct custom_obj
+{
+    bool a;
+    char x, y, z;
+};
+
 PyObject *day_streak(PyObject *self, PyObject *df)
 {
-    const char *command;
+    custom_obj *obj;
+    PyObject res;
 
-    if (!PyArg_ParseTuple(df, "s", &command))
+    if (!PyArg_ParseTuple(df, "O", &obj))
         return NULL;
-    cout << "command: " << string(command) << endl;
+    cout << "object: " << obj->x << "  " << obj->y << "  " << obj->z << endl;
 
-    return 0;
+    return &res;
 }
 
 static PyMethodDef tech_methods[] = {
@@ -32,3 +39,9 @@ PyMODINIT_FUNC PyInit_tech_cpp()
 {
     return PyModule_Create(&tech_module);
 }
+
+// class obj:
+//     def __init__(self):
+//         self.a = 0.123
+//         self.b = 1
+//         self.c = 'f'
