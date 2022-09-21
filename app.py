@@ -1,3 +1,13 @@
+import sys
+
+i, j = 0, len(sys.path) - 1
+while i < j:
+    if "Trading" in sys.path[i]:
+        sys.path[i], sys.path[j] = sys.path[j], sys.path[i]
+        i, j = i + 1, j - 1
+    else:
+        i += 1
+
 import time, os
 from rumble.detes import fetcher
 from rumble.detes.cache_helper import cache_helper as ch
