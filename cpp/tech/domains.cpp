@@ -1,28 +1,39 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <arrayobject.h>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 using namespace std;
 
-struct custom_obj
+static PyObject *day_streak(PyObject *self, PyObject *arr)
 {
-    bool a;
-    char x, y, z;
-};
-
-PyObject *day_streak(PyObject *self, PyObject *df)
-{
-    custom_obj *obj;
-    PyObject *res;
-
-    if (!PyArg_ParseTuple(df, "O", &res))
+    // Parse numpy arrays into pyobjects
+    PyArrayObject *_strs, *_nums;
+    cout << " day streak before" << endl;
+    if (!PyArg_ParseTuple(arr, "OO", &_strs, &_nums))
+    {
+        cout << "parse tuple failed";
+        throw invalid_argument("parse tuple failed");
         return NULL;
-    cout << "obj: " << (char *)res << endl;
-    // cout << "object: " << obj->x << "  " << obj->y << "  " << obj->z << endl;
+    }
 
-    return res;
+    cout << "day streak middle" << endl;
+
+    int r = PyArray_DIM(_nums, 0), c = PyArray_DIM(_nums, 1);
+    int r_strd = _nums->strides[0], c_strd = _nums->strides[1];
+    cout << "r, c: " << r << "  " << c << endl;
+    cout << "dim0, 1 strides: " << r_strd << "  " << c_strd << endl;
+    double *arr2d0 = (double *)PyArray_DATA(_nums);
+    cout << "arr2d0 dim0: " << arr2d0[0] << "  " << arr2d0[1] << "  " << arr2d0[2] << endl;
+    cout << "arr2d0 dim1: " << arr2d0[c] << "  " << arr2d0[c + 1] << "  " << arr2d0[c + 2] << endl;
+
+    // cout << "arr2d0 dim0: " << arr2d0[0] << "  " << (double)*(arr2d0 + c_strd) << "  " << (double)*(arr2d0 + 2 * c_strd) << endl;
+    // cout << "arr2d0 dim1: " << arr2d0[0] << "  " << (double)*(arr2d0 + r_strd) << "  " << (double)*(arr2d0 + 2 * r_strd) << endl;
+
+    return (PyObject *)_nums;
 }
 
 static PyMethodDef tech_methods[] = {
@@ -31,12 +42,12 @@ static PyMethodDef tech_methods[] = {
 
 static PyModuleDef tech_module = {
     PyModuleDef_HEAD_INIT,
-    "tech_cpp",
+    "rumble_cpp",
     "technical analysis signals",
     0,
     tech_methods};
 
-PyMODINIT_FUNC PyInit_tech_cpp()
+PyMODINIT_FUNC PyInit_rumble_cpp()
 {
     return PyModule_Create(&tech_module);
 }

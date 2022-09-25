@@ -6,8 +6,9 @@ setup(
     packages=find_packages("."),
     ext_modules=[
         Extension(
-            "rumble.tech_cpp",
+            "rumble_cpp",
             sources=["cpp/tech/domains.cpp"],
+            extra_compile_args=["-std=c++20"],
         )
     ],
 )
