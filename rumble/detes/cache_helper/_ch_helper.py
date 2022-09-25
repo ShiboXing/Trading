@@ -1,8 +1,10 @@
+from calendar import calendar
 import pandas as pd
 import subprocess as sp
 import os
 import pickle
-from datetime import datetime as dt
+from datetime import datetime as dt, time
+from ..tushare_helper import ts_helper as th
 from . import (
     _TRAIN_PATH,
     _hist_data_pth,
@@ -11,6 +13,7 @@ from . import (
     _timestamp_pth,
     _train_pth,
 )
+
 
 class cache_helper:
     def __init__(self):
@@ -23,6 +26,13 @@ class cache_helper:
             "quotes": _quotes_pth,
             "train": _train_pth,
         }
+
+        # initialize tushare helper
+        self.th = th()
+
+        # initialize trade calendar
+        self.calendar = self.th.get_calendar()
+        self.calendar = self.calendar.set_index("cal_date").sort_index()
 
     def __pickle_load_all(self, pth):
         if not os.path.exists(pth):
@@ -43,9 +53,14 @@ class cache_helper:
         write_pth = self.ts_type[type]
         ts = self.__pickle_load_all(_timestamp_pth)
 
-        if write_pth not in ts or ts[write_pth].date() < dt.now().date():
+        if write_pth not in ts:
             return True
-        return False
+        if type == "quotes":
+            return self.__trade_is_on(timestamp=ts[write_pth]) or self.__trade_is_on(
+                timestamp=dt.now()
+            )
+        else:
+            return ts[write_pth].date() < dt.now().date()
 
     def cache_timestamp(self, pth):
         """
@@ -70,3 +85,30 @@ class cache_helper:
         df = pd.read_pickle(read_pth)  # loads the entire dataframe
         print(f"{type} loaded from cache: ", df.values.shape)
         return df
+
+    def __trade_is_on(self, timestamp="now", ex=None) -> bool:
+        """
+        Trading Windows:
+
+        # NYSE, NASDAQ: 09:30 - 16:00
+        # SZSE, SHE: 09:30 - 11:30, 13:00 - 15:00
+        # SEHK: 09:30 - 12:00, 13:00 - 16:00
+        """
+        timezones = {
+            "US/Eastern": "NYSE",
+            "Asia/Shanghai": "SHE",
+            None: "SHE",
+        }
+        windows = {
+            "NYSE": (time(9, 30, 0), time(16, 00, 0)),
+            "SHE": (time(9, 30, 0), time(15, 0)),
+            "SEHK": (time(9, 30, 0), time(16, 0)),
+        }
+        timestamp = dt.now() if timestamp == "now" else timestamp
+        ex = ex or timezones[os.environ["TZ"]]
+        if timestamp.date() < dt.now().date():
+            return True
+        elif self.calendar.loc[dt.now().date().strftime("%Y%m%d")].is_open == 0:
+            return False
+        start, end = windows[ex]
+        return start < timestamp.time() < end
