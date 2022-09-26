@@ -30,9 +30,7 @@ if __name__ == "__main__":
 
     _ch = ch()
     hist = _ch.load_data("hist")
-    _strs = hist.iloc[:, :2].to_numpy()
-    _nums = np.array(hist.iloc[:, 2:].to_numpy().tolist()).astype(np.double)
-    print("nums: ", _nums[:3])
-    print(_nums.shape)
-    rc.day_streak(_strs, _nums)
+    print("nums: ", hist[:3])
+    # print(_strs.shape)
+    rc.day_streak(hist.to_numpy().tolist())
     # tc.day_streak((False, 0.123, 1, "f"))

@@ -11,29 +11,38 @@ using namespace std;
 static PyObject *day_streak(PyObject *self, PyObject *arr)
 {
     // Parse numpy arrays into pyobjects
-    PyArrayObject *_strs, *_nums;
-    cout << " day streak before" << endl;
-    if (!PyArg_ParseTuple(arr, "OO", &_strs, &_nums))
+    PyArrayObject *_hist;
+    if (!PyArg_ParseTuple(arr, "O", &_hist))
     {
-        cout << "parse tuple failed";
         throw invalid_argument("parse tuple failed");
         return NULL;
     }
 
-    cout << "day streak middle" << endl;
+    int num_lines = PyList_Size((PyObject *)_hist);
+    cout << "num lines: " << num_lines << endl;
+    PyObject *line0 = PyList_GetItem((PyObject *)_hist, 0);
+    int num_elems = PyList_Size(line0);
+    cout << "line0 num elems: " << num_elems << endl;
+    cout << "print line 0: " << endl;
+    for (int i = 0; i < PyList_Size(line0); i++)
+    {
+        auto tmp_obj = PyList_GetItem(line0, i);
+        if ((string)tmp_obj->ob_type->tp_name == "float")
+        {
+            float f = 0;
+            PyArg_Parse(PyList_GetItem(line0, i), "f", &f);
+            cout << f << " ";
+        }
+        else if ((string)tmp_obj->ob_type->tp_name == "str")
+        {
+            const char *s = 0;
+            PyArg_Parse(PyList_GetItem(line0, i), "s", &s);
+            cout << s << " ";
+        }
+        // _Py_DECREF(tmp_obj);
+    }
 
-    int r = PyArray_DIM(_nums, 0), c = PyArray_DIM(_nums, 1);
-    int r_strd = _nums->strides[0], c_strd = _nums->strides[1];
-    cout << "r, c: " << r << "  " << c << endl;
-    cout << "dim0, 1 strides: " << r_strd << "  " << c_strd << endl;
-    double *arr2d0 = (double *)PyArray_DATA(_nums);
-    cout << "arr2d0 dim0: " << arr2d0[0] << "  " << arr2d0[1] << "  " << arr2d0[2] << endl;
-    cout << "arr2d0 dim1: " << arr2d0[c] << "  " << arr2d0[c + 1] << "  " << arr2d0[c + 2] << endl;
-
-    // cout << "arr2d0 dim0: " << arr2d0[0] << "  " << (double)*(arr2d0 + c_strd) << "  " << (double)*(arr2d0 + 2 * c_strd) << endl;
-    // cout << "arr2d0 dim1: " << arr2d0[0] << "  " << (double)*(arr2d0 + r_strd) << "  " << (double)*(arr2d0 + 2 * r_strd) << endl;
-
-    return (PyObject *)_nums;
+    return (PyObject *)_hist;
 }
 
 static PyMethodDef tech_methods[] = {
