@@ -19,7 +19,14 @@ class ts_helper:
 
     def get_all_quotes(self):
         print("downloading all stock quotes")
-        quotes = _ts.get_today_all()[["code", "name", "open", "turnoverratio", "per"]]
+        while True:
+            try:
+                quotes = _ts.get_today_all()[
+                    ["code", "name", "open", "turnoverratio", "per"]
+                ]
+                break
+            except TimeoutError:
+                pass
         stock_info = _pro_ts.query("stock_basic")[
             ["ts_code", "symbol", "industry", "market"]
         ]  # get all listed stocks' info
