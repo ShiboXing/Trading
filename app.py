@@ -29,7 +29,7 @@ if __name__ == "__main__":
     ft.fetch_all_hist()
 
     _ch = ch()
-    hist = _ch.load_data("hist")
+    hist = _ch.load_data("hist")[["ts_code", "trade_date", "open", "close"]]
     print("nums: ", hist[:3])
     # print(_strs.shape)
     rc.day_streak(hist.to_numpy().tolist())

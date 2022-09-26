@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include "sample_point.h"
 
 using namespace std;
 
@@ -18,27 +19,13 @@ static PyObject *day_streak(PyObject *self, PyObject *arr)
         return NULL;
     }
 
-    int num_lines = PyList_Size((PyObject *)_hist);
-    cout << "num lines: " << num_lines << endl;
-    PyObject *line0 = PyList_GetItem((PyObject *)_hist, 0);
-    int num_elems = PyList_Size(line0);
-    cout << "line0 num elems: " << num_elems << endl;
-    cout << "print line 0: " << endl;
-    for (int i = 0; i < PyList_Size(line0); i++)
+    for (int i = 0; i < PyList_Size((PyObject *)_hist); i++)
     {
-        auto tmp_obj = PyList_GetItem(line0, i);
-        if ((string)tmp_obj->ob_type->tp_name == "float")
-        {
-            float f = 0;
-            PyArg_Parse(PyList_GetItem(line0, i), "f", &f);
-            cout << f << " ";
-        }
-        else if ((string)tmp_obj->ob_type->tp_name == "str")
-        {
-            const char *s = 0;
-            PyArg_Parse(PyList_GetItem(line0, i), "s", &s);
-            cout << s << " ";
-        }
+        PyObject *tmp_obj = PyList_GetItem((PyObject *)_hist, i);
+        Sample s(tmp_obj);
+        s.print();
+        if (i == 100)
+            break;
         // _Py_DECREF(tmp_obj);
     }
 
@@ -60,9 +47,3 @@ PyMODINIT_FUNC PyInit_rumble_cpp()
 {
     return PyModule_Create(&tech_module);
 }
-
-// class obj:
-//     def __init__(self):
-//         self.a = 0.123
-//         self.b = 1
-//         self.c = 'f'
