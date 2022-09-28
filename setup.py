@@ -7,7 +7,10 @@ setup(
     ext_modules=[
         Extension(
             "rumble_cpp",
-            sources=["cpp/tech/domains.cpp"],
+            sources=[
+                "cpp/tech/domains.cpp",
+                "cpp/tech/algo.cpp",
+            ],
             extra_compile_args=["-std=c++20"],
         )
     ],

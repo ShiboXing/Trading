@@ -3,7 +3,7 @@
 #include <arrayobject.h>
 #include <iostream>
 #include <string>
-#include <vector>
+#include <queue>
 #include <stdexcept>
 #include "sample_point.h"
 
@@ -13,6 +13,12 @@ static PyObject *day_streak(PyObject *self, PyObject *arr)
 {
     // Parse numpy arrays into pyobjects
     PyArrayObject *_hist;
+    auto sample_less = [](Sample &l, Sample &r)
+    {
+        return l > r;
+    };
+    priority_queue<Sample, vector<Sample>, decltype(sample_less)> pq(sample_less);
+
     if (!PyArg_ParseTuple(arr, "O", &_hist))
     {
         throw invalid_argument("parse tuple failed");
@@ -23,12 +29,14 @@ static PyObject *day_streak(PyObject *self, PyObject *arr)
     {
         PyObject *tmp_obj = PyList_GetItem((PyObject *)_hist, i);
         Sample s(tmp_obj);
-        s.print();
-        if (i == 100)
-            break;
+        pq.push(s);
+        // if (i == 100)
+        //     break;
         // _Py_DECREF(tmp_obj);
     }
-
+    for (cout << "sample queue: "; !pq.empty(); pq.pop())
+        pq.top().print();
+    cout << endl;
     return (PyObject *)_hist;
 }
 
