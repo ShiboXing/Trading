@@ -20,8 +20,8 @@ import rumble_cpp as rc
 
 if __name__ == "__main__":
 
-    os.environ["TZ"] = "Asia/Shanghai"
-    # os.environ["TZ"] = "US/Eastern"
+    # os.environ["TZ"] = "Asia/Shanghai"
+    os.environ["TZ"] = "US/Eastern"
     time.tzset()
 
     ft = fetcher(400)
@@ -30,7 +30,8 @@ if __name__ == "__main__":
 
     _ch = ch()
     hist = _ch.load_data("hist")[["ts_code", "trade_date", "open", "close"]]
-    print("nums: ", hist[:3])
+    print("nums: ", hist[:-3])
     # print(_strs.shape)
-    rc.day_streak(hist.to_numpy().tolist())
+    obj = rc.day_streak(hist.to_numpy().tolist(), 5, True)
+    print("returned obj: ", obj)
     # tc.day_streak((False, 0.123, 1, "f"))

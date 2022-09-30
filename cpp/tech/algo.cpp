@@ -1,4 +1,4 @@
-#include "sample_point.h"
+#include "tech.h"
 
 Sample::Sample(PyObject *df_row)
 {
@@ -25,4 +25,9 @@ bool Sample::operator>(Sample &rhs)
         return ts_code > rhs.ts_code;
     else
         return trade_date > rhs.trade_date;
+}
+
+int get_streaks(vector<Sample> data, int streak_len, bool is_up)
+{
+    cout << "data len, len, is_up: " << data.size() << " " << streak_len << " " << is_up << endl;
 }
