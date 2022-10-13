@@ -107,6 +107,9 @@ class cache_helper:
         timestamp = dt.now() if timestamp == "now" else timestamp
         ex = ex or timezones[os.environ["TZ"]]
         if timestamp.date() < dt.now().date():
+            """
+            TODO: hacky logic, move this to caller
+            """
             return True
         elif self.calendar.loc[dt.now().date().strftime("%Y%m%d")].is_open == 0:
             return False

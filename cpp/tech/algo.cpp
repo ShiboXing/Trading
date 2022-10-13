@@ -1,5 +1,7 @@
 #include "tech.h"
 
+using namespace std;
+
 Sample::Sample(PyObject *df_row)
 {
     char *ts_code_tmp, *trade_date_tmp;
@@ -30,4 +32,5 @@ bool Sample::operator>(Sample &rhs)
 int get_streaks(vector<Sample> data, int streak_len, bool is_up)
 {
     cout << "data len, len, is_up: " << data.size() << " " << streak_len << " " << is_up << endl;
+    return 0;
 }
