@@ -20,8 +20,8 @@ import rumble_cpp as rc
 
 if __name__ == "__main__":
 
-    os.environ["TZ"] = "Asia/Shanghai"
-    # os.environ["TZ"] = "US/Eastern"
+    # os.environ["TZ"] = "Asia/Shanghai"
+    os.environ["TZ"] = "US/Eastern"
     time.tzset()
 
     ft = fetcher(400)

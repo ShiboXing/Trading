@@ -52,33 +52,29 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
          << "is_up streak: " << is_up << endl;
     int num_procs = thread::hardware_concurrency();
     shared_memory_object::remove("shmem_streak");
-    // typedef boost::interprocess::vector<int, shmem_allocator> shmem_vec;
-    managed_shared_memory shm_obj(open_or_create, "shmem_streak", pq.size() * 0.3 * 16 * 4);
+    managed_shared_memory shm(open_or_create, "shmem_streak", 10000);
     typedef boost::interprocess::allocator<int, managed_shared_memory::segment_manager> shmem_allocator;
     typedef boost::interprocess::vector<int, shmem_allocator> shmem_vector;
-    const shmem_allocator vec_alloc(shm_obj.get_segment_manager());
-    shmem_vector *res_vec = shm_obj.construct<shmem_vector>("res_vec")(vec_alloc);
-    // auto res_pq_ptr = shm_obj.construct<priority_queue<Sample, vector<Sample>, decltype(sample_less)>>("res_pq")(res_pq);
-    // priority_queue<int> test_pq;
-    // auto test_pq_ptr = shm_obj.construct<priority_queue<int>>("test_pq")(test_pq);
+    const shmem_allocator vec_alloc(shm.get_segment_manager());
+    shmem_vector *res_vec = shm.construct<shmem_vector>("res_vec")(vec_alloc);
 
-    for (int i = 0, pid; i < num_procs - 1; i++)
+    for (int i = 0, pid; i < num_procs; i++)
     {
         if ((pid = fork()) == 0)
         {
-            auto test_pq_ptr = shm_obj.find<shmem_vector>("res_vec").first;
+            auto test_pq_ptr = shm.find<shmem_vector>("res_vec").first;
             cout << "pushing " << i << endl;
-            test_pq_ptr->push_back(i);
+            int *val = shm.construct<int>("Integer" + i)(i);
+            test_pq_ptr->push_back(*val);
             exit(0);
         }
         else
             cout << "pid: " << pid << " created" << endl;
-    }
-    auto test_pq_ptr = shm_obj.find<shmem_vector>("res_vec").first;
-    for (cout << "dump res pq: " << endl; test_pq_ptr->size(); test_pq_ptr->pop_back())
-    {
-        cout << (*test_pq_ptr)[0] << endl;
-    }
+    }   
+    while(wait(NULL)>0);
+    auto p_vec = shm.find<shmem_vector>("res_vec").first;
+    for (cout << "test res pq: " << endl; p_vec->size(); p_vec->pop_back())
+        cout << p_vec->back() << endl;
 
     return MyPyLong_FromInt64(0);
 }
