@@ -13,7 +13,8 @@
 #include <boost/interprocess/containers/string.hpp>
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
-// #include <boost/interprocess/creation_tags.hpp>
+#include <boost/interprocess/sync/interprocess_mutex.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
 #include "tech.h"
 
 using namespace std;
@@ -65,16 +66,19 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
     bip::allocator<str, msm::segment_manager> str_altr(shm.get_segment_manager());
     typedef vector<str, decltype(str_altr)> vec;
     shm.construct<vector<str, decltype(str_altr)>>("res_vec")(str_altr);
+    bip::interprocess_mutex *mtx = shm.construct<bip::interprocess_mutex>("mtx")();
 
     for (int i = 0, pid; i < num_procs; i++)
     {
         if ((pid = fork()) == 0)
         {
+            mtx->lock();
             auto child_res_vec = shm.find<vec>("res_vec").first;
-            cout << "pushing " << i << endl;
+            cout << " pushing " << i << "shared vec addr: " << child_res_vec << endl; //<< " lock: " << lock << endl; //<< lock << endl;
             str tmp_str(chr_altr);
             tmp_str = to_string(i).c_str();
             child_res_vec->push_back(tmp_str);
+            mtx->unlock();
             exit(0);
         }
         else
@@ -83,8 +87,9 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
     while (wait(NULL) > 0)
         ;
     auto child_res_vec = shm.find<vec>("res_vec").first;
-    for (cout << "test res pq: " << endl; child_res_vec->size(); child_res_vec->pop_back())
-        cout << child_res_vec->back() << endl;
+    cout << "test res pq: " << endl;
+    for (auto &elem : *child_res_vec)
+        cout << elem << endl;
 
     return MyPyLong_FromInt64(0);
 }
