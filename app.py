@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     _ch = ch()
     hist = _ch.load_data("hist")[["ts_code", "trade_date", "open", "close"]]
-    print("nums: ", hist[:-3])
+    print("nums: ", hist.shape)
     # print(_strs.shape)
     obj = rc.day_streak(hist.to_numpy().tolist(), 5, True)
     print("returned obj: ", obj)

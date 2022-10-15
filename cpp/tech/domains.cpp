@@ -10,16 +10,19 @@
 #include <boost/version.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/containers/map.hpp>
+#include <boost/interprocess/containers/string.hpp>
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 // #include <boost/interprocess/creation_tags.hpp>
 #include "tech.h"
 
 using namespace std;
-using namespace boost::interprocess;
 
 static PyObject *day_streak(PyObject *self, PyObject *args)
 {
+    namespace bip = boost::interprocess;
+    typedef bip::managed_shared_memory msm;
+
     // Parse numpy arrays into pyobjects
     PyArrayObject *_hist;
     int streak_len, is_up;
@@ -48,33 +51,40 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
     //     pq.top().print();
     // _Py_DECREF((PyObject *)_hist);
     cout << "num of concurrent threads: " << thread::hardware_concurrency() << endl;
-    cout << "streak length: " << streak_len << "  "
-         << "is_up streak: " << is_up << endl;
+    cout << "total samples: " << pq.size() << endl;
+
     int num_procs = thread::hardware_concurrency();
-    shared_memory_object::remove("shmem_streak");
-    managed_shared_memory shm(open_or_create, "shmem_streak", 10000);
-    typedef boost::interprocess::allocator<int, managed_shared_memory::segment_manager> shmem_allocator;
-    typedef boost::interprocess::vector<int, shmem_allocator> shmem_vector;
-    const shmem_allocator vec_alloc(shm.get_segment_manager());
-    shmem_vector *res_vec = shm.construct<shmem_vector>("res_vec")(vec_alloc);
+
+    // calculate the streaks using boost shared memory containers
+    if (pq.size() >= 10000000)
+        cout << "[warning] memory usage > 100MB" << endl;
+    bip::shared_memory_object::remove("shmem_streak");
+    bip::managed_shared_memory shm(bip::open_or_create, "shmem_streak", pq.size() * 10);
+    bip::allocator<char, msm::segment_manager> chr_altr(shm.get_segment_manager());
+    typedef bip::basic_string<char, char_traits<char>, decltype(chr_altr)> str;
+    bip::allocator<str, msm::segment_manager> str_altr(shm.get_segment_manager());
+    typedef vector<str, decltype(str_altr)> vec;
+    shm.construct<vector<str, decltype(str_altr)>>("res_vec")(str_altr);
 
     for (int i = 0, pid; i < num_procs; i++)
     {
         if ((pid = fork()) == 0)
         {
-            auto test_pq_ptr = shm.find<shmem_vector>("res_vec").first;
+            auto child_res_vec = shm.find<vec>("res_vec").first;
             cout << "pushing " << i << endl;
-            int *val = shm.construct<int>("Integer" + i)(i);
-            test_pq_ptr->push_back(*val);
+            str tmp_str(chr_altr);
+            tmp_str = to_string(i).c_str();
+            child_res_vec->push_back(tmp_str);
             exit(0);
         }
         else
             cout << "pid: " << pid << " created" << endl;
-    }   
-    while(wait(NULL)>0);
-    auto p_vec = shm.find<shmem_vector>("res_vec").first;
-    for (cout << "test res pq: " << endl; p_vec->size(); p_vec->pop_back())
-        cout << p_vec->back() << endl;
+    }
+    while (wait(NULL) > 0)
+        ;
+    auto child_res_vec = shm.find<vec>("res_vec").first;
+    for (cout << "test res pq: " << endl; child_res_vec->size(); child_res_vec->pop_back())
+        cout << child_res_vec->back() << endl;
 
     return MyPyLong_FromInt64(0);
 }
