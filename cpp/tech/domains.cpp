@@ -7,22 +7,12 @@
 #include <thread>
 #include <stdexcept>
 #include <sys/mman.h>
-#include <boost/version.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/containers/map.hpp>
-#include <boost/interprocess/containers/string.hpp>
-#include <boost/interprocess/containers/vector.hpp>
-#include <boost/interprocess/allocators/allocator.hpp>
-#include <boost/interprocess/sync/interprocess_mutex.hpp>
-#include <boost/interprocess/sync/scoped_lock.hpp>
 #include "tech.h"
 
 using namespace std;
 
 static PyObject *day_streak(PyObject *self, PyObject *args)
 {
-    namespace bip = boost::interprocess;
-    typedef bip::managed_shared_memory msm;
 
     // Parse numpy arrays into pyobjects
     PyArrayObject *_hist;
@@ -73,7 +63,7 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
 
     for (int i = 0, pid; i < num_procs; i++)
     {
-        // parent assigns samples to a child proportionately for calculation
+        /* parent assigns samples to a child proportionately for calculation */
         if (pq.empty())
             break;
         vector<Sample> child_data_vec;
@@ -91,6 +81,7 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
             cnt++;
         }
 
+        /* initiate child processes */
         if ((pid = fork()) == 0)
         {
             mtx->lock();
@@ -98,6 +89,7 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
             str tmp_str(chr_altr);
             tmp_str = to_string(i).c_str();
             child_res_vec->push_back(tmp_str);
+            // get_streaks(child_data_vec, streak_len, is_up == 1, msm);
             mtx->unlock();
             exit(0);
         }
