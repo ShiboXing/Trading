@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 
+from urllib.error import URLError
 import tushare as _ts
 import pandas as pd
 import socket
@@ -26,7 +27,12 @@ class ts_helper:
                 ]
                 break
             except TimeoutError:
+                print("quotes timeout: retrying...")
                 pass
+            except URLError:
+                print("quotes urlerror: retrying...")
+                pass
+
         stock_info = _pro_ts.query("stock_basic")[
             ["ts_code", "symbol", "industry", "market"]
         ]  # get all listed stocks' info

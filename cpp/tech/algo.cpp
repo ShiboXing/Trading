@@ -28,9 +28,17 @@ bool Sample::operator>(Sample &rhs)
     else
         return trade_date > rhs.trade_date;
 }
-
-int get_streaks(vector<Sample> data, int streak_len, bool is_up)
+/**
+ * @brief Get the streaks object
+ *
+ * @param data (assumed sorted)
+ * @param streak_len
+ * @param is_up
+ * @return int
+ */
+int get_streaks(vector<Sample> &data, int streak_len, bool is_up)
 {
+    // string curr_code = data.ts_code;
     cout << "data len, len, is_up: " << data.size() << " " << streak_len << " " << is_up << endl;
     return 0;
 }
