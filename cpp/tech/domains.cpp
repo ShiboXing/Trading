@@ -55,8 +55,6 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
     typedef bip::basic_string<char, char_traits<char>, decltype(chr_altr)> str;
     bip::allocator<str, msm::segment_manager> str_altr(shm.get_segment_manager());
     typedef vector<str, decltype(str_altr)> vec;
-    shm.construct<vector<str, decltype(str_altr)>>("res_vec")(str_altr);
-    bip::interprocess_mutex *mtx = shm.construct<bip::interprocess_mutex>("mtx")();
 
     // create interprocess specs
     int child_range = pq.size() / num_procs;
@@ -66,9 +64,9 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
         /* parent assigns samples to a child proportionately for calculation */
         if (pq.empty())
             break;
-        vector<Sample> child_data_vec;
         int cnt = 0;
         string curr_code = pq.top().ts_code;
+        vector<Sample> child_data_vec;
         // collect enough portion for child but cut off at the end of code section
         while (!pq.empty() && (cnt < child_range || curr_code == pq.top().ts_code))
         {
@@ -84,12 +82,20 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
         /* initiate child processes */
         if ((pid = fork()) == 0)
         {
+            // calculate the streaks
+            vector<string> tmp_res_vec;
+            get_streaks(child_data_vec, i, is_up == 1, tmp_res_vec);
+
+            // put the results in shared vector
+            auto child_res_vec = shm.find_or_construct<vec>("res_vec")(str_altr);
+            auto mtx = shm.find_or_construct<bip::interprocess_mutex>("mtx")();
             mtx->lock();
-            auto child_res_vec = shm.find<vec>("res_vec").first;
-            str tmp_str(chr_altr);
-            tmp_str = to_string(i).c_str();
-            child_res_vec->push_back(tmp_str);
-            // get_streaks(child_data_vec, streak_len, is_up == 1, msm);
+            for (string &elem : tmp_res_vec)
+            {
+                str tmp_str(chr_altr);
+                tmp_str = elem.c_str();
+                child_res_vec->push_back(tmp_str);
+            }
             mtx->unlock();
             exit(0);
         }
@@ -99,9 +105,9 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
 
     while (wait(NULL) > 0)
         ;
-    auto child_res_vec = shm.find<vec>("res_vec").first;
+    auto *parent_res_vec = shm.find<vec>("res_vec").first;
     cout << "test res pq: " << endl;
-    for (auto &elem : *child_res_vec)
+    for (auto &elem : *parent_res_vec)
         cout << elem << endl;
 
     return MyPyLong_FromInt64(0);

@@ -38,17 +38,14 @@ bool Sample::operator>(Sample &rhs)
  * @param is_up
  * @return int
  */
-int get_streaks(std::vector<Sample> &input, int streak_len, bool is_up, msm &shm, bip::interprocess_mutex &mtx)
+int get_streaks(std::vector<Sample> &input, int streak_len, bool is_up, vector<string> &res_vec)
 {
     // string curr_code = data.ts_code;
     std::cout << "data len, len, is_up: " << input.size() << " " << streak_len << " " << is_up << std::endl;
 
-    // build shared memory containers
-    bip::allocator<char, msm::segment_manager> chr_altr(shm.get_segment_manager());
-    typedef bip::basic_string<char, std::char_traits<char>, decltype(chr_altr)> str;
-    bip::allocator<str, msm::segment_manager> str_altr(shm.get_segment_manager());
-    typedef std::vector<str, decltype(str_altr)> vec;
-    auto *res_vec = shm.find_or_construct<std::vector<str, decltype(str_altr)>>("res_vec")(str_altr);
+    // write to shared result vector
+    for (int i = 0; i < 10000; i++)
+        res_vec.push_back(to_string(i));
 
     return 0;
 }
