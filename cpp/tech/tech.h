@@ -23,4 +23,4 @@ struct Sample
     bool operator>(Sample &rhs);
 };
 
-int get_streaks(std::vector<Sample> &input, int streak_len, bool is_up, std::vector<std::string> &res_vec);
+int get_streaks(std::vector<Sample> &input, unsigned int streak_len, bool is_up, std::vector<std::string> &res_vec);

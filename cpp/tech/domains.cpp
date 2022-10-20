@@ -84,7 +84,7 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
         {
             // calculate the streaks
             vector<string> tmp_res_vec;
-            get_streaks(child_data_vec, 5, is_up == 1, tmp_res_vec);
+            get_streaks(child_data_vec, streak_len, is_up == 1, tmp_res_vec);
 
             // put the results in shared vector
             auto child_res_vec = shm.find_or_construct<vec>("res_vec")(str_altr);

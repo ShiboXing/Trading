@@ -40,21 +40,22 @@ bool Sample::operator>(Sample &rhs)
  * @param is_up
  * @return int
  */
-int get_streaks(std::vector<Sample> &input, int streak_len, bool is_up, vector<string> &res_vec)
+int get_streaks(std::vector<Sample> &input, unsigned int streak_len, bool is_up, std::vector<std::string> &res_vec)
 {
-    // string curr_code = data.ts_code;
-    cout << "data len, len, is_up: " << input.size() << " " << streak_len << " " << is_up << endl;
     deque<Sample> states;
     string cur_code = input[0].ts_code;
-    int i = 0;
+    unsigned int i = 0;
+    function<bool(float, float)> cmptr = less<float>();
+    if (is_up) // I have no idea why the ternary operator won't work here, any C++ expert?
+        cmptr = greater<float>();
     while (i < input.size())
     {
         if (states.size() == streak_len + 1)
         {
-            res_vec.push_back(states[0].ts_code + "." + states[0].trade_date);
+            res_vec.push_back(states[0].ts_code + "_" + states[0].trade_date);
             states.pop_front();
         }
-        if (states.size() && states.back().close > input[i].close)
+        if (states.size() && cmptr(states.back().close, input[i].close)) // test if streak is broken by the next sample
             states.clear();
         states.push_back(input[i]);
 
