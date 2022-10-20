@@ -1,4 +1,6 @@
 #include "tech.h"
+#include <set>
+#include <deque>
 
 using namespace std;
 
@@ -41,11 +43,22 @@ bool Sample::operator>(Sample &rhs)
 int get_streaks(std::vector<Sample> &input, int streak_len, bool is_up, vector<string> &res_vec)
 {
     // string curr_code = data.ts_code;
-    std::cout << "data len, len, is_up: " << input.size() << " " << streak_len << " " << is_up << std::endl;
+    cout << "data len, len, is_up: " << input.size() << " " << streak_len << " " << is_up << endl;
+    deque<Sample> states;
+    string cur_code = input[0].ts_code;
+    int i = 0;
+    while (i < input.size())
+    {
+        if (states.size() == streak_len + 1)
+        {
+            res_vec.push_back(states[0].ts_code + "." + states[0].trade_date);
+            states.pop_front();
+        }
+        if (states.size() && states.back().close > input[i].close)
+            states.clear();
+        states.push_back(input[i]);
 
-    // write to shared result vector
-    for (int i = 0; i < 10000; i++)
-        res_vec.push_back(to_string(i));
-
+        i++;
+    }
     return 0;
 }

@@ -45,12 +45,12 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
 
     int num_procs = thread::hardware_concurrency();
     // calculate the streaks using boost shared memory containers
-    if (pq.size() >= 10000000)
-        cout << "[warning] memory usage > 100MB" << endl;
+    int shm_size = pq.size() * 5 * sizeof(string("000001.SZ"));
+    cout << "shared memory size: " << shm_size << "bytes" << endl;
 
     // build interprocess containers
     bip::shared_memory_object::remove("shmem_streak");
-    bip::managed_shared_memory shm(bip::open_or_create, "shmem_streak", pq.size() * sizeof(string("000001.SZ")));
+    bip::managed_shared_memory shm(bip::open_or_create, "shmem_streak", shm_size);
     bip::allocator<char, msm::segment_manager> chr_altr(shm.get_segment_manager());
     typedef bip::basic_string<char, char_traits<char>, decltype(chr_altr)> str;
     bip::allocator<str, msm::segment_manager> str_altr(shm.get_segment_manager());
@@ -84,7 +84,7 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
         {
             // calculate the streaks
             vector<string> tmp_res_vec;
-            get_streaks(child_data_vec, i, is_up == 1, tmp_res_vec);
+            get_streaks(child_data_vec, 5, is_up == 1, tmp_res_vec);
 
             // put the results in shared vector
             auto child_res_vec = shm.find_or_construct<vec>("res_vec")(str_altr);
@@ -106,9 +106,9 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
     while (wait(NULL) > 0)
         ;
     auto *parent_res_vec = shm.find<vec>("res_vec").first;
-    cout << "test res pq: " << endl;
-    for (auto &elem : *parent_res_vec)
-        cout << elem << endl;
+    cout << "test res pq: " << parent_res_vec->size() << endl;
+    // for (auto &elem : *parent_res_vec)
+    //     cout << elem << endl;
 
     return MyPyLong_FromInt64(0);
 }
