@@ -107,10 +107,15 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
         ;
     auto *parent_res_vec = shm.find<vec>("res_vec").first;
     cout << "test res pq: " << parent_res_vec->size() << endl;
-    // for (auto &elem : *parent_res_vec)
-    //     cout << elem << endl;
+    PyObject *res = PyList_New(parent_res_vec->size());
+    for (unsigned int i = 0; i < parent_res_vec->size(); i++)
+    {
+        auto &elem = parent_res_vec->at(i);
+        PyObject *key = PyUnicode_DecodeUTF8(elem.c_str(), elem.size(), "utf-8 error");
+        PyList_SetItem(res, i, key);
+    }
 
-    return MyPyLong_FromInt64(0);
+    return res;
 }
 
 static PyMethodDef tech_methods[] = {

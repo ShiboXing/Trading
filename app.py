@@ -33,5 +33,5 @@ if __name__ == "__main__":
     print("nums: ", hist.shape)
     # print(_strs.shape)
     obj = rc.day_streak(hist.to_numpy().tolist(), 5, True)
-    print("returned obj: ", obj)
+    print("returned objsize : ", len(obj))
     # tc.day_streak((False, 0.123, 1, "f"))
