@@ -29,9 +29,19 @@ if __name__ == "__main__":
     ft.fetch_all_hist()
 
     _ch = ch()
-    hist = _ch.load_data("hist")[["ts_code", "trade_date", "open", "close"]]
+    hist = _ch.load_data("hist")
+    hist = hist.astype({"vol": "int"})
     print("nums: ", hist.shape)
     # print(_strs.shape)
-    obj = rc.day_streak(hist.to_numpy().tolist(), 5, True)
+    obj = rc.day_streak(
+        hist[["ts_code", "trade_date", "open", "close", "vol"]].to_numpy().tolist(),
+        5,
+        True,
+    )
     print("returned objsize : ", len(obj))
-    # tc.day_streak((False, 0.123, 1, "f"))
+
+    # fetch dataset samples
+    hist = hist.sort_values(by=["ts_code", "trade_date"])
+    for key in obj:
+        print(key)
+        # print(hist[(hist.ts_code == ts_code) & (hist.trade_date == date)])

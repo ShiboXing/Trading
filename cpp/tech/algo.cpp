@@ -12,6 +12,7 @@ Sample::Sample(PyObject *df_row)
     PyArg_Parse(PyList_GetItem(df_row, 1), "s", &trade_date_tmp);
     PyArg_Parse(PyList_GetItem(df_row, 2), "f", &open);
     PyArg_Parse(PyList_GetItem(df_row, 3), "f", &close);
+    PyArg_Parse(PyList_GetItem(df_row, 4), "I", &vol);
 
     ts_code = string(ts_code_tmp);
     trade_date = string(trade_date_tmp);
@@ -52,7 +53,14 @@ int get_streaks(std::vector<Sample> &input, unsigned int streak_len, bool is_up,
     {
         if (states.size() == streak_len + 1)
         {
-            res_vec.push_back(states[0].ts_code + "_" + states[0].trade_date);
+            // formulate the sample string
+            string sample_str;
+            for (unsigned j = 1; j < states.size(); j++)
+            {
+                auto &s = states[j];
+                sample_str += " " + s.ts_code + "_" + s.trade_date + "_" + to_string(s.open) + "_" + to_string(s.close) + "_" + to_string(s.vol);
+            }
+            res_vec.push_back(sample_str);
             states.pop_front();
         }
         if (states.size() && cmptr(states.back().close, input[i].close)) // test if streak is broken by the next sample

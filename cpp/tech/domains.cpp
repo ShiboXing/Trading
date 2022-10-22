@@ -38,15 +38,14 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
         pq.push(s);
         // _Py_DECREF(tmp_obj); // will trigger segfault?
     }
-
     _Py_DECREF((PyObject *)_hist);
+
+    // calculate the streaks using boost shared memory containers
     cout << "num of concurrent threads: " << thread::hardware_concurrency() << endl;
     cout << "total samples: " << pq.size() << endl;
-
     int num_procs = thread::hardware_concurrency();
-    // calculate the streaks using boost shared memory containers
-    int shm_size = pq.size() * 5 * sizeof(string("000001.SZ"));
-    cout << "shared memory size: " << shm_size << "bytes" << endl;
+    int shm_size = pq.size() * 5 * streak_len * sizeof(string("000001.SZ")) * 0.2;
+    cout << "shared memory size: " << shm_size << " bytes" << endl;
 
     // build interprocess containers
     bip::shared_memory_object::remove("shmem_streak");

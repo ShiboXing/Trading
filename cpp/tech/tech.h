@@ -18,6 +18,7 @@ struct Sample
 {
     std::string ts_code, trade_date;
     float open, close;
+    unsigned int vol;
     Sample(PyObject *df_row);
     void print() const;
     bool operator>(Sample &rhs);
