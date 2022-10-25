@@ -7,16 +7,47 @@ IF NOT EXISTS (
 )
 CREATE DATABASE [detes]
 GO
-CREATE TABLE stock
-(
-  [id] INT NOT NULL PRIMARY KEY,
-  [exchange] nvarchar(5),
-  [code] nvarchar(6)
-)
+
+use detes
 GO
 
-insert into stock values(1, 'SZ', '000001')
+if not exists (select * from sys.tables 
+where name='stocks')
+begin
+  CREATE TABLE stocks
+  (
+    [exchange] nvarchar(5) not null,
+    [code] nvarchar(6) not null,
+    primary key (exchange, code)
+  )
+end
+GO
+
+if not exists (select * from sys.tables 
+where name='daily_bars')
+BEGIN
+  CREATE table daily_bars
+  (
+    [exchange] nvarchar(5) not null,
+    [code] nvarchar(6) not null,
+    [bar_date] date not null,
+    [open] float not null,
+    [close] float not null,
+    [high] float not null,
+    [low] float not null,
+    [vol] float not null,
+    primary key (exchange, code, bar_date)
+  )
+END
+go
+
+
+insert into stocks values('SZ', '000003')
 GO 
 
-select * from stock
+insert into daily_bars values('NYSE', 'BIDU', '2019-12-10', 79.01, 77.23, 80.12, 75.12, 1378888.27);
+GO
+
+select * from stocks;
+select * from daily_bars;
 GO
