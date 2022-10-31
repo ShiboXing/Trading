@@ -1,8 +1,9 @@
-from calendar import calendar
 import pandas as pd
 import subprocess as sp
 import os
 import pickle
+import pyodbc
+from calendar import calendar
 from datetime import datetime as dt, time
 from ..tushare_helper import ts_helper as th
 from . import (
@@ -13,6 +14,23 @@ from . import (
     _timestamp_pth,
     _train_pth,
 )
+
+
+class db_helper:
+    def __init__(self):
+        __file_dir__ = os.path.dirname(__file__)
+        creds_pth = os.path.join(__file_dir__, ".sql_creds")
+        with open(creds_pth, "r") as f:
+            server, port, database, username, password, driver = f.readline().split(",")
+        self.conn = pyodbc.connect(
+            driver="{ODBC Driver 18 for SQL Server}",
+            server=f"{server},{port}",
+            database=database,
+            encrypt="no",
+            uid=username,
+            pwd=password,
+            # trust_server_certificate="yes",
+        )
 
 
 class cache_helper:
