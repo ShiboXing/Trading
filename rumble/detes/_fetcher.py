@@ -6,10 +6,14 @@ from .tushare_helper import ts_helper as th
 class fetcher:
     quotes = None
 
-    def __init__(self, train_days):
-        self.train_days = train_days
+    def __init__(self, start_date, region):
+        self.start_date = start_date
         self.ch = ch()
         self.th = th()
+        self.region = region
+
+    def update_cal(self):
+        return self.th.get_calendar(self.region, self.start_date)
 
     def fetch_all_hist(self):
         assert self.quotes is not None, "must fetch stock codes first"

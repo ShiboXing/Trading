@@ -21,3 +21,4 @@ __all__ = [
 ]
 
 from ._ch_helper import cache_helper
+from ._ch_helper import db_helper

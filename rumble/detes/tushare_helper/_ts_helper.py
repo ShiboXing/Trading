@@ -4,7 +4,7 @@ from urllib.error import URLError
 import tushare as _ts
 import pandas as pd
 import socket
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime as dt
 
 from . import _TOKEN, _hs300_url, _zz500_url
 from urllib3.exceptions import ReadTimeoutError
@@ -114,8 +114,21 @@ class ts_helper:
 
         return df
 
-    def get_calendar(self, N=732):
-        return _pro_ts.trade_cal(exchange="")
+    def get_calendar(self, region="us", start_date=""):
+        if region == "us":
+            return _pro_ts.us_tradecal(
+                start_date=start_date, end_date=dt.now().strftime("%Y%m%d")
+            )
+        elif region == "hk":
+            return _pro_ts.trade_cal(
+                exchange="SSE",
+                start_date=start_date,
+                end_date=dt.now().strftime("%Y%m%d"),
+            )
+        elif region == "cn":
+            return _pro_ts.hk_tradecal(
+                start_date=start_date, end_date=dt.now().strftime("%Y%m%d")
+            )
 
     def __today(self):
         """
