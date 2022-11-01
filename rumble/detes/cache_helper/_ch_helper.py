@@ -32,6 +32,9 @@ class db_helper:
             # trust_server_certificate="yes",
         )
 
+    def update_cal():
+        pass
+
 
 class cache_helper:
     def __init__(self):

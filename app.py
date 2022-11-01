@@ -1,5 +1,3 @@
-import sys
-
 import time, os
 import numpy as np
 from rumble.detes import fetcher

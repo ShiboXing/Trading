@@ -5,7 +5,9 @@ IF NOT EXISTS (
 FROM sys.databases
 WHERE name = N'detes'
 )
-CREATE DATABASE [detes]
+begin
+  CREATE DATABASE [detes]
+end
 GO
 
 use detes
@@ -69,7 +71,6 @@ BEGIN
 END
 GO
 
-
 if not exists (select *
 from sys.tables
 where name='exchanges')
@@ -80,11 +81,11 @@ BEGIN
     [country_code] NVARCHAR(3) not null,
     primary key (ex_code, country_code)
   )
-  insert into stocks
-  values('SZ', '000003')
 END
 GO
 
+insert into stocks
+values('SZ', '000003')
 insert into daily_bars
 values('NYSE', 'BIDU', '2019-12-10', 79.01, 77.23, 80.12, 75.12, 1378888.27);
 GO
