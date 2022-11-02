@@ -19,7 +19,6 @@ if __name__ == "__main__":
     hist = _ch.load_data("hist")
     hist = hist.astype({"vol": "int"})
     print("nums: ", hist.shape)
-    # print(_strs.shape)
     obj = rc.day_streak(
         hist[["ts_code", "trade_date", "open", "close", "vol"]].to_numpy().tolist(),
         5,

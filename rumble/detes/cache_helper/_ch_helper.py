@@ -1,9 +1,10 @@
 import pandas as pd
 import subprocess as sp
 import os
-import pickle
 import pyodbc
-from calendar import calendar
+import pickle
+
+import re
 from datetime import datetime as dt, time
 from ..tushare_helper import ts_helper as th
 from . import (
@@ -17,13 +18,12 @@ from . import (
 
 
 class db_helper:
-    def __init__(self):
-        __file_dir__ = os.path.dirname(__file__)
-        creds_pth = os.path.join(__file_dir__, ".sql_creds")
+    def __connect_to_db(self):
+        creds_pth = os.path.join(self.__file_dir__, "db", ".sql_creds")
         with open(creds_pth, "r") as f:
             server, port, database, username, password, driver = f.readline().split(",")
         self.conn = pyodbc.connect(
-            driver="{ODBC Driver 18 for SQL Server}",
+            driver=driver,
             server=f"{server},{port}",
             database=database,
             encrypt="no",
@@ -32,8 +32,31 @@ class db_helper:
             # trust_server_certificate="yes",
         )
 
+    def __build_schemas(self):
+        schema_pth = os.path.join(self.__file_dir__, "db", "schema.sql")
+        cur = self.conn.cursor()
+        with open(schema_pth, "r") as f:
+            sql_cmds = f.readlines()
+        from ipdb import set_trace
+
+        cache_cmds = []
+        for cmd in sql_cmds:
+            cmd = cmd.strip()
+            cache_cmds.append(cmd.strip() + " ")
+            if cmd.endswith(";"):
+                cur.execute("".join(cache_cmds))
+                cur.commit()
+                cache_cmds.clear()
+
+    def __init__(self):
+        self.__file_dir__ = os.path.dirname(__file__)
+        self.__schema_script__ = ""
+        self.__connect_to_db()
+        self.__build_schemas()
+
     def update_cal():
-        pass
+        query = "select "
+        pd.read_sql()
 
 
 class cache_helper:

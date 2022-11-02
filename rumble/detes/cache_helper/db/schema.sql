@@ -1,5 +1,5 @@
-USE master
-GO
+USE master;
+
 IF NOT EXISTS (
    SELECT name
 FROM sys.databases
@@ -7,11 +7,9 @@ WHERE name = N'detes'
 )
 begin
   CREATE DATABASE [detes]
-end
-GO
+end;
 
-use detes
-GO
+use detes;
 
 if not exists (select *
 from sys.tables
@@ -23,8 +21,7 @@ begin
     [code] nvarchar(6) not null,
     primary key (exchange, code)
   )
-end
-GO
+end;
 
 if not exists (select *
 from sys.tables
@@ -42,8 +39,7 @@ BEGIN
     [vol] float not null,
     primary key (exchange, code, bar_date)
   )
-END
-go
+END;
 
 if not exists (select *
 from sys.tables
@@ -55,8 +51,7 @@ BEGIN
     [is_open] bit not null,
     primary key (trade_date, is_open)
   )
-END
-GO
+END;
 
 if not exists (select *
 from sys.tables
@@ -68,8 +63,20 @@ BEGIN
     [is_open] bit not null,
     primary key (trade_date, is_open)
   )
-END
-GO
+END;
+
+
+if not exists (select *
+from sys.tables
+where name='hk_cal')
+BEGIN
+  create table hk_cal
+  (
+    [trade_date] date not null,
+    [is_open] bit not null,
+    primary key (trade_date, is_open)
+  )
+END;
 
 if not exists (select *
 from sys.tables
@@ -81,21 +88,19 @@ BEGIN
     [country_code] NVARCHAR(3) not null,
     primary key (ex_code, country_code)
   )
-END
-GO
+END;
 
-insert into stocks
-values('SZ', '000003')
-insert into daily_bars
-values('NYSE', 'BIDU', '2019-12-10', 79.01, 77.23, 80.12, 75.12, 1378888.27);
-GO
+if not exists (select *
+from sys.tables
+where name='exchanges1')
+BEGIN
+  create table exchanges1
+  (
+    [ex_code] nvarchar(6) not null,
+    [country_code] NVARCHAR(3) not null,
+    primary key (ex_code, country_code)
+  )
+END;
 
-select *
-from stocks;
-select *
-from daily_bars;
-select *
-from us_cal;
-select *
-from ch_cal;
-GO
+select name
+from sys.tables;
