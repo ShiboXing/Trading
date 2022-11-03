@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # os.environ["TZ"] = "Asia/Shanghai"
     os.environ["TZ"] = "US/Eastern"
     time.tzset()
-    db_helper()
+    db = db_helper()
     ft = fetcher("20080101", "us")
     ft.update_quotes()
     ft.fetch_all_hist()

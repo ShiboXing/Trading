@@ -18,23 +18,23 @@ from . import (
 
 
 class db_helper:
-    def __connect_to_db(self):
+    def __connect_to_db(self, db_name):
         creds_pth = os.path.join(self.__file_dir__, "db", ".sql_creds")
         with open(creds_pth, "r") as f:
-            server, port, database, username, password, driver = f.readline().split(",")
-        self.conn = pyodbc.connect(
+            server, port, username, password, driver = f.readline().split(",")
+        return pyodbc.connect(
             driver=driver,
             server=f"{server},{port}",
-            database=database,
+            database=db_name,
             encrypt="no",
             uid=username,
             pwd=password,
             # trust_server_certificate="yes",
         )
 
-    def __build_schemas(self):
+    def __build_schemas(self, conn):
         schema_pth = os.path.join(self.__file_dir__, "db", "schema.sql")
-        cur = self.conn.cursor()
+        cur = conn.cursor()
         with open(schema_pth, "r") as f:
             sql_str = f.read()
 
@@ -44,12 +44,22 @@ class db_helper:
     def __init__(self):
         self.__file_dir__ = os.path.dirname(__file__)
         self.__schema_script__ = ""
-        self.__connect_to_db()
-        self.__build_schemas()
+        tmp_conn = self.__connect_to_db("master")
+        self.__build_schemas(tmp_conn)
 
-    def update_cal():
-        query = "select "
-        pd.read_sql()
+        self.conn = self.__connect_to_db("detes")
+
+    def update_cal(self):
+        regions = ["us", "hk", "cn"]
+        cur = self.conn.cursor()
+        for r in regions:
+            query = f"""
+                select top 1
+                * from {r}_cal 
+                order by trade_date desc;
+            """
+            cur.execute(query)
+        res = cur.fetchall()
 
 
 class cache_helper:

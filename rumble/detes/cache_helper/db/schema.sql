@@ -55,9 +55,9 @@ END;
 
 if not exists (select *
 from sys.tables
-where name='ch_cal')
+where name='cn_cal')
 BEGIN
-  create table ch_cal
+  create table cn_cal
   (
     [trade_date] date not null,
     [is_open] bit not null,
@@ -83,18 +83,6 @@ from sys.tables
 where name='exchanges')
 BEGIN
   create table exchanges
-  (
-    [ex_code] nvarchar(6) not null,
-    [country_code] NVARCHAR(3) not null,
-    primary key (ex_code, country_code)
-  )
-END;
-
-if not exists (select *
-from sys.tables
-where name='exchanges1')
-BEGIN
-  create table exchanges1
   (
     [ex_code] nvarchar(6) not null,
     [country_code] NVARCHAR(3) not null,
