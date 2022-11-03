@@ -36,17 +36,10 @@ class db_helper:
         schema_pth = os.path.join(self.__file_dir__, "db", "schema.sql")
         cur = self.conn.cursor()
         with open(schema_pth, "r") as f:
-            sql_cmds = f.readlines()
-        from ipdb import set_trace
+            sql_str = f.read()
 
-        cache_cmds = []
-        for cmd in sql_cmds:
-            cmd = cmd.strip()
-            cache_cmds.append(cmd.strip() + " ")
-            if cmd.endswith(";"):
-                cur.execute("".join(cache_cmds))
-                cur.commit()
-                cache_cmds.clear()
+        cur.execute(sql_str)
+        cur.commit()
 
     def __init__(self):
         self.__file_dir__ = os.path.dirname(__file__)

@@ -102,5 +102,6 @@ BEGIN
   )
 END;
 
-select name
-from sys.tables;
+-- select name
+-- from sys.tables;
+-- EXEC sp_MSforeachtable @command1 = 'DROP TABLE ?'
