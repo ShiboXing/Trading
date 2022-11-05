@@ -49,17 +49,19 @@ class db_helper:
 
         self.conn = self.__connect_to_db("detes")
 
-    def update_cal(self):
-        regions = ["us", "hk", "cn"]
+    def fetch_cal(self, region="us"):
+        # regions = ["us", "hk", "cn"]
         cur = self.conn.cursor()
-        for r in regions:
-            query = f"""
-                select top 1
-                * from {r}_cal 
-                order by trade_date desc;
-            """
-            cur.execute(query)
+        # for r in regions:
+        query = f"""
+            select top 1
+            * from {region}_cal 
+            order by trade_date desc;
+        """
+        cur.execute(query)
         res = cur.fetchall()
+
+        return res[0] if res else res
 
 
 class cache_helper:
