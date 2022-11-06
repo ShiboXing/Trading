@@ -23,15 +23,7 @@ class db_helper:
         creds_pth = os.path.join(self.__file_dir__, "db", ".sql_creds")
         with open(creds_pth, "r") as f:
             server, port, username, password, driver = f.readline().split(",")
-        conn = pyodbc.connect(
-            driver=driver,
-            server=f"{server},{port}",
-            database=db_name,
-            encrypt="no",
-            uid=username,
-            pwd=password,
-            # trust_server_certificate="yes",
-        )
+
         connect_url = URL.create(
             "mssql+pyodbc",
             username=username,
@@ -39,16 +31,18 @@ class db_helper:
             host=server,
             port=port,
             database=db_name,
-            query=dict(driver="ODBC Driver 18 for SQL Server", sslmode="disallow"),
+            query=dict(
+                driver="ODBC Driver 18 for SQL Server",
+                TrustServerCertificate="yes",
+            ),
         )
-        print(connect_url)
 
         engine = create_engine(
-            f"mssql://{username}:{password}@{server}:{port}/{db_name}?driver={driver}",
+            connect_url,
             echo=False,
         )
 
-        return conn, engine
+        return engine
 
     def __build_schemas(self, conn):
         schema_pth = os.path.join(self.__file_dir__, "db", "schema.sql")
@@ -62,12 +56,12 @@ class db_helper:
     def __init__(self):
         self.__file_dir__ = os.path.dirname(__file__)
         self.__schema_script__ = ""
-        tmp_conn, _ = self.__connect_to_db("master")
-        self.__build_schemas(tmp_conn)
-        self.conn, self.engine = self.__connect_to_db("detes")
+        tmp_engine = self.__connect_to_db("master")
+        self.__build_schemas(tmp_engine)
+        self.engine = self.__connect_to_db("detes")
 
     def fetch_last_date(self, region="us"):
-        cur = self.conn.cursor()
+        cur = self.engine.cursor()
         query = f"""
             select top 1
             * from {region}_cal 
