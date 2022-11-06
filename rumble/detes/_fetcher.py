@@ -1,16 +1,14 @@
 from re import L
-from .cache_helper import cache_helper as ch
+from .cache_helper import db_helper as db
 from .tushare_helper import ts_helper as th
 from datetime import datetime as dt
 
 
 class fetcher:
-    quotes = None
-
     def __init__(self, start_date, region):
-        self.start_date = start_date
-        self.ch = ch()
+        self.db = db()
         self.th = th()
+        self.__START_DATE = start_date
         self.region = region
 
     def update_cal(self):
@@ -34,7 +32,12 @@ class fetcher:
 
     def update_cal(self):
         for r in ["us", "cn"]:
-            date = self.ch.fetch_last_date(region=r)
-            end_date, start_date = dt.now().date().strftime("%m%d%Y"), date
+            date = self.db.fetch_last_date(region=r)
+            if not date:
+                date = self.__START_DATE
+            end_date, start_date = dt.now().date().strftime("%Y%m%d"), date
             if end_date > start_date:
-                pass
+                part_cal = self.th.get_dates(start_date, end_date, region=r)
+                print(part_cal)
+                part_cal = part_cal.drop(columns="pretrade_date")
+                self.db.renew_calendar(part_cal, region=r)

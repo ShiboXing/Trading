@@ -19,6 +19,7 @@ def retry_wrapper(func):
                 break
             except Exception as e:
                 if e.args and "您每分钟最多访问该接口1次" in e.args[0]:
+                    print("[TUSHARE] 1-min web request limitation hit")
                     time.sleep(60)
                 else:
                     raise e
@@ -147,12 +148,12 @@ class ts_helper:
             )
 
     @retry_wrapper
-    def get_dates(start_date, end_date, region="us"):
+    def get_dates(self, start_date, end_date, region="us"):
+        res = None
         if region == "us":
             res = _pro_ts.us_tradecal(start_date=start_date, end_date=end_date)
         elif region == "cn":
             res = _pro_ts.trade_cal(start_date=start_date, end_date=end_date)
-
         return res
 
     def __today(self):

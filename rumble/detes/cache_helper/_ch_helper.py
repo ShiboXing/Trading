@@ -4,8 +4,9 @@ import os
 import pyodbc
 import pickle
 
-import re
 from datetime import datetime as dt, time
+from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
 from ..tushare_helper import ts_helper as th
 from . import (
     _TRAIN_PATH,
@@ -22,7 +23,7 @@ class db_helper:
         creds_pth = os.path.join(self.__file_dir__, "db", ".sql_creds")
         with open(creds_pth, "r") as f:
             server, port, username, password, driver = f.readline().split(",")
-        return pyodbc.connect(
+        conn = pyodbc.connect(
             driver=driver,
             server=f"{server},{port}",
             database=db_name,
@@ -31,6 +32,23 @@ class db_helper:
             pwd=password,
             # trust_server_certificate="yes",
         )
+        connect_url = URL.create(
+            "mssql+pyodbc",
+            username=username,
+            password=password,
+            host=server,
+            port=port,
+            database=db_name,
+            query=dict(driver="ODBC Driver 18 for SQL Server", sslmode="disallow"),
+        )
+        print(connect_url)
+
+        engine = create_engine(
+            f"mssql://{username}:{password}@{server}:{port}/{db_name}?driver={driver}",
+            echo=False,
+        )
+
+        return conn, engine
 
     def __build_schemas(self, conn):
         schema_pth = os.path.join(self.__file_dir__, "db", "schema.sql")
@@ -44,10 +62,9 @@ class db_helper:
     def __init__(self):
         self.__file_dir__ = os.path.dirname(__file__)
         self.__schema_script__ = ""
-        tmp_conn = self.__connect_to_db("master")
+        tmp_conn, _ = self.__connect_to_db("master")
         self.__build_schemas(tmp_conn)
-
-        self.conn = self.__connect_to_db("detes")
+        self.conn, self.engine = self.__connect_to_db("detes")
 
     def fetch_last_date(self, region="us"):
         cur = self.conn.cursor()
@@ -62,18 +79,8 @@ class db_helper:
         return res[0] if res else res
 
     def renew_calendar(self, dates: pd.DataFrame, region="us"):
-        cur = self.conn.cursor()
-
-        for i in range(len(dates)):
-            cur.execute(
-                f"""
-                insert into {region}_cal
-                values(?, ?);
-            """,
-                dates.iloc[i][0],
-                dates.iloc[i][1],
-            )
-        cur.commit()
+        dates.columns = ["trade_date", "is_open"]
+        dates.to_sql(f"{region}_cal", con=self.engine, if_exists="append")
 
 
 class cache_helper:
