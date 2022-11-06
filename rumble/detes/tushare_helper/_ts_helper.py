@@ -146,7 +146,7 @@ class ts_helper:
                 start_date=start_date, end_date=dt.now().strftime("%Y%m%d")
             )
 
-    @us_ts_wrapper
+    @retry_wrapper
     def get_dates(start_date, end_date, region="us"):
         if region == "us":
             res = _pro_ts.us_tradecal(start_date=start_date, end_date=end_date)
