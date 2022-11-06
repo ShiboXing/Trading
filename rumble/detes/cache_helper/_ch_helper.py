@@ -49,10 +49,8 @@ class db_helper:
 
         self.conn = self.__connect_to_db("detes")
 
-    def fetch_cal(self, region="us"):
-        # regions = ["us", "hk", "cn"]
+    def fetch_last_date(self, region="us"):
         cur = self.conn.cursor()
-        # for r in regions:
         query = f"""
             select top 1
             * from {region}_cal 
@@ -62,6 +60,20 @@ class db_helper:
         res = cur.fetchall()
 
         return res[0] if res else res
+
+    def renew_calendar(self, dates: pd.DataFrame, region="us"):
+        cur = self.conn.cursor()
+
+        for i in range(len(dates)):
+            cur.execute(
+                f"""
+                insert into {region}_cal
+                values(?, ?);
+            """,
+                dates.iloc[i][0],
+                dates.iloc[i][1],
+            )
+        cur.commit()
 
 
 class cache_helper:

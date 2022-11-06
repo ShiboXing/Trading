@@ -1,6 +1,7 @@
 from re import L
 from .cache_helper import cache_helper as ch
 from .tushare_helper import ts_helper as th
+from datetime import datetime as dt
 
 
 class fetcher:
@@ -30,3 +31,10 @@ class fetcher:
             self.ch.cache_data(self.quotes)
         else:
             self.quotes = self.ch.load_data()
+
+    def update_cal(self):
+        for r in ["us", "cn"]:
+            date = self.ch.fetch_last_date(region=r)
+            end_date, start_date = dt.now().date().strftime("%m%d%Y"), date
+            if end_date > start_date:
+                pass

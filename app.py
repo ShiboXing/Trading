@@ -12,8 +12,8 @@ if __name__ == "__main__":
     time.tzset()
     db = db_helper()
     ft = fetcher("20080101", "us")
-    ft.update_quotes()
-    ft.fetch_all_hist()
+    # ft.update_quotes()
+    # ft.fetch_all_hist()
 
     _ch = ch()
     hist = _ch.load_data("hist")
