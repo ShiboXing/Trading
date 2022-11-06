@@ -11,9 +11,6 @@ class fetcher:
         self.__START_DATE = start_date
         self.region = region
 
-    def update_cal(self):
-        return self.th.get_calendar(self.region, self.start_date)
-
     def fetch_all_hist(self):
         assert self.quotes is not None, "must fetch stock codes first"
         _dtype = "hist"

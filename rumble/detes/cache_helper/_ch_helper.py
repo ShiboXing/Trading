@@ -44,14 +44,13 @@ class db_helper:
 
         return engine
 
-    def __build_schemas(self, conn):
+    def __build_schemas(self, engine):
         schema_pth = os.path.join(self.__file_dir__, "db", "schema.sql")
-        cur = conn.cursor()
-        with open(schema_pth, "r") as f:
-            sql_str = f.read()
+        with engine.begin() as conn:
+            with open(schema_pth, "r") as f:
+                sql_str = f.read()
 
-        cur.execute(sql_str)
-        cur.commit()
+            conn.execute(sql_str)
 
     def __init__(self):
         self.__file_dir__ = os.path.dirname(__file__)
@@ -61,19 +60,20 @@ class db_helper:
         self.engine = self.__connect_to_db("detes")
 
     def fetch_last_date(self, region="us"):
-        cur = self.engine.cursor()
-        query = f"""
-            select top 1
-            * from {region}_cal 
-            order by trade_date desc;
-        """
-        cur.execute(query)
-        res = cur.fetchall()
+        with self.engine.connect() as conn:
+            query = f"""
+                select top 1
+                * from {region}_cal 
+                order by trade_date desc;
+            """
+            res = conn.execute(query)
+            res = res.fetchall()
 
         return res[0] if res else res
 
     def renew_calendar(self, dates: pd.DataFrame, region="us"):
         dates.columns = ["trade_date", "is_open"]
+        print(dates)
         dates.to_sql(f"{region}_cal", con=self.engine, if_exists="append")
 
 
