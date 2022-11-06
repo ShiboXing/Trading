@@ -1,14 +1,30 @@
 # -*- coding: UTF-8 -*-
 
-from urllib.error import URLError
 import tushare as _ts
 import pandas as pd
-import socket
-from datetime import date, timedelta, datetime as dt
+import time
 
+from urllib.error import URLError
+from datetime import date, timedelta, datetime as dt
 from . import _TOKEN, _hs300_url, _zz500_url
 from urllib3.exceptions import ReadTimeoutError
 from requests.exceptions import ConnectionError
+
+
+def retry_wrapper(func):
+    def pause_and_retry(*args, **kwargs):
+        while True:
+            try:
+                res = func(*args, **kwargs)
+                break
+            except Exception as e:
+                if e.args and "您每分钟最多访问该接口1次" in e.args[0]:
+                    time.sleep(60)
+                else:
+                    raise e
+        return res
+
+    return pause_and_retry
 
 
 class ts_helper:
@@ -129,6 +145,15 @@ class ts_helper:
             return _pro_ts.hk_tradecal(
                 start_date=start_date, end_date=dt.now().strftime("%Y%m%d")
             )
+
+    @us_ts_wrapper
+    def get_dates(start_date, end_date, region="us"):
+        if region == "us":
+            res = _pro_ts.us_tradecal(start_date=start_date, end_date=end_date)
+        elif region == "cn":
+            res = _pro_ts.trade_cal(start_date=start_date, end_date=end_date)
+
+        return res
 
     def __today(self):
         """
