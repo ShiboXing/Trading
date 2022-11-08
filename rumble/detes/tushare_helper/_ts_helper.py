@@ -3,7 +3,7 @@
 import tushare as _ts
 import pandas as pd
 import time
-
+from re import search
 from urllib.error import URLError
 from datetime import date, timedelta, datetime as dt
 from . import _TOKEN, _hs300_url, _zz500_url
@@ -18,11 +18,13 @@ def retry_wrapper(func):
                 res = func(*args, **kwargs)
                 break
             except Exception as e:
-                if e.args and "您每分钟最多访问该接口1次" in e.args[0]:
-                    print("[TUSHARE] 1-min web request limitation hit")
-                    time.sleep(60)
-                else:
-                    raise e
+                if e.args:
+                    if search("您每分钟最多访问该接口\d次", e.args[0]):
+                        print(e.args[0])
+                        print("[TUSHARE] 1-min web request limitation hit")
+                        time.sleep(60)
+                    else:
+                        raise e
         return res
 
     return pause_and_retry
