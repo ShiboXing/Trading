@@ -90,6 +90,18 @@ BEGIN
   )
 END;
 
+-- use detes;
+-- select *
+-- from us_cal;
+-- select *
+-- from cn_cal;
+
+-- delete from us_cal
+-- where trade_date > '2020-03-30';
+-- delete from cn_cal
+-- where trade_date > '2018-02-12';
 -- select name
 -- from sys.tables;
+
+-- use detes;
 -- EXEC sp_MSforeachtable @command1 = 'DROP TABLE ?'

@@ -69,12 +69,12 @@ class db_helper:
             res = conn.execute(query)
             res = res.fetchall()
 
-        return res[0] if res else res
+        return res[0][0].strftime("%Y%m%d") if res else res
 
     def renew_calendar(self, dates: pd.DataFrame, region="us"):
+        dates = dates.filter(items=["cal_date", "is_open"])
         dates.columns = ["trade_date", "is_open"]
-        print(dates)
-        dates.to_sql(f"{region}_cal", con=self.engine, if_exists="append")
+        dates.to_sql(f"{region}_cal", con=self.engine, if_exists="append", index=False)
 
 
 class cache_helper:

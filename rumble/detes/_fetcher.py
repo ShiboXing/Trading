@@ -1,7 +1,7 @@
 from re import L
 from .cache_helper import db_helper as db
 from .tushare_helper import ts_helper as th
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 
 
 class fetcher:
@@ -32,9 +32,10 @@ class fetcher:
             date = self.db.fetch_last_date(region=r)
             if not date:
                 date = self.__START_DATE
-            end_date, start_date = dt.now().date().strftime("%Y%m%d"), date
-            if end_date > start_date:
+            start_date, end_date = date, dt.now().date().strftime("%Y%m%d")
+            start_date = (
+                dt.strptime(start_date, "%Y%m%d") + timedelta(days=1)
+            ).strftime("%Y%m%d")
+            if end_date >= start_date:
                 part_cal = self.th.get_dates(start_date, end_date, region=r)
-                print(part_cal)
-                part_cal = part_cal.drop(columns="pretrade_date")
                 self.db.renew_calendar(part_cal, region=r)
