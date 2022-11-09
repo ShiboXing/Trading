@@ -1,12 +1,12 @@
 import pandas as pd
 import subprocess as sp
 import os
-import pyodbc
 import pickle
 
 from datetime import datetime as dt, time
 from sqlalchemy import create_engine
-from sqlalchemy.engine import URL
+from sqlalchemy.engine import URL, Engine
+from sqlalchemy.orm import sessionmaker
 from ..tushare_helper import ts_helper as th
 from . import (
     _TRAIN_PATH,
@@ -32,32 +32,32 @@ class db_helper:
             port=port,
             database=db_name,
             query=dict(
-                driver="ODBC Driver 18 for SQL Server",
+                driver=driver,
                 TrustServerCertificate="yes",
             ),
         )
 
-        engine = create_engine(
-            connect_url,
-            echo=False,
-        )
+        engine = create_engine(connect_url, echo=False, isolation_level="AUTOCOMMIT")
 
         return engine
 
-    def __build_schemas(self, engine):
-        schema_pth = os.path.join(self.__file_dir__, "db", "schema.sql")
-        with engine.begin() as conn:
-            with open(schema_pth, "r") as f:
-                sql_str = f.read()
+    def __run_sqlfile(self, engine, fname):
+        from ipdb import set_trace
 
-            conn.execute(sql_str)
+        schema_pth = os.path.join(self.__file_dir__, "db", fname)
+        conn = engine.raw_connection()
+        with open(schema_pth, "r") as f:
+            sql_str = f.read()
+        conn.execute(sql_str)
+        conn.commit()
 
     def __init__(self):
         self.__file_dir__ = os.path.dirname(__file__)
         self.__schema_script__ = ""
         tmp_engine = self.__connect_to_db("master")
-        self.__build_schemas(tmp_engine)
+        self.__run_sqlfile(tmp_engine, "build_schema.sql")
         self.engine = self.__connect_to_db("detes")
+        self.__run_sqlfile(self.engine, "build_tables.sql")
 
     def fetch_last_date(self, region="us"):
         with self.engine.connect() as conn:
