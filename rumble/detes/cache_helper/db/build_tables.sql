@@ -79,6 +79,21 @@ BEGIN
   )
 END;
 
+if not exists(select *
+from sys.tables
+where name='cn_stock_list')
+BEGIN
+  create table cn_stock_list
+  (
+    [code] nvarchar(6) not null,
+    [name] char(15) not null,
+    [area] char(6) not null,
+    [industry] char(12) not null,
+    [list_date] date not null,
+    [delist_date] date,
+  )
+END;
+
 -- use detes;
 -- select *
 -- from us_cal;

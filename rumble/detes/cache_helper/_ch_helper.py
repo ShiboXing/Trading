@@ -42,8 +42,6 @@ class db_helper:
         return engine
 
     def __run_sqlfile(self, engine, fname):
-        from ipdb import set_trace
-
         schema_pth = os.path.join(self.__file_dir__, "db", fname)
         conn = engine.raw_connection()
         with open(schema_pth, "r") as f:
