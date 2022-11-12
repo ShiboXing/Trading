@@ -4,9 +4,9 @@ import os
 import pickle
 
 from datetime import datetime as dt, time
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL, Engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
 from ..tushare_helper import ts_helper as th
 from . import (
     _TRAIN_PATH,
@@ -37,17 +37,18 @@ class db_helper:
             ),
         )
 
-        engine = create_engine(connect_url, echo=False, isolation_level="AUTOCOMMIT")
+        engine = create_engine(connect_url, echo=False)
 
         return engine
 
     def __run_sqlfile(self, engine, fname):
         schema_pth = os.path.join(self.__file_dir__, "db", fname)
-        conn = engine.raw_connection()
-        with open(schema_pth, "r") as f:
-            sql_str = f.read()
-        conn.execute(sql_str)
-        conn.commit()
+        with Session(engine) as sess:
+            conn = engine.raw_connection()
+            with open(schema_pth, "r") as f:
+                sql_str = f.read()
+            conn.execute(sql_str)
+            conn.commit()
 
     def __init__(self):
         self.__file_dir__ = os.path.dirname(__file__)
@@ -73,6 +74,19 @@ class db_helper:
         dates = dates.filter(items=["cal_date", "is_open"])
         dates.columns = ["trade_date", "is_open"]
         dates.to_sql(f"{region}_cal", con=self.engine, if_exists="append", index=False)
+
+    def renew_us_stock_list(self, new_lst):
+        with Session(self.engine) as sess:
+            for i in range(len(new_lst)):
+                row = new_lst.iloc[i]
+                res = sess.execute(
+                    """
+                    select * from us_stock_list
+                    where code = :x;
+                """,
+                    {"x": row.code},
+                ).all()
+                print("select res: ", res)
 
 
 class cache_helper:

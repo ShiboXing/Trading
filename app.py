@@ -17,6 +17,8 @@ if __name__ == "__main__":
     # db = db_helper()
     ft = fetcher("20080101", "us")
     ft.update_cal()
+    ft.update_us_stock_lst()
+
     # ft.update_quotes()
     # ft.fetch_all_hist()
 

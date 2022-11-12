@@ -61,8 +61,13 @@ class ts_helper:
 
         return quotes
 
+    @retry_wrapper
     def get_stock_list(self, region="us"):
-        pass
+        today = dt.now().date().strftime("%Y%m%d")
+        res = None
+        for i in range(0, 18001, 6000):
+            res = pd.concat((res, _pro_ts.us_daily(trade_date=today, offset=i)))
+        return res
 
     # def get_stock_list(self):
     #     code_col_name = "成分券代码Constituent Code"

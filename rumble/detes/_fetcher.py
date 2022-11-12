@@ -2,6 +2,7 @@ from re import L
 from .cache_helper import db_helper as db
 from .tushare_helper import ts_helper as th
 from datetime import datetime as dt, timedelta
+from pandas import read_csv
 
 
 class fetcher:
@@ -39,3 +40,8 @@ class fetcher:
             if end_date >= start_date:
                 part_cal = self.th.get_dates(start_date, end_date, region=r)
                 self.db.renew_calendar(part_cal, region=r)
+
+    def update_us_stock_lst(self):
+        df = read_csv("stock_list.csv", index_col=False)
+        df = df.rename(columns={"ts_code": "code"})
+        self.db.renew_us_stock_list(df)

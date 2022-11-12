@@ -5,3 +5,4 @@
 build/
 
 .sql_creds
+stock_list.csv

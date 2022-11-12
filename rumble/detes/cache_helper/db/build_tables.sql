@@ -1,5 +1,6 @@
 use detes;
 
+
 if not exists (select *
 from sys.tables
 where name='stocks')
@@ -11,6 +12,7 @@ begin
     primary key (exchange, code)
   )
 end;
+
 
 if not exists (select *
 from sys.tables
@@ -30,6 +32,7 @@ BEGIN
   )
 END;
 
+
 if not exists (select *
 from sys.tables
 where name='us_cal')
@@ -41,6 +44,7 @@ BEGIN
     primary key (trade_date, is_open)
   )
 END;
+
 
 if not exists (select *
 from sys.tables
@@ -67,6 +71,7 @@ BEGIN
   )
 END;
 
+
 if not exists (select *
 from sys.tables
 where name='exchanges')
@@ -78,6 +83,7 @@ BEGIN
     primary key (ex_code, country_code)
   )
 END;
+
 
 if not exists(select *
 from sys.tables
@@ -91,8 +97,10 @@ BEGIN
     [industry] char(12) not null,
     [list_date] date not null,
     [delist_date] date,
+    primary key (code)
   )
 END;
+
 
 if not exists(select *
 from sys.tables
@@ -105,8 +113,10 @@ begin
     [city] char(6) not null,
     [industry] nvarchar(20) not null,
     [exchange] nvarchar(5) not null,
+    primary key (code)
   )
 end;
+
 
 -- use detes;
 -- select *
