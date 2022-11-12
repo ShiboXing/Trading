@@ -94,6 +94,20 @@ BEGIN
   )
 END;
 
+if not exists(select *
+from sys.tables
+where name='us_stock_list')
+begin
+  create table us_stock_list
+  (
+    [code] nvarchar(6) not null,
+    [name] char(15) not null,
+    [city] char(6) not null,
+    [industry] nvarchar(20) not null,
+    [exchange] nvarchar(5) not null,
+  )
+end;
+
 -- use detes;
 -- select *
 -- from us_cal;
