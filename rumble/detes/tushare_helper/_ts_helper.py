@@ -62,7 +62,7 @@ class ts_helper:
         return quotes
 
     @retry_wrapper
-    def get_stock_list(self, region="us"):
+    def get_stock_lst(self, region="us"):
         today = dt.now().date().strftime("%Y%m%d")
         res = None
         for i in range(0, 18001, 6000):

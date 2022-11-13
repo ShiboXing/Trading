@@ -72,30 +72,17 @@ BEGIN
 END;
 
 
-if not exists (select *
-from sys.tables
-where name='exchanges')
-BEGIN
-  create table exchanges
-  (
-    [ex_code] nvarchar(6) not null,
-    [country_code] NVARCHAR(3) not null,
-    primary key (ex_code, country_code)
-  )
-END;
-
-
 if not exists(select *
 from sys.tables
 where name='cn_stock_list')
 BEGIN
   create table cn_stock_list
   (
-    [code] nvarchar(6) not null,
-    [name] char(15) not null,
-    [area] char(6) not null,
-    [industry] char(12) not null,
-    [list_date] date not null,
+    [code] nvarchar(7) not null,
+    [name] char(15),
+    [area] char(6),
+    [industry] char(12),
+    [list_date] date,
     [delist_date] date,
     primary key (code)
   )
@@ -108,11 +95,13 @@ where name='us_stock_list')
 begin
   create table us_stock_list
   (
-    [code] nvarchar(6) not null,
-    [name] char(15) not null,
-    [city] char(6) not null,
-    [industry] nvarchar(20) not null,
-    [exchange] nvarchar(5) not null,
+    [code] nvarchar(7) not null,
+    [name] char(15),
+    [city] char(6) ,
+    [industry] nvarchar(20),
+    [exchange] nvarchar(5),
+    [list_date] date,
+    [delist_date] date,
     primary key (code)
   )
 end;
@@ -123,6 +112,8 @@ end;
 -- from us_cal;
 -- select *
 -- from cn_cal;
+select *
+from us_stock_list;
 
 -- delete from us_cal
 -- where trade_date > '2020-03-30';
@@ -130,6 +121,7 @@ end;
 -- where trade_date > '2018-02-12';
 -- select name
 -- from sys.tables;
+
 
 -- use detes;
 -- EXEC sp_MSforeachtable @command1 = 'DROP TABLE ?'

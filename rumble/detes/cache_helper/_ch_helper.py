@@ -37,7 +37,9 @@ class db_helper:
             ),
         )
 
-        engine = create_engine(connect_url, echo=False)
+        engine = create_engine(
+            connect_url, echo=False, isolation_level="READ COMMITTED"
+        )
 
         return engine
 
@@ -75,18 +77,33 @@ class db_helper:
         dates.columns = ["trade_date", "is_open"]
         dates.to_sql(f"{region}_cal", con=self.engine, if_exists="append", index=False)
 
-    def renew_us_stock_list(self, new_lst):
+    def renew_us_stock_list(
+        self, new_lst, region="us", update_columns: list = ["code"]
+    ):
+        if region == "us":
+            tname = "us_stock_list"
+        elif region == "cn":
+            tname = "cn_stock_list"
+
         with Session(self.engine) as sess:
             for i in range(len(new_lst)):
                 row = new_lst.iloc[i]
                 res = sess.execute(
-                    """
-                    select * from us_stock_list
+                    f"""
+                    select * from {tname}
                     where code = :x;
                 """,
                     {"x": row.code},
                 ).all()
-                print("select res: ", res)
+                if not res:
+                    sess.execute(
+                        f"""
+                        insert into {tname}(code)
+                        values (:x);
+                        """,
+                        {"x": row.code},
+                    )
+            sess.commit()
 
 
 class cache_helper:

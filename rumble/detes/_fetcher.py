@@ -42,6 +42,7 @@ class fetcher:
                 self.db.renew_calendar(part_cal, region=r)
 
     def update_us_stock_lst(self):
+        # df = self.th.get_stock_lst()
         df = read_csv("stock_list.csv", index_col=False)
         df = df.rename(columns={"ts_code": "code"})
         self.db.renew_us_stock_list(df)
