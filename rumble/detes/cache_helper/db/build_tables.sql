@@ -112,8 +112,8 @@ end;
 -- from us_cal;
 -- select *
 -- from cn_cal;
-select *
-from us_stock_list;
+-- select *
+-- from us_stock_list;
 
 -- delete from us_cal
 -- where trade_date > '2020-03-30';
