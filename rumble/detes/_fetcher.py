@@ -1,5 +1,6 @@
 from re import L
 from .cache_helper import db_helper as db
+from .cache_helper import _us_stock_list_cols, _cn_stock_list_cols
 from .tushare_helper import ts_helper as th
 from datetime import datetime as dt, timedelta
 from pandas import read_csv
@@ -44,5 +45,7 @@ class fetcher:
     def update_us_stock_lst(self):
         # df = self.th.get_stock_lst()
         df = read_csv("stock_list.csv", index_col=False)
-        df = df.rename(columns={"ts_code": "code"})
+        df = df.rename(columns={"ts_code": "code"})[["code"]]
+        empty_cols = set(_us_stock_list_cols) - set(df.columns)
+        df[list(empty_cols)] = [None] * len(empty_cols)
         self.db.renew_us_stock_list(df)

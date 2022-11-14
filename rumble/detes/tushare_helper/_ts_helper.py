@@ -63,10 +63,16 @@ class ts_helper:
 
     @retry_wrapper
     def get_stock_lst(self, region="us"):
+        """
+        request limitations:
+            1. 5 times max per 24 hrs
+            2. 2 times max per 1 min
+        """
         today = dt.now().date().strftime("%Y%m%d")
         res = None
-        for i in range(0, 18001, 6000):
+        for i in range(0, 24001, 6000):
             res = pd.concat((res, _pro_ts.us_daily(trade_date=today, offset=i)))
+            time.sleep(31)  # failed requests might be counted against quota
         return res
 
     # def get_stock_list(self):

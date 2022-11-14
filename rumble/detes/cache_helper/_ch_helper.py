@@ -15,6 +15,8 @@ from . import (
     _quotes_pth,
     _timestamp_pth,
     _train_pth,
+    _us_stock_list_cols,
+    _cn_stock_list_cols,
 )
 
 
@@ -61,6 +63,7 @@ class db_helper:
         self.__run_sqlfile(self.engine, "build_tables.sql")
 
     def fetch_last_date(self, region="us"):
+        assert region in ("us", "cn", "hk"), "region parameter is incorrect"
         with self.engine.connect() as conn:
             query = f"""
                 select top 1
@@ -78,31 +81,52 @@ class db_helper:
         dates.to_sql(f"{region}_cal", con=self.engine, if_exists="append", index=False)
 
     def renew_us_stock_list(
-        self, new_lst, region="us", update_columns: list = ["code"]
+        self,
+        new_df: pd.DataFrame,
+        region="us",
     ):
         if region == "us":
             tname = "us_stock_list"
+            assert sorted(list(new_df.columns)) == sorted(
+                list(_us_stock_list_cols)
+            ), f"column parameters have conflicts with {tname}"
         elif region == "cn":
             tname = "cn_stock_list"
 
+        # start read commited transaction
         with Session(self.engine) as sess:
-            for i in range(len(new_lst)):
-                row = new_lst.iloc[i]
+            for i in range(len(new_df)):
+                row = new_df.iloc[i]
+                params = row.to_dict()
+
+                # update the not-null values from the new dataframe
+                update_params_str = ""
+                for k, v in params.items():
+                    if v:
+                        if update_params_str:
+                            update_params_str += ", "
+                        update_params_str += f"{k} = :{k}"
+
                 res = sess.execute(
                     f"""
-                    select * from {tname}
-                    where code = :x;
+                    update {tname}
+                    set {update_params_str}
+                    where code = :code;
                 """,
-                    {"x": row.code},
-                ).all()
-                if not res:
+                    params,
+                )
+
+                # if no rows are updated, insert this new stock
+                if res.rowcount == 0:
+                    # insert new row
                     sess.execute(
                         f"""
-                        insert into {tname}(code)
-                        values (:x);
+                        insert into {tname}(code, name, city, exchange, list_date, delist_date)
+                        values (:code, :name, :city, :exchange, :list_date, :delist_date);
                         """,
-                        {"x": row.code},
+                        params,
                     )
+
             sess.commit()
 
 

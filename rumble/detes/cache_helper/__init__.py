@@ -9,6 +9,24 @@ _timestamp_pth = os.path.join(_CACHE_PATH, "timestamp_lst.pkl")
 _quotes_pth = os.path.join(_CACHE_PATH, "quotes.pkl")
 _train_pth = os.path.join(_TRAIN_PATH, "train.pkl")
 
+_us_stock_list_cols = (
+    "code",
+    "name",
+    "city",
+    "industry",
+    "exchange",
+    "list_date",
+    "delist_date",
+)
+_cn_stock_list_cols = (
+    "code",
+    "name",
+    "area",
+    "industry",
+    "list_date",
+    "delist_date",
+)
+
 __all__ = [
     "_CACHE_PATH",
     "_TRAIN_PATH",
