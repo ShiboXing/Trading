@@ -100,13 +100,13 @@ class db_helper:
                 params = row.to_dict()
 
                 # update the not-null values from the new dataframe
-                update_params_str = ""
+                update_params = []
                 for k, v in params.items():
                     if v:
-                        if update_params_str:
-                            update_params_str += ", "
-                        update_params_str += f"{k} = :{k}"
-
+                        if update_params:
+                            update_params.append(", ")
+                        update_params.append(f"{k} = :{k}")
+                update_params_str = "".join(update_params)
                 res = sess.execute(
                     f"""
                     update {tname}
