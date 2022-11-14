@@ -5,7 +5,6 @@ from rumble.detes.cache_helper import cache_helper as ch
 from rumble.detes.cache_helper import db_helper
 import rumble_cpp as rc
 
-from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 
 
@@ -15,10 +14,9 @@ if __name__ == "__main__":
     os.environ["TZ"] = "US/Eastern"
     time.tzset()
     # db = db_helper()
-    ft = fetcher("20080101", "us")
+    ft = fetcher("20000101", "us")
     ft.update_cal()
     ft.update_us_stock_lst()
-
     # ft.update_quotes()
     # ft.fetch_all_hist()
 
