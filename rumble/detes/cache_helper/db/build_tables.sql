@@ -100,8 +100,7 @@ begin
     [city] char(6) ,
     [industry] nvarchar(20),
     [exchange] nvarchar(5),
-    [list_date] date,
-    [delist_date] date,
+    [is_delisted] bit not null default 0,
     primary key (code)
   )
 end;
@@ -109,16 +108,22 @@ end;
 
 -- use detes;
 -- select *
--- from us_cal;
+-- from us_cal
 
 -- select *
 -- from cn_cal;
 
 -- select *
 -- from us_stock_list
--- where code = 'U';
+-- where code = 'LDEM';
 
--- update us_stock_list
+-- delete from us_stock_list
+-- where code = 'LDEM'
+
+-- alter table us_stock_list
+-- add is_delisted bit not null default 0;
+
+-- update us_stock_list 
 -- set name='acac', city='death'
 -- where code = 'AAAAA';
 
