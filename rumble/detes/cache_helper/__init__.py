@@ -15,8 +15,7 @@ _us_stock_list_cols = (
     "city",
     "industry",
     "exchange",
-    "list_date",
-    "delist_date",
+    "is_delisted",
 )
 _cn_stock_list_cols = (
     "code",
@@ -26,6 +25,11 @@ _cn_stock_list_cols = (
     "list_date",
     "delist_date",
 )
+
+_stock_list_cols = {
+    "us": _us_stock_list_cols,
+    "cn": _cn_stock_list_cols,
+}
 
 __all__ = [
     "_CACHE_PATH",

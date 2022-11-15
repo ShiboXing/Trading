@@ -15,8 +15,7 @@ from . import (
     _quotes_pth,
     _timestamp_pth,
     _train_pth,
-    _us_stock_list_cols,
-    _cn_stock_list_cols,
+    _stock_list_cols,
 )
 
 
@@ -85,13 +84,11 @@ class db_helper:
         new_df: pd.DataFrame,
         region="us",
     ):
-        if region == "us":
-            tname = "us_stock_list"
-            assert sorted(list(new_df.columns)) == sorted(
-                list(_us_stock_list_cols)
-            ), f"column parameters have conflicts with {tname}"
-        elif region == "cn":
-            tname = "cn_stock_list"
+        assert region in ["us", "hk", "cn"], "region parameter is invalid"
+        tname = f"{region}_stock_list"
+        assert sorted(list(new_df.columns)) == sorted(
+            list(_stock_list_cols[region])
+        ), f"column parameters have conflicts with {tname}"
 
         # start read commited transaction
         with Session(self.engine) as sess:
@@ -101,12 +98,20 @@ class db_helper:
 
                 # update the not-null values from the new dataframe
                 update_params = []
+                insert_cols = []
+                insert_params = []
                 for k, v in params.items():
                     if v:
                         if update_params:
                             update_params.append(", ")
+                            insert_cols.append(", ")
+                            insert_params.append(", ")
                         update_params.append(f"{k} = :{k}")
+                        insert_cols.append(k)
+                        insert_params.append(f":{k}")
                 update_params_str = "".join(update_params)
+                insert_cols_str = "".join(insert_cols)
+                insert_params_str = "".join(insert_params)
                 res = sess.execute(
                     f"""
                     update {tname}
@@ -121,8 +126,8 @@ class db_helper:
                     # insert new row
                     sess.execute(
                         f"""
-                        insert into {tname}(code, name, city, exchange, list_date, delist_date)
-                        values (:code, :name, :city, :exchange, :list_date, :delist_date);
+                        insert into {tname} ({insert_cols_str})
+                        values ({insert_params_str});
                         """,
                         params,
                     )
