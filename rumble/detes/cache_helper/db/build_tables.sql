@@ -115,6 +115,7 @@ end;
 
 -- select *
 -- from us_stock_list
+-- where exchange is null;
 -- where code = 'LDEM';
 
 -- delete from us_stock_list
@@ -135,4 +136,5 @@ end;
 -- select name
 -- from sys.tables;
 -- use detes;
--- EXEC sp_MSforeachtable @command1 = 'DROP TABLE ?'
+-- EXEC sp_MSforeachtable @command1 = '
+-- DROP TABLE ?'

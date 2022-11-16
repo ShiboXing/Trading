@@ -48,4 +48,7 @@ class fetcher:
         df = df.rename(columns={"ts_code": "code"})[["code"]]
         empty_cols = set(_us_stock_list_cols) - set(df.columns)
         df[list(empty_cols)] = [None] * len(empty_cols)
-        self.db.renew_us_stock_list(df)
+        self.db.renew_stock_list(df, region="us")
+
+        # fill in stock list information
+        res = self.db.get_stock_info(exchange=None, limit=6000)

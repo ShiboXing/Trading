@@ -61,12 +61,20 @@ class db_helper:
         self.engine = self.__connect_to_db("detes")
         self.__run_sqlfile(self.engine, "build_tables.sql")
 
-    def fetch_last_date(self, region="us"):
+    def __get_table_name(self, region="us", type="lst"):
         assert region in ("us", "cn", "hk"), "region parameter is incorrect"
+        assert type in ("lst", "cal"), "table type parameter is incorrect"
+        if type == "lst":
+            return f"{region}_stock_list"
+        elif type == "cal":
+            return f"{region}_cal"
+
+    def fetch_last_date(self, region="us"):
+        tname = self.__get_table_name(region=region, type="cal")
         with self.engine.connect() as conn:
             query = f"""
                 select top 1
-                * from {region}_cal 
+                * from {tname}
                 order by trade_date desc;
             """
             res = conn.execute(query)
@@ -79,13 +87,13 @@ class db_helper:
         dates.columns = ["trade_date", "is_open"]
         dates.to_sql(f"{region}_cal", con=self.engine, if_exists="append", index=False)
 
-    def renew_us_stock_list(
+    def renew_stock_list(
         self,
         new_df: pd.DataFrame,
         region="us",
     ):
-        assert region in ["us", "hk", "cn"], "region parameter is invalid"
-        tname = f"{region}_stock_list"
+
+        tname = self.__get_table_name(region=region, type="lst")
         assert sorted(list(new_df.columns)) == sorted(
             list(_stock_list_cols[region])
         ), f"column parameters have conflicts with {tname}"
@@ -133,6 +141,37 @@ class db_helper:
                     )
 
             sess.commit()
+
+    def get_stock_info(
+        self,
+        codes: list = None,
+        exchange: str or None = None,
+        limit: int or None = None,
+        region="us",
+    ):
+        conditions = []
+        if exchange is None:
+            exchange = None
+            conditions.append(" exchange is null ")
+        else:
+            conditions.append(" exchange = :exchange ")
+        condition_str = "and".join(conditions)
+        limit_param = ""
+        if limit:
+            limit_param = f"limit {limit}"
+
+        tname = self.__get_table_name(region=region, type="lst")
+        if not codes:
+            with Session(self.engine) as sess:
+                res = sess.execute(
+                    f"""
+                    select * from {tname}
+                    where {condition_str}
+                    {limit_param};
+                """,
+                    {"exchange": exchange},
+                ).all()
+        return res
 
 
 class cache_helper:

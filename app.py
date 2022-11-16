@@ -17,7 +17,6 @@ if __name__ == "__main__":
     ft = fetcher("20000101", "us")
     ft.update_cal()
     ft.update_us_stock_lst()
-    # ft.update_quotes()
     # ft.fetch_all_hist()
 
     # _ch = ch()
