@@ -144,6 +144,7 @@ class db_helper:
 
     def get_stock_info(
         self,
+        only_pk=False,
         codes: list = None,
         exchange: str or None = None,
         limit: int or None = None,
@@ -156,18 +157,18 @@ class db_helper:
         else:
             conditions.append(" exchange = :exchange ")
         condition_str = "and".join(conditions)
-        limit_param = ""
+        limit_str = ""
         if limit:
-            limit_param = f"limit {limit}"
+            limit_str = f"top {limit}"
 
         tname = self.__get_table_name(region=region, type="lst")
+        fetch_cols = "code" if only_pk else "*"
         if not codes:
             with Session(self.engine) as sess:
                 res = sess.execute(
                     f"""
-                    select * from {tname}
-                    where {condition_str}
-                    {limit_param};
+                    select {limit_str} {fetch_cols} from {tname}
+                    where {condition_str};
                 """,
                     {"exchange": exchange},
                 ).all()
