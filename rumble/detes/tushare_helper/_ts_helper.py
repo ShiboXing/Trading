@@ -3,6 +3,7 @@
 import tushare as _ts
 import pandas as pd
 import time
+from yfinance import Tickers
 from re import search
 from urllib.error import URLError
 from datetime import date, timedelta, datetime as dt
@@ -74,6 +75,10 @@ class ts_helper:
             res = pd.concat((res, _pro_ts.us_daily(trade_date=today, offset=i)))
             time.sleep(31)  # failed requests might be counted against quota
         return res
+
+    def get_stock_info(self, stocks=()):
+        tiks = Tickers(" ".join(stocks))
+        return tiks.tickers
 
     # def get_stock_list(self):
     #     code_col_name = "成分券代码Constituent Code"

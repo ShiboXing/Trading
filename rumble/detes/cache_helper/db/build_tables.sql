@@ -105,6 +105,11 @@ begin
   )
 end;
 
+-- use detes;
+-- exec sp_rename 'us_stock_list.industry', 'sector', 'COLUMN';
+
+-- alter table us_stock_list
+-- drop column name;
 
 -- use detes;
 -- select *
@@ -114,6 +119,10 @@ end;
 -- from cn_cal;
 
 -- select *
+-- from us_stock_list;
+
+-- select top 6000
+--   *
 -- from us_stock_list
 -- where exchange is null;
 -- where code = 'LDEM';

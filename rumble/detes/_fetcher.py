@@ -3,7 +3,7 @@ from .cache_helper import db_helper as db
 from .cache_helper import _us_stock_list_cols, _cn_stock_list_cols
 from .tushare_helper import ts_helper as th
 from datetime import datetime as dt, timedelta
-from pandas import read_csv
+from pandas import read_csv, DataFrame
 
 
 class fetcher:
@@ -51,4 +51,18 @@ class fetcher:
         self.db.renew_stock_list(df, region="us")
 
         # fill in stock list information
-        res = self.db.get_stock_info(exchange=None, limit=6000)
+        res = self.db.get_stock_info(exchange=None, only_pk=True)
+        res = (n[0] for n in res)
+        tiks = self.th.get_stock_info(res)
+        from ipdb import set_trace
+
+        non_key_cols = tuple(
+            c for c in list(_us_stock_list_cols) if c != "code" and c != "is_delisted"
+        )
+        for k, v in tiks.items():
+            info = v.info
+            df = DataFrame.from_dict(
+                {c: [info[c]] for c in non_key_cols}.update({"code": k})
+            )
+            set_trace()
+            self.db.renew_stock_list(df)
