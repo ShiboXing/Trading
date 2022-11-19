@@ -96,7 +96,7 @@ begin
   create table us_stock_list
   (
     [code] nvarchar(7) not null,
-    [industry] nvarchar(20),
+    [sector] nvarchar(25),
     [exchange] nvarchar(5),
     [is_delisted] bit not null default 0,
     primary key (code)
@@ -115,6 +115,9 @@ end;
 
 -- select *
 -- from cn_cal;
+
+-- alter table us_stock_list
+-- alter column sector varchar(25);
 
 -- select *
 -- from us_stock_list
