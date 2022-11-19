@@ -98,7 +98,7 @@ class db_helper:
             list(_stock_list_cols[region])
         ), f"column parameters have conflicts with {tname}"
 
-        # start read commited transaction
+        # upsert into the stock list table
         with Session(self.engine) as sess:
             for i in range(len(new_df)):
                 row = new_df.iloc[i]

@@ -11,7 +11,6 @@ _train_pth = os.path.join(_TRAIN_PATH, "train.pkl")
 
 _us_stock_list_cols = (
     "code",
-    "city",
     "sector",
     "exchange",
     "is_delisted",

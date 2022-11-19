@@ -42,27 +42,34 @@ class fetcher:
                 part_cal = self.th.get_dates(start_date, end_date, region=r)
                 self.db.renew_calendar(part_cal, region=r)
 
+    def __expand_cols(self, df, cols):
+        empty_cols = set(cols) - set(df.columns)
+        df[list(empty_cols)] = [None] * len(empty_cols)
+        return df
+
     def update_us_stock_lst(self):
         # df = self.th.get_stock_lst()
         df = read_csv("stock_list.csv", index_col=False)
         df = df.rename(columns={"ts_code": "code"})[["code"]]
-        empty_cols = set(_us_stock_list_cols) - set(df.columns)
-        df[list(empty_cols)] = [None] * len(empty_cols)
+        df = self.__expand_cols(df, _us_stock_list_cols)
         self.db.renew_stock_list(df, region="us")
 
         # fill in stock list information
         res = self.db.get_stock_info(exchange=None, only_pk=True)
         res = (n[0] for n in res)
         tiks = self.th.get_stock_info(res)
-        from ipdb import set_trace
 
-        non_key_cols = tuple(
-            c for c in list(_us_stock_list_cols) if c != "code" and c != "is_delisted"
-        )
         for k, v in tiks.items():
             info = v.info
-            df = DataFrame.from_dict(
-                {c: [info[c]] for c in non_key_cols}.update({"code": k})
+            # ETFs don't have sector
+            if info["quoteType"] == "ETF":
+                info["sector"] = "ETF"
+            df = DataFrame(
+                {
+                    **{c: [info[c]] for c in ("sector", "exchange")},
+                    **{"code": k},
+                }
             )
-            set_trace()
+            df = self.__expand_cols(df, _us_stock_list_cols)
             self.db.renew_stock_list(df)
+            print(f"{k} has been recorded")
