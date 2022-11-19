@@ -51,6 +51,7 @@ class fetcher:
         # df = self.th.get_stock_lst()
         df = read_csv("stock_list.csv", index_col=False)
         df = df.rename(columns={"ts_code": "code"})[["code"]]
+        df = df[~(df.code.str.contains("\."))]  # drop codes with dot
         df = self.__expand_cols(df, _us_stock_list_cols)
         self.db.renew_stock_list(df, region="us")
 
@@ -61,9 +62,13 @@ class fetcher:
 
         for k, v in tiks.items():
             info = v.info
+            if "quoteType" not in info:
+                continue
             # ETFs don't have sector
-            if info["quoteType"] == "ETF":
-                info["sector"] = "ETF"
+            if "sector" not in info:
+                info["sector"] = None
+            info["sector"] = "ETF" if info["quoteType"] == "ETF" else info["sector"]
+            info["delisted"] = "delisted" in info["longName"]
             df = DataFrame(
                 {
                     **{c: [info[c]] for c in ("sector", "exchange")},

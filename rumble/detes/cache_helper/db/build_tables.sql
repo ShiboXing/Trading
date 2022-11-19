@@ -116,8 +116,9 @@ end;
 -- select *
 -- from cn_cal;
 
-select *
-from us_stock_list;
+-- select *
+-- from us_stock_list
+-- where code like '%.%';
 
 -- select top 6000
 --   *
