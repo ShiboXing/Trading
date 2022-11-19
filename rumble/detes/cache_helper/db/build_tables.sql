@@ -96,8 +96,6 @@ begin
   create table us_stock_list
   (
     [code] nvarchar(7) not null,
-    [name] char(15),
-    [city] char(6) ,
     [industry] nvarchar(20),
     [exchange] nvarchar(5),
     [is_delisted] bit not null default 0,
@@ -109,7 +107,7 @@ end;
 -- exec sp_rename 'us_stock_list.industry', 'sector', 'COLUMN';
 
 -- alter table us_stock_list
--- drop column name;
+-- drop column city;
 
 -- use detes;
 -- select *
@@ -118,8 +116,8 @@ end;
 -- select *
 -- from cn_cal;
 
--- select *
--- from us_stock_list;
+select *
+from us_stock_list;
 
 -- select top 6000
 --   *
