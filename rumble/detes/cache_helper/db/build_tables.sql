@@ -121,6 +121,7 @@ end;
 
 -- select *
 -- from us_stock_list
+-- where exchange is null and is_delisted = 0;
 -- where code like '%.%';
 
 -- select top 6000

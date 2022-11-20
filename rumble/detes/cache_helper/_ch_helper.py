@@ -147,16 +147,19 @@ class db_helper:
         only_pk=False,
         codes: list = None,
         exchange: str or None = None,
+        is_delisted: bool = False,
         limit: int or None = None,
         region="us",
     ):
         conditions = []
         if exchange is None:
             exchange = None
-            conditions.append(" exchange is null ")
+            conditions.append("exchange is null")
         else:
-            conditions.append(" exchange = :exchange ")
-        condition_str = "and".join(conditions)
+            conditions.append("exchange = :exchange")
+        conditions.append("is_delisted = :is_delisted")
+
+        condition_str = " and ".join(conditions)
         limit_str = ""
         if limit:
             limit_str = f"top {limit}"
@@ -170,7 +173,7 @@ class db_helper:
                     select {limit_str} {fetch_cols} from {tname}
                     where {condition_str};
                 """,
-                    {"exchange": exchange},
+                    {"exchange": exchange, "is_delisted": is_delisted},
                 ).all()
         return res
 

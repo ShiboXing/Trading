@@ -56,22 +56,30 @@ class fetcher:
         self.db.renew_stock_list(df, region="us")
 
         # fill in stock list information
-        res = self.db.get_stock_info(exchange=None, only_pk=True)
+        res = self.db.get_stock_info(exchange=None, is_delisted=False, only_pk=True)
         res = (n[0] for n in res)
         tiks = self.th.get_stock_info(res)
 
         for k, v in tiks.items():
-            info = v.info
-            if "quoteType" not in info:
-                continue
-            # ETFs don't have sector
+            info = v.info  # performs web request (slow)
+
             if "sector" not in info:
                 info["sector"] = None
-            info["sector"] = "ETF" if info["quoteType"] == "ETF" else info["sector"]
-            info["delisted"] = "delisted" in info["longName"]
+            info["is_delisted"] = False
+            if "exchange" not in info:
+                info["exchange"] = None
+                info["is_delisted"] = True
+            elif (
+                "longName" in info
+                and info["longName"]
+                and "delisted" in info["longName"]
+            ):
+                info["is_delisted"] = True
+            if "quoteType" in info:  # ETFs don't have sector
+                info["sector"] = "ETF" if info["quoteType"] == "ETF" else info["sector"]
             df = DataFrame(
                 {
-                    **{c: [info[c]] for c in ("sector", "exchange")},
+                    **{c: [info[c]] for c in ("sector", "exchange", "is_delisted")},
                     **{"code": k},
                 }
             )
