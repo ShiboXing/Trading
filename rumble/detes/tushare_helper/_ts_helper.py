@@ -76,36 +76,8 @@ class ts_helper:
             time.sleep(31)  # failed requests might be counted against quota
         return res
 
-    def get_stock_info(self, stocks=()):
-        tiks = Tickers(" ".join(stocks))
-        return tiks.tickers
-
-    # def get_stock_list(self):
-    #     code_col_name = "成分券代码Constituent Code"
-    #     ex_col_name = "交易所英文名称Exchange(Eng)"
-    #     hs = pd.read_excel(_hs300_url)
-    #     zz = pd.read_excel(_zz500_url)
-    #     stock_list = pd.concat(
-    #         (hs[[code_col_name, ex_col_name]], zz[[code_col_name, ex_col_name]]), axis=0
-    #     )
-    #     stock_list = stock_list.astype({code_col_name: "str"})
-
-    #     for i in range(len(stock_list)):
-    #         code_len = len(stock_list.iloc[i, 0])
-    #         # add back the missing leading 0s
-    #         if code_len < 6:
-    #             stock_list.iloc[i, 0] = "0" * (6 - code_len) + stock_list.iloc[i, 0]
-
-    #         # add exchange code into stock code
-    #         stock_ex = stock_list.iloc[i, 1].lower()
-    #         if "shenzhen" in stock_ex:
-    #             stock_list.iloc[i, 0] += ".SZ"
-    #         if "shanghai" in stock_ex:
-    #             stock_list.iloc[i, 0] += ".SH"
-    #     stock_list = stock_list[[code_col_name]]
-
-    #     print("gotten stock list: ", stock_list.values.shape)
-    #     return stock_list
+    def get_stock_tickers(self, stocks=()):
+        return Tickers(" ".join(stocks)).tickers
 
     def get_stock_hist(self, ts_codes: list, N):
         print("downloading stock hist...")

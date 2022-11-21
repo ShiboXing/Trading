@@ -98,8 +98,11 @@ begin
     [code] nvarchar(7) not null,
     [sector] nvarchar(25),
     [exchange] nvarchar(5),
-    [is_delisted] bit not null default 0,
-    primary key (code)
+    [has_option] bit default null,
+    [is_delisted]
+      bit not null default 0,
+    primary key
+    (code)
   )
 end;
 
@@ -107,6 +110,7 @@ end;
 -- exec sp_rename 'us_stock_list.industry', 'sector', 'COLUMN';
 
 -- alter table us_stock_list
+-- add has_option bit null;
 -- drop column city;
 
 -- use detes;

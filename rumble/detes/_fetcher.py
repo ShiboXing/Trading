@@ -56,12 +56,14 @@ class fetcher:
         self.db.renew_stock_list(df, region="us")
 
         # fill in stock list information
-        res = self.db.get_stock_info(exchange=None, is_delisted=False, only_pk=True)
-        res = (n[0] for n in res)
-        tiks = self.th.get_stock_info(res)
+        stocks = self.db.get_stock_info(
+            params={"exchange": None, "is_delisted": False}, only_pk=True
+        )
+        tiks = self.th.get_stock_tickers(stocks)
 
         for k, v in tiks.items():
-            info = v.info  # performs web request (slow)
+            """performs web request with getter"""
+            info = v.info
 
             if "sector" not in info:
                 info["sector"] = None
@@ -85,4 +87,18 @@ class fetcher:
             )
             df = self.__expand_cols(df, _us_stock_list_cols)
             self.db.renew_stock_list(df)
-            print(f"{k} has been recorded")
+            print(f"{k} info has been recorded")
+
+    def update_option_status(self):
+        """
+        record in the dataset whether each stock has options listed or not, (doesn't apply to cn region)
+        """
+        stocks = self.db.get_stock_info(params={"has_option": None}, only_pk=True)
+        tiks = self.th.get_stock_tickers(stocks)
+        for k, v in tiks.items():
+            """perform web request with options getter"""
+            df = DataFrame({"code": [k], "has_option": [bool(v.options)]})
+
+            df = self.__expand_cols(df, _us_stock_list_cols)
+            self.db.renew_stock_list(df, region="us")
+            print(f"{k} option has been recorded")

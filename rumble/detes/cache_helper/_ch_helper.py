@@ -109,7 +109,7 @@ class db_helper:
                 insert_cols = []
                 insert_params = []
                 for k, v in params.items():
-                    if v:
+                    if v != None:
                         if update_params:
                             update_params.append(", ")
                             insert_cols.append(", ")
@@ -144,38 +144,36 @@ class db_helper:
 
     def get_stock_info(
         self,
+        params={},
         only_pk=False,
-        codes: list = None,
-        exchange: str or None = None,
-        is_delisted: bool = False,
         limit: int or None = None,
         region="us",
     ):
+        assert set(params.keys()).issubset(
+            set(_stock_list_cols[region])
+        ), f"column parameters have conflicts with {tname}"
         conditions = []
-        if exchange is None:
-            exchange = None
-            conditions.append("exchange is null")
-        else:
-            conditions.append("exchange = :exchange")
-        conditions.append("is_delisted = :is_delisted")
+        for k, v in params.items():
+            if v is None:
+                conditions.append(f"{k} is null")
+            else:
+                conditions.append(f"{k} = :{k}")
 
         condition_str = " and ".join(conditions)
-        limit_str = ""
-        if limit:
-            limit_str = f"top {limit}"
+        limit_str = f"top {limit}" if limit else ""
 
         tname = self.__get_table_name(region=region, type="lst")
         fetch_cols = "code" if only_pk else "*"
-        if not codes:
-            with Session(self.engine) as sess:
-                res = sess.execute(
-                    f"""
-                    select {limit_str} {fetch_cols} from {tname}
-                    where {condition_str};
-                """,
-                    {"exchange": exchange, "is_delisted": is_delisted},
-                ).all()
-        return res
+        with Session(self.engine) as sess:
+            res = sess.execute(
+                f"""
+                select {limit_str} {fetch_cols} from {tname}
+                where {condition_str};
+            """,
+                params,
+            ).all()
+
+        return (n[0] for n in res)
 
 
 class cache_helper:
