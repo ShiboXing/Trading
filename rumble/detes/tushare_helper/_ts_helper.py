@@ -133,7 +133,8 @@ class ts_helper:
             res = _pro_ts.trade_cal(start_date=start_date, end_date=end_date)
         return res
 
-    def __today(self):
+    @staticmethod
+    def today(self):
         """
         get today's date string
         """

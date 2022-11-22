@@ -102,3 +102,11 @@ class fetcher:
             df = self.__expand_cols(df, _us_stock_list_cols)
             self.db.renew_stock_list(df, region="us")
             print(f"{k} option has been recorded")
+
+    def update_stock_hist(self):
+        """
+        update stocks' historical data, starting from their last recorded dates
+        """
+        stocks = set(self.db.get_stock_info(only_pk=True))
+        t_str = self.th.today()
+        

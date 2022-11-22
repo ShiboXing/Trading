@@ -18,7 +18,7 @@ if not exists (select *
 from sys.tables
 where name='daily_bars')
 BEGIN
-  CREATE table daily_bars
+  CREATE table us_daily_bars
   (
     [exchange] nvarchar(6) not null,
     [code] nvarchar(6) not null,
