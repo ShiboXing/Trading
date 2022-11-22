@@ -69,7 +69,7 @@ class db_helper:
         elif type == "cal":
             return f"{region}_cal"
 
-    def fetch_last_date(self, region="us"):
+    def fetch_cal_last_date(self, region="us"):
         tname = self.__get_table_name(region=region, type="cal")
         with self.engine.connect() as conn:
             query = f"""
@@ -81,6 +81,16 @@ class db_helper:
             res = res.fetchall()
 
         return res[0][0].strftime("%Y%m%d") if res else res
+
+    @staticmethod
+    def build_cond_args(params):
+        conditions = []
+        for k, v in params.items():
+            if v is None:
+                conditions.append(f"{k} is null")
+            else:
+                conditions.append(f"{k} = :{k}")
+        return " and ".join(conditions)
 
     def renew_calendar(self, dates: pd.DataFrame, region="us"):
         dates = dates.filter(items=["cal_date", "is_open"])
@@ -149,20 +159,14 @@ class db_helper:
         limit: int or None = None,
         region="us",
     ):
+        tname = self.__get_table_name(region=region, type="lst")
         assert set(params.keys()).issubset(
             set(_stock_list_cols[region])
         ), f"column parameters have conflicts with {tname}"
-        conditions = []
-        for k, v in params.items():
-            if v is None:
-                conditions.append(f"{k} is null")
-            else:
-                conditions.append(f"{k} = :{k}")
 
-        condition_str = " and ".join(conditions)
+        condition_str = self.build_cond_args(params)
         limit_str = f"top {limit}" if limit else ""
 
-        tname = self.__get_table_name(region=region, type="lst")
         fetch_cols = "code" if only_pk else "*"
         with Session(self.engine) as sess:
             res = sess.execute(
@@ -174,6 +178,9 @@ class db_helper:
             ).all()
 
         return (n[0] for n in res)
+
+    def get_stock_hist(self, params={}, only_pk=True):
+        pass
 
 
 class cache_helper:

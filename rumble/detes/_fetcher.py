@@ -31,7 +31,7 @@ class fetcher:
 
     def update_cal(self):
         for r in ["us", "cn"]:
-            date = self.db.fetch_last_date(region=r)
+            date = self.db.fetch_cal_last_date(region=r)
             if not date:
                 date = self.__START_DATE
             start_date, end_date = date, dt.now().date().strftime("%Y%m%d")
@@ -109,4 +109,3 @@ class fetcher:
         """
         stocks = set(self.db.get_stock_info(only_pk=True))
         t_str = self.th.today()
-        
