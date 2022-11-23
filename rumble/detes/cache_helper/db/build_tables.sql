@@ -16,7 +16,7 @@ end;
 
 if not exists (select *
 from sys.tables
-where name='daily_bars')
+where name='us_daily_bars')
 BEGIN
   CREATE table us_daily_bars
   (
@@ -107,6 +107,19 @@ begin
 end;
 
 -- use detes;
+-- delete from us_stock_list 
+-- where code = 'AAPL';
+
+-- update us_stock_list
+-- set has_option = null
+-- where code = 
+-- 'AAOI';
+-- select *
+-- from us_stock_list
+-- where exchange is null and is_delisted = 0;
+-- where code like '%.%';
+
+-- use detes;
 -- exec sp_rename 'us_stock_list.industry', 'sector', 'COLUMN';
 
 -- alter table us_stock_list
@@ -122,11 +135,6 @@ end;
 
 -- alter table us_stock_list
 -- alter column sector varchar(25);
-
--- select *
--- from us_stock_list
--- where exchange is null and is_delisted = 0;
--- where code like '%.%';
 
 -- select top 6000
 --   *
