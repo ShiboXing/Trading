@@ -134,7 +134,7 @@ class ts_helper:
         return res
 
     @staticmethod
-    def today(self):
+    def today():
         """
         get today's date string
         """

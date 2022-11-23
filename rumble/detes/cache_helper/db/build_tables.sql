@@ -114,6 +114,7 @@ end;
 -- set has_option = null
 -- where code = 
 -- 'AAOI';
+
 -- select *
 -- from us_stock_list
 -- where exchange is null and is_delisted = 0;

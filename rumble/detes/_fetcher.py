@@ -42,17 +42,11 @@ class fetcher:
                 part_cal = self.th.get_dates(start_date, end_date, region=r)
                 self.db.renew_calendar(part_cal, region=r)
 
-    def __expand_cols(self, df, cols):
-        empty_cols = set(cols) - set(df.columns)
-        df[list(empty_cols)] = [None] * len(empty_cols)
-        return df
-
     def update_us_stock_lst(self):
         # df = self.th.get_stock_lst()
         df = read_csv("stock_list.csv", index_col=False)
         df = df.rename(columns={"ts_code": "code"})[["code"]]
         df = df[~(df.code.str.contains("\."))]  # drop codes with dot
-        df = self.__expand_cols(df, _us_stock_list_cols)
         self.db.renew_stock_list(df, region="us")
 
         # fill in stock list information
@@ -85,7 +79,6 @@ class fetcher:
                     **{"code": k},
                 }
             )
-            df = self.__expand_cols(df, _us_stock_list_cols)
             self.db.renew_stock_list(df)
             print(f"{k} info has been recorded")
 
@@ -98,8 +91,6 @@ class fetcher:
         for k, v in tiks.items():
             """perform web request with options getter"""
             df = DataFrame({"code": [k], "has_option": [bool(v.options)]})
-
-            df = self.__expand_cols(df, _us_stock_list_cols)
             self.db.renew_stock_list(df, region="us")
             print(f"{k} option has been recorded")
 
@@ -109,3 +100,5 @@ class fetcher:
         """
         stocks = set(self.db.get_stock_info(only_pk=True))
         t_str = self.th.today()
+        for s in stocks:
+            pass

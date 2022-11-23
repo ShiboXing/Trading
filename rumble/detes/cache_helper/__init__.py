@@ -18,11 +18,27 @@ _cn_stock_list_cols = (
     "list_date",
     "delist_date",
 )
+_us_stocck_hist_cols = (
+    "exchange",
+    "code",
+    "bar_date",
+    "open",
+    "close",
+    "high",
+    "low",
+    "vol",
+)
 
-_stock_list_cols = {
-    "us": _us_stock_list_cols,
-    "cn": _cn_stock_list_cols,
+_stock_table_cols = {
+    "list": {
+        "us": _us_stock_list_cols,
+        "cn": _cn_stock_list_cols,
+    },
+    "hist": {
+        "us": _us_stocck_hist_cols,
+    },
 }
+
 
 __all__ = [
     "_CACHE_PATH",

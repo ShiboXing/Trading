@@ -15,7 +15,7 @@ from . import (
     _quotes_pth,
     _timestamp_pth,
     _train_pth,
-    _stock_list_cols,
+    _stock_table_cols,
 )
 
 
@@ -68,6 +68,8 @@ class db_helper:
             return f"{region}_stock_list"
         elif type == "cal":
             return f"{region}_cal"
+        elif type == "hist":
+            return f"{region}_daily_bars"
 
     def fetch_cal_last_date(self, region="us"):
         tname = self.__get_table_name(region=region, type="cal")
@@ -85,27 +87,36 @@ class db_helper:
     @staticmethod
     def build_cond_args(params):
         conditions = []
+        if not params:
+            return ""
         for k, v in params.items():
             if v is None:
                 conditions.append(f"{k} is null")
             else:
                 conditions.append(f"{k} = :{k}")
-        return " and ".join(conditions)
+        return "where " + " and ".join(conditions)
 
     def renew_calendar(self, dates: pd.DataFrame, region="us"):
         dates = dates.filter(items=["cal_date", "is_open"])
         dates.columns = ["trade_date", "is_open"]
         dates.to_sql(f"{region}_cal", con=self.engine, if_exists="append", index=False)
 
+    def __expand_cols(self, df, cols):
+        empty_cols = set(cols) - set(df.columns)
+        if len(empty_cols):
+            df[list(empty_cols)] = [None] * len(empty_cols)
+        return df
+
     def renew_stock_list(
         self,
         new_df: pd.DataFrame,
         region="us",
     ):
-
+        _us_stock_list_cols = _stock_table_cols["list"][region]
+        new_df = self.__expand_cols(new_df, _us_stock_list_cols)
         tname = self.__get_table_name(region=region, type="lst")
         assert sorted(list(new_df.columns)) == sorted(
-            list(_stock_list_cols[region])
+            list(_us_stock_list_cols)
         ), f"column parameters have conflicts with {tname}"
 
         # upsert into the stock list table
@@ -161,9 +172,30 @@ class db_helper:
     ):
         tname = self.__get_table_name(region=region, type="lst")
         assert set(params.keys()).issubset(
-            set(_stock_list_cols[region])
+            set(_stock_table_cols["list"][region])
         ), f"column parameters have conflicts with {tname}"
 
+        condition_str = self.build_cond_args(params)
+        limit_str = f"top {limit}" if limit else ""
+        fetch_cols = "code" if only_pk else "*"
+        with Session(self.engine) as sess:
+            res = sess.execute(
+                f"""
+                select {limit_str} {fetch_cols} from {tname}
+                {condition_str};
+            """,
+                params,
+            ).all()
+
+        return (n[0] for n in res)
+
+    def get_stock_hist(
+        self, params={}, limit: int or None = None, only_pk=True, region="us"
+    ):
+        tname = self.__get_table_name(region=region, type="hist")
+        assert set(params.keys()).issubset(
+            set(_stock_table_cols["hist"][region])
+        ), f"column parameters have conflicts with {tname}"
         condition_str = self.build_cond_args(params)
         limit_str = f"top {limit}" if limit else ""
 
@@ -172,15 +204,12 @@ class db_helper:
             res = sess.execute(
                 f"""
                 select {limit_str} {fetch_cols} from {tname}
-                where {condition_str};
+                {condition_str};
             """,
                 params,
             ).all()
 
         return (n[0] for n in res)
-
-    def get_stock_hist(self, params={}, only_pk=True):
-        pass
 
 
 class cache_helper:
