@@ -50,8 +50,10 @@ class db_helper:
             conn = engine.raw_connection()
             with open(schema_pth, "r") as f:
                 sql_str = f.read()
-            conn.execute(sql_str)
-            conn.commit()
+            for cmd in sql_str.split("\ngo\n"):
+                if cmd:
+                    conn.execute(cmd)
+                    conn.commit()
 
     def __init__(self):
         self.__file_dir__ = os.path.dirname(__file__)
