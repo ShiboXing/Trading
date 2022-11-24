@@ -60,6 +60,7 @@ class db_helper:
         self.__run_sqlfile(tmp_engine, "build_schema.sql")
         self.engine = self.__connect_to_db("detes")
         self.__run_sqlfile(self.engine, "build_tables.sql")
+        self.__run_sqlfile(self.engine, "build_funcs.sql")
 
     def __get_table_name(self, region="us", type="lst"):
         assert region in ("us", "cn", "hk"), "region parameter is incorrect"
@@ -210,6 +211,16 @@ class db_helper:
             ).all()
 
         return (n[0] for n in res)
+
+    def get_latest_bars(self):
+        with Session(self.engine) as sess:
+            res = sess.execute(
+                f"""
+                exec get_all_last_dates;
+                """
+            ).all()
+
+        return res
 
 
 class cache_helper:

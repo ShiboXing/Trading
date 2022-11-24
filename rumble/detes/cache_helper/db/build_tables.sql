@@ -1,6 +1,5 @@
 use detes;
 
-
 if not exists (select *
 from sys.tables
 where name='stocks')
@@ -12,26 +11,6 @@ begin
     primary key (exchange, code)
   )
 end;
-
-
-if not exists (select *
-from sys.tables
-where name='us_daily_bars')
-BEGIN
-  CREATE table us_daily_bars
-  (
-    [exchange] nvarchar(6) not null,
-    [code] nvarchar(6) not null,
-    [bar_date] date not null,
-    [open] float not null,
-    [close] float not null,
-    [high] float not null,
-    [low] float not null,
-    [vol] float not null,
-    primary key (exchange, code, bar_date)
-  )
-END;
-
 
 if not exists (select *
 from sys.tables
@@ -106,14 +85,32 @@ begin
   )
 end;
 
--- use detes;
--- delete from us_stock_list 
--- where code = 'AAPL';
 
--- update us_stock_list
--- set has_option = null
--- where code = 
--- 'AAOI';
+if not exists (select *
+from sys.tables
+where name='us_daily_bars')
+BEGIN
+  CREATE table us_daily_bars
+  (
+    [code] nvarchar(7) not null,
+    [bar_date] date not null,
+    [open] float not null,
+    [close] float not null,
+    [high] float not null,
+    [low] float not null,
+    [vol] float not null,
+    primary key (code, bar_date),
+    constraint fk_code foreign key
+    (code) references us_stock_list
+    (code)
+  )
+END;
+
+
+-- insert into us_daily_bars
+--   (code, bar_date, [open], [close], high, low, vol)
+-- values('AAPL', '20221111', 1, 1, 1, 1, 1),
+--   ('U', '20211101', 1, 1, 1, 1, 1)
 
 -- select *
 -- from us_stock_list

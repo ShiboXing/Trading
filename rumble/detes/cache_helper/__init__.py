@@ -18,7 +18,7 @@ _cn_stock_list_cols = (
     "list_date",
     "delist_date",
 )
-_us_stocck_hist_cols = (
+_us_stock_hist_cols = (
     "exchange",
     "code",
     "bar_date",
@@ -35,7 +35,7 @@ _stock_table_cols = {
         "cn": _cn_stock_list_cols,
     },
     "hist": {
-        "us": _us_stocck_hist_cols,
+        "us": _us_stock_hist_cols,
     },
 }
 
@@ -46,6 +46,7 @@ __all__ = [
     "_hist_data_pth",
     "_stock_list_pth",
     "_timestamp_pth",
+    "_stock_table_cols",
     "_quotes_pth",
     "_train_pth",
     "cache_helper",

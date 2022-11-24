@@ -98,7 +98,9 @@ class fetcher:
         """
         update stocks' historical data, starting from their last recorded dates
         """
-        stocks = set(self.db.get_stock_info(only_pk=True))
-        t_str = self.th.today()
-        for s in stocks:
-            pass
+        last_dates_and_codes = self.db.get_latest_bars()
+        last_dates_and_codes = []
+        # for d, c in last_dates_and_codes:
+
+        # for s in stocks:
+        # pass
