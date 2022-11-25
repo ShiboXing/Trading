@@ -3,7 +3,7 @@
 import tushare as _ts
 import pandas as pd
 import time
-from yfinance import Tickers
+from yfinance import Tickers, download
 from re import search
 from urllib.error import URLError
 from datetime import date, timedelta, datetime as dt
@@ -78,6 +78,30 @@ class ts_helper:
 
     def get_stock_tickers(self, stocks=()):
         return Tickers(" ".join(stocks)).tickers
+
+    def get_stocks_hist(self, codes, start_dates: list or str, end_dates: list or str):
+        """
+        generator, to return the stock history data one by one
+        """
+        start_islst, end_islst = type(start_dates) == list, type(end_dates) == list
+        if start_islst:
+            assert len(codes) == len(
+                start_dates
+            ), "start dates length doesn't match codes"
+
+        if end_islst:
+            assert len(codes) == len(end_dates), "end dates length doesn't match codes"
+            if start_islst:
+                assert len(start_dates) == len(
+                    end_dates
+                ), "end dates length doesn't match start dates"
+
+        for i in range(len(codes)):
+            c = codes[i]
+            start = start_dates[i] if start_islst else start_dates
+            end = end_dates[i] if end_islst else end_dates
+
+            yield download(c, interval="1d", start=start, end=end)
 
     def get_stock_hist(self, ts_codes: list, N):
         print("downloading stock hist...")

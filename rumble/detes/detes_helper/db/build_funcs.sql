@@ -2,8 +2,9 @@ create or alter proc get_all_last_dates
 as
 begin
     select max(bar_date), l.code
-    from us_stock_list l inner join us_daily_bars b
+    from us_stock_list l left join us_daily_bars b
         on l.code = b.code
+    where is_delisted = 0
     group by l.code
 end;
 go
@@ -32,3 +33,7 @@ go
 
 -- select *
 -- from cn_cal
+
+-- use detes;
+-- select *
+-- from us_daily_bars;

@@ -29,6 +29,14 @@ class fetcher:
         else:
             self.quotes = self.ch.load_data()
 
+    @staticmethod
+    def format_date(date):
+        return date.strftime("%Y%m%d")
+
+    @staticmethod
+    def format_yfin_date(date):
+        return date.strftime("%Y-%m-%d")
+
     def update_cal(self):
         for r in ["us", "cn"]:
             date = self.db.fetch_cal_last_date(region=r)
@@ -98,10 +106,18 @@ class fetcher:
         """
         update stocks' historical data, starting from their last recorded dates
         """
-        last_dates_and_codes = self.db.get_latest_bars()
-        last_trading_date = self.db.get_last_trading_date()
-        for d, c in last_dates_and_codes:
-            if d < last_trading_date:
-                pass
-        # for s in stocks:
-        # pass
+        last_tr_date = self.db.get_last_trading_date()
+        stocks, dates = [], []
+        for d, c in self.db.get_latest_bars():
+            if not d:
+                d = dt.strptime(self.__START_DATE, "%Y%m%d").date()
+            if d < last_tr_date:
+                stocks.append(c)
+                dates.append(self.format_yfin_date(d))
+        from ipdb import set_trace
+
+        set_trace()
+        for df in self.th.get_stocks_hist(
+            stocks, start_dates=dates, end_dates=self.format_yfin_date(last_tr_date)
+        ):
+            print(df.head())
