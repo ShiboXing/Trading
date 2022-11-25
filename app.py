@@ -1,8 +1,7 @@
 import time, os
 import numpy as np
 from rumble.detes import fetcher
-from rumble.detes.cache_helper import cache_helper as ch
-from rumble.detes.cache_helper import db_helper
+from rumble.detes.detes_helper import db_helper
 import rumble_cpp as rc
 
 from sqlalchemy.engine import URL
@@ -13,13 +12,12 @@ if __name__ == "__main__":
     # os.environ["TZ"] = "Asia/Shanghai"
     os.environ["TZ"] = "US/Eastern"
     time.tzset()
-    # db = db_helper()
+
     ft = fetcher("20000101", "us")
     ft.update_cal()
     ft.update_us_stock_lst()
     ft.update_option_status()
     ft.update_stock_hist()
-    # ft.fetch_all_hist()
 
     # _ch = ch()
     # hist = _ch.load_data("hist")

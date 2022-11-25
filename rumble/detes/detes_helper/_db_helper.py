@@ -7,7 +7,7 @@ from datetime import datetime as dt, time
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import Session
-from ..tushare_helper import ts_helper as th
+from ..web_helper import ts_helper as th
 from . import (
     _TRAIN_PATH,
     _hist_data_pth,
@@ -84,7 +84,7 @@ class db_helper:
                 {"region": region},
             ).fetchall()
 
-        return res[0]
+        return res[0][0]
 
     def fetch_cal_last_date(self, region="us"):
         tname = self.__get_table_name(region=region, type="cal")

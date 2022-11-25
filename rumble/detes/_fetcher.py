@@ -1,7 +1,7 @@
 from re import L
-from .cache_helper import db_helper as db
-from .cache_helper import _us_stock_list_cols, _cn_stock_list_cols
-from .tushare_helper import ts_helper as th
+from .detes_helper import db_helper as db
+from .detes_helper import _us_stock_list_cols, _cn_stock_list_cols
+from .web_helper import ts_helper as th
 from datetime import datetime as dt, timedelta
 from pandas import read_csv, DataFrame
 
