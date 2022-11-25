@@ -15,8 +15,20 @@ begin
     if @region = 'cn'
     begin
         select max(trade_date)
+        from cn_cal
+        where is_open=1
+    end
+    else if @region = 'us'
+    begin
+        select max(trade_date)
         from us_cal
         where is_open=1
     end
 end;
 go
+
+-- exec get_last_trading_date @region = 'cn';
+-- go
+
+-- select *
+-- from cn_cal

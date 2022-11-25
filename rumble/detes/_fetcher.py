@@ -99,8 +99,9 @@ class fetcher:
         update stocks' historical data, starting from their last recorded dates
         """
         last_dates_and_codes = self.db.get_latest_bars()
-        last_dates_and_codes = []
-        # for d, c in last_dates_and_codes:
-
+        last_trading_date = self.db.get_last_trading_date()
+        for d, c in last_dates_and_codes:
+            if d < last_trading_date:
+                pass
         # for s in stocks:
         # pass

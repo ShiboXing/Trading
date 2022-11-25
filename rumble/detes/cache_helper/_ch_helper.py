@@ -74,16 +74,28 @@ class db_helper:
         elif type == "hist":
             return f"{region}_daily_bars"
 
+    def get_last_trading_date(self, region="us"):
+        assert region in ["us", "cn", "hk"], "region is invalid"
+        with Session(self.engine) as sess:
+            res = sess.execute(
+                f"""
+                exec get_last_trading_date @region = :region;
+            """,
+                {"region": region},
+            ).fetchall()
+
+        return res[0]
+
     def fetch_cal_last_date(self, region="us"):
         tname = self.__get_table_name(region=region, type="cal")
-        with self.engine.connect() as conn:
-            query = f"""
+        with Session(self.engine) as sess:
+            res = sess.execute(
+                f"""
                 select top 1
                 * from {tname}
                 order by trade_date desc;
             """
-            res = conn.execute(query)
-            res = res.fetchall()
+            ).fetchall()
 
         return res[0][0].strftime("%Y%m%d") if res else res
 
