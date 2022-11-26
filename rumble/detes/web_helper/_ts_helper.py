@@ -1,8 +1,7 @@
 # -*- coding: UTF-8 -*-
-
 import tushare as _ts
 import pandas as pd
-import time
+import time, heapq as pq
 from yfinance import Tickers, download
 from re import search
 from urllib.error import URLError
@@ -37,6 +36,10 @@ class ts_helper:
         global _pro_ts
         _ts.set_token(_TOKEN)
         _pro_ts = _ts.pro_api()
+
+    @staticmethod
+    def format_date(date):
+        return date.strftime("%Y-%m-%d")
 
     def get_all_quotes(self):
         print("downloading all stock quotes")
@@ -79,29 +82,50 @@ class ts_helper:
     def get_stock_tickers(self, stocks=()):
         return Tickers(" ".join(stocks)).tickers
 
-    def get_stocks_hist(self, codes, start_dates: list or str, end_dates: list or str):
+    def get_stocks_hist(self, codes, start_date: list or str, end_date: list or str):
         """
         generator, to return the stock history data one by one
+        codes, start_date and end_date lists share the same indices
         """
-        start_islst, end_islst = type(start_dates) == list, type(end_dates) == list
+        start_islst, end_islst = type(start_date) == list, type(end_date) == list
+        in_queue, wait_queue = [], []
         if start_islst:
             assert len(codes) == len(
-                start_dates
+                start_date
             ), "start dates length doesn't match codes"
+            for i in range(len(codes)):
+                pq.heappush(wait_queue, (start_date[i], i))
+        else:
+            wait_queue = [(start_date, i) for i in range(len(codes))]
 
         if end_islst:
-            assert len(codes) == len(end_dates), "end dates length doesn't match codes"
+            assert len(codes) == len(end_date), "end dates length doesn't match codes"
             if start_islst:
-                assert len(start_dates) == len(
-                    end_dates
+                assert len(start_date) == len(
+                    end_date
                 ), "end dates length doesn't match start dates"
 
-        for i in range(len(codes)):
-            c = codes[i]
-            start = start_dates[i] if start_islst else start_dates
-            end = end_dates[i] if end_islst else end_dates
+        curr_date = min(start_date) if start_islst else start_date
+        last_date = max(end_date) if end_islst else end_date
+        req_str = ""
+        while curr_date <= last_date:
+            if wait_queue[0][0] == curr_date:
+                while wait_queue[0][0] == curr_date:
+                    _, next_i = pq.heappop(wait_queue)
+                    if end_islst:
+                        pq.heappush(in_queue, (end_date[next_i], next_i))
+                    else:
+                        in_queue = [(end_date, i) for i in range(len(codes))]
 
-            yield download(c, interval="1d", start=start, end=end)
+                req_str = " ".join(codes[i] for _, i in in_queue)
+
+            yield download(req_str, start=curr_date, end=curr_date + timedelta(days=1))
+
+            if in_queue[0][0] == curr_date:
+                while in_queue[0] == curr_date:
+                    pq.heappop(in_queue)
+
+                req_str = " ".join(in_queue)
 
     def get_stock_hist(self, ts_codes: list, N):
         print("downloading stock hist...")

@@ -33,10 +33,6 @@ class fetcher:
     def format_date(date):
         return date.strftime("%Y%m%d")
 
-    @staticmethod
-    def format_yfin_date(date):
-        return date.strftime("%Y-%m-%d")
-
     def update_cal(self):
         for r in ["us", "cn"]:
             date = self.db.fetch_cal_last_date(region=r)
@@ -51,8 +47,8 @@ class fetcher:
                 self.db.renew_calendar(part_cal, region=r)
 
     def update_us_stock_lst(self):
-        # df = self.th.get_stock_lst()
-        df = read_csv("stock_list.csv", index_col=False)
+        df = self.th.get_stock_lst()
+        # df = read_csv("stock_list.csv", index_col=False)
         df = df.rename(columns={"ts_code": "code"})[["code"]]
         df = df[~(df.code.str.contains("\."))]  # drop codes with dot
         self.db.renew_stock_list(df, region="us")
@@ -113,11 +109,8 @@ class fetcher:
                 d = dt.strptime(self.__START_DATE, "%Y%m%d").date()
             if d < last_tr_date:
                 stocks.append(c)
-                dates.append(self.format_yfin_date(d))
-        from ipdb import set_trace
-
-        set_trace()
+                dates.append(d)
         for df in self.th.get_stocks_hist(
-            stocks, start_dates=dates, end_dates=self.format_yfin_date(last_tr_date)
+            stocks, start_date=dates, end_date=last_tr_date
         ):
             print(df.head())
