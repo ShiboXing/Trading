@@ -113,6 +113,9 @@ END;
 --   ('U', '20211101', 1, 1, 1, 1, 1)
 
 -- select *
+-- from us_daily_bars;
+
+-- select *
 -- from us_stock_list
 -- where exchange is null and is_delisted = 0;
 -- where code like '%.%';

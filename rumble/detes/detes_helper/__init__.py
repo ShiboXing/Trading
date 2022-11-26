@@ -19,7 +19,6 @@ _cn_stock_list_cols = (
     "delist_date",
 )
 _us_stock_hist_cols = (
-    "exchange",
     "code",
     "bar_date",
     "open",

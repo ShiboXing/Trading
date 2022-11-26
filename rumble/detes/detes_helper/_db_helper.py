@@ -66,7 +66,7 @@ class db_helper:
 
     def __get_table_name(self, region="us", type="lst"):
         assert region in ("us", "cn", "hk"), "region parameter is incorrect"
-        assert type in ("lst", "cal"), "table type parameter is incorrect"
+        assert type in ("lst", "cal", "hist"), "table type parameter is incorrect"
         if type == "lst":
             return f"{region}_stock_list"
         elif type == "cal":
@@ -116,11 +116,23 @@ class db_helper:
         dates.columns = ["trade_date", "is_open"]
         dates.to_sql(f"{region}_cal", con=self.engine, if_exists="append", index=False)
 
-    def __expand_cols(self, df, cols):
+    def __expand_cols(self, df, cols, filter=False):
         empty_cols = set(cols) - set(df.columns)
         if len(empty_cols):
             df[list(empty_cols)] = [None] * len(empty_cols)
+        if filter:
+            df = df[list(cols)]
         return df
+
+    def renew_stock_hist(self, new_df, region="us"):
+        new_df = self.__expand_cols(
+            new_df, _stock_table_cols["hist"][region], filter=True
+        )
+        assert sorted(new_df.columns) == sorted(
+            _stock_table_cols["hist"]["us"]
+        ), "stock hist columns invalid"
+        tname = self.__get_table_name(region=region, type="hist")
+        new_df.to_sql(tname, con=self.engine, if_exists="append", index=False)
 
     def renew_stock_list(
         self,

@@ -7,7 +7,7 @@ from re import search
 from urllib.error import URLError
 from datetime import date, timedelta, datetime as dt
 from . import _TOKEN, _hs300_url, _zz500_url
-from urllib3.exceptions import ReadTimeoutError
+from urllib3.exceptions import ReadTimeoutError, ProtocolError
 from requests.exceptions import ConnectionError
 
 
@@ -17,6 +17,9 @@ def retry_wrapper(func):
             try:
                 res = func(*args, **kwargs)
                 break
+            except ConnectionError as e:
+                if "Connection aborted." in e.args:
+                    print("[web helper] connection error, retrying")
             except Exception as e:
                 if e.args:
                     if search("您每分钟最多访问该接口\d次", e.args[0]):
@@ -72,31 +75,35 @@ class ts_helper:
             1. 5 times max per 24 hrs
             2. 2 times max per 1 min
         """
-        today = dt.now().date().strftime("%Y%m%d")
+
         res = None
-        for i in range(0, 24001, 6000):
-            res = pd.concat((res, _pro_ts.us_daily(trade_date=today, offset=i)))
-            time.sleep(31)  # failed requests might be counted against quota
+        try:
+            today = dt.now().date().strftime("%Y%m%d")
+            for i in range(0, 24001, 6000):
+                res = pd.concat((res, _pro_ts.us_daily(trade_date=today, offset=i)))
+                time.sleep(31)  # failed requests might be counted against quota
+        except Exception as e:
+
+            if type(e) != ProtocolError and "抱歉，您每天最多访问该接口" in e.args[0]:
+                print("[web helper] daily requests limit reached")
+            else:
+                raise e
+
         return res
 
     def get_stock_tickers(self, stocks=()):
         return Tickers(" ".join(stocks)).tickers
 
-    def get_stocks_hist(self, codes, start_date: list or str, end_date: list or str):
+    def get_stocks_hist(self, codes, start_date: list or date, end_date: list or date):
         """
         generator, to return the stock history data one by one
         codes, start_date and end_date lists share the same indices
         """
         start_islst, end_islst = type(start_date) == list, type(end_date) == list
-        in_queue, wait_queue = [], []
         if start_islst:
             assert len(codes) == len(
                 start_date
             ), "start dates length doesn't match codes"
-            for i in range(len(codes)):
-                pq.heappush(wait_queue, (start_date[i], i))
-        else:
-            wait_queue = [(start_date, i) for i in range(len(codes))]
 
         if end_islst:
             assert len(codes) == len(end_date), "end dates length doesn't match codes"
@@ -105,57 +112,55 @@ class ts_helper:
                     end_date
                 ), "end dates length doesn't match start dates"
 
-        curr_date = min(start_date) if start_islst else start_date
-        last_date = max(end_date) if end_islst else end_date
-        req_str = ""
-        while curr_date <= last_date:
-            if wait_queue[0][0] == curr_date:
-                while wait_queue[0][0] == curr_date:
-                    _, next_i = pq.heappop(wait_queue)
-                    if end_islst:
-                        pq.heappush(in_queue, (end_date[next_i], next_i))
-                    else:
-                        in_queue = [(end_date, i) for i in range(len(codes))]
+        for i, c in enumerate(codes):
+            lo = start_date[i] if start_islst else start_date
+            hi = end_date[i] if end_islst else end_date
+            yield download(c, start=lo, end=hi + timedelta(days=1))
 
-                req_str = " ".join(codes[i] for _, i in in_queue)
+    # def get_stocks_hist(self, codes, start_date: list or str, end_date: list or str):
+    #     """
+    #     generator, to return the stock history data one by one
+    #     codes, start_date and end_date lists share the same indices
+    #     """
+    #     start_islst, end_islst = type(start_date) == list, type(end_date) == list
+    #     in_queue, wait_queue = [], []
+    #     if start_islst:
+    #         assert len(codes) == len(
+    #             start_date
+    #         ), "start dates length doesn't match codes"
+    #         for i in range(len(codes)):
+    #             pq.heappush(wait_queue, (start_date[i], i))
+    #     else:
+    #         wait_queue = [(start_date, i) for i in range(len(codes))]
 
-            yield download(req_str, start=curr_date, end=curr_date + timedelta(days=1))
+    #     if end_islst:
+    #         assert len(codes) == len(end_date), "end dates length doesn't match codes"
+    #         if start_islst:
+    #             assert len(start_date) == len(
+    #                 end_date
+    #             ), "end dates length doesn't match start dates"
 
-            if in_queue[0][0] == curr_date:
-                while in_queue[0] == curr_date:
-                    pq.heappop(in_queue)
+    #     curr_date = min(start_date) if start_islst else start_date
+    #     last_date = max(end_date) if end_islst else end_date
+    #     req_str = ""
+    #     while curr_date <= last_date:
+    #         if wait_queue and wait_queue[0][0] == curr_date:
+    #             while wait_queue and wait_queue[0][0] == curr_date:
+    #                 _, next_i = pq.heappop(wait_queue)
+    #                 if end_islst:
+    #                     pq.heappush(in_queue, (end_date[next_i], next_i))
+    #                 else:
+    #                     in_queue = [(end_date, i) for i in range(len(codes))]
 
-                req_str = " ".join(in_queue)
+    #             req_str = " ".join(codes[i] for _, i in in_queue)
 
-    def get_stock_hist(self, ts_codes: list, N):
-        print("downloading stock hist...")
-        df = pd.DataFrame()
-        end_date = date.today()
-        start_date = end_date - timedelta(days=N)
-        window = 5000 // N  # tushare allows 5000 lines of data for every requests
+    #         yield download(req_str, start=curr_date, end=curr_date + timedelta(days=1))
 
-        for i in range(0, len(ts_codes), window):
-            end = min(i + window, len(ts_codes))
-            part_codes = ",".join(ts_codes[i:end])
+    #         if in_queue and in_queue[0][0] == curr_date:
+    #             while in_queue and in_queue[0] == curr_date:
+    #                 pq.heappop(in_queue)
 
-            end_date_str = end_date.strftime("%Y%m%d")
-            start_date_str = start_date.strftime("%Y%m%d")
-
-            while True:  # TODO: revise timeout handling
-                try:
-                    tmp = _pro_ts.daily(
-                        ts_code=part_codes,
-                        start_date=start_date_str,
-                        end_dat=end_date_str,
-                    )
-                    df = pd.concat((df, tmp), axis=0)
-                    break
-                except (ReadTimeoutError, ConnectionError, OSError) as e:
-                    print("daily bar request error, retrying...", e)
-
-            print(f"{round(end/len(ts_codes) * 100, 2)}% fetched")
-
-        return df
+    #             req_str = " ".join(in_queue)
 
     def get_real_time_quotes(self, codes: list):
         window = 30

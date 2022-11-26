@@ -3,7 +3,7 @@ from .detes_helper import db_helper as db
 from .detes_helper import _us_stock_list_cols, _cn_stock_list_cols
 from .web_helper import ts_helper as th
 from datetime import datetime as dt, timedelta
-from pandas import read_csv, DataFrame
+from pandas import DataFrame
 
 
 class fetcher:
@@ -48,7 +48,9 @@ class fetcher:
 
     def update_us_stock_lst(self):
         df = self.th.get_stock_lst()
-        # df = read_csv("stock_list.csv", index_col=False)
+        if not df:
+            print("[fetcher] stock list update skipped")
+            return
         df = df.rename(columns={"ts_code": "code"})[["code"]]
         df = df[~(df.code.str.contains("\."))]  # drop codes with dot
         self.db.renew_stock_list(df, region="us")
@@ -110,7 +112,19 @@ class fetcher:
             if d < last_tr_date:
                 stocks.append(c)
                 dates.append(d)
-        for df in self.th.get_stocks_hist(
-            stocks, start_date=dates, end_date=last_tr_date
+        for i, df in enumerate(
+            self.th.get_stocks_hist(stocks, start_date=dates, end_date=last_tr_date)
         ):
-            print(df.head())
+            df = df.reset_index().rename(
+                columns={
+                    "Open": "open",
+                    "High": "high",
+                    "Low": "low",
+                    "Close": "close",
+                    "Volume": "vol",
+                    "Date": "bar_date",
+                }
+            )
+            df["code"] = stocks[i]
+            self.db.renew_stock_hist(df, region="us")
+            print(f"[fetcher] {stocks[i]} hist data updated")
