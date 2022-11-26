@@ -26,6 +26,9 @@ def retry_wrapper(func):
                         print(e.args[0])
                         print("[TUSHARE] 1-min web request limitation hit")
                         time.sleep(60)
+                    elif "抱歉，您每天最多访问该接口" in e.args[0]:
+                        print("[web helper] daily requests limit reached")
+                        return None
                     else:
                         raise e
         return res
@@ -77,17 +80,10 @@ class ts_helper:
         """
 
         res = None
-        try:
-            today = dt.now().date().strftime("%Y%m%d")
-            for i in range(0, 24001, 6000):
-                res = pd.concat((res, _pro_ts.us_daily(trade_date=today, offset=i)))
-                time.sleep(31)  # failed requests might be counted against quota
-        except Exception as e:
-
-            if type(e) != ProtocolError and "抱歉，您每天最多访问该接口" in e.args[0]:
-                print("[web helper] daily requests limit reached")
-            else:
-                raise e
+        today = dt.now().date().strftime("%Y%m%d")
+        for i in range(0, 24001, 6000):
+            res = pd.concat((res, _pro_ts.us_daily(trade_date=today, offset=i)))
+            time.sleep(31)  # failed requests might be counted against quota
 
         return res
 
@@ -98,6 +94,8 @@ class ts_helper:
         """
         generator, to return the stock history data one by one
         codes, start_date and end_date lists share the same indices
+        start_date: inclusive
+        end_date: inclusive
         """
         start_islst, end_islst = type(start_date) == list, type(end_date) == list
         if start_islst:
