@@ -109,7 +109,10 @@ class fetcher:
         for d, c in self.db.get_latest_bars():
             if not d:
                 d = dt.strptime(self.__START_DATE, "%Y%m%d").date()
-            if d < last_tr_date:
+            else:
+                d += timedelta(days=1)
+
+            if d <= last_tr_date:
                 stocks.append(c)
                 dates.append(d)
         for i, df in enumerate(
