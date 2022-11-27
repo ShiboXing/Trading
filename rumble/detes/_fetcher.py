@@ -48,7 +48,7 @@ class fetcher:
 
     def update_us_stock_lst(self):
         df = self.th.get_stock_lst()
-        if not df:
+        if df is None:
             print("[fetcher] stock list update skipped")
             return
         df = df.rename(columns={"ts_code": "code"})[["code"]]
@@ -118,6 +118,9 @@ class fetcher:
         for i, df in enumerate(
             self.th.get_stocks_hist(stocks, start_date=dates, end_date=last_tr_date)
         ):
+            if df is None:
+                print(f"[fetcher] {stocks[i]} hist data update skipped")
+                continue
             df = df.reset_index().rename(
                 columns={
                     "Open": "open",

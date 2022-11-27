@@ -113,7 +113,13 @@ class ts_helper:
         for i, c in enumerate(codes):
             lo = start_date[i] if start_islst else start_date
             hi = end_date[i] if end_islst else end_date
-            yield download(c, start=lo, end=hi + timedelta(days=1))
+            df = download(c, start=lo, end=hi + timedelta(days=1))
+
+            # guard for yfinance fetch-out-of-range error
+            if len(df) == 1 and df.index[0].to_pydatetime().date() < lo:
+                yield None
+            else:
+                yield df
 
     # def get_stocks_hist(self, codes, start_date: list or str, end_date: list or str):
     #     """
