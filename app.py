@@ -1,10 +1,31 @@
-import time, os
-import numpy as np
 from rumble.detes import fetcher
 from rumble.detes.detes_helper import db_helper
 import rumble_cpp as rc
 
+import time, os
+import numpy as np
+from operator import lt, gt
 from sqlalchemy.engine import URL
+
+
+def rsi(df):
+
+    closes = df.Close.diff()
+
+    def ma(op):
+        init_indx = -len(closes)
+        avg = closes[init_indx] if op(closes[init_indx], 0) else 0
+        for i in range(init_indx + 1, 0):
+            inc = 0
+            if op(closes[i], 0):
+                inc = closes[i]
+            avg = (avg * 13 + inc) / 14
+        return avg
+
+    lavg = abs(ma(lt))
+    gavg = ma(gt)
+    rs = gavg / lavg
+    return 100 - 100 / (1 + rs)
 
 
 if __name__ == "__main__":
@@ -17,11 +38,7 @@ if __name__ == "__main__":
     ft.update_cal()
     ft.update_us_stock_lst()
     ft.update_option_status()
-    ft.update_stock_hist()
 
-    # _ch = ch()
-    # hist = _ch.load_data("hist")
-    # hist = hist.astype({"vol": "int"})
     # print("nums: ", hist.shape)
     # obj = rc.day_streak(
     #     hist[["ts_code", "trade_date", "open", "close", "vol"]].to_numpy().tolist(),

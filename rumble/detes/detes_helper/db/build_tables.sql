@@ -99,6 +99,7 @@ BEGIN
     [high] float not null,
     [low] float not null,
     [vol] float not null,
+    [rsi] float,
     primary key (code, bar_date),
     constraint fk_code foreign key
     (code) references us_stock_list
@@ -106,60 +107,7 @@ BEGIN
   )
 END;
 
-
--- insert into us_daily_bars
---   (code, bar_date, [open], [close], high, low, vol)
--- values('AAPL', '20221111', 1, 1, 1, 1, 1),
---   ('U', '20211101', 1, 1, 1, 1, 1)
-
--- select *
--- from us_daily_bars;
-
--- select *
--- from us_stock_list
--- where exchange is null and is_delisted = 0;
--- where code like '%.%';
-
 -- use detes;
--- exec sp_rename 'us_stock_list.industry', 'sector', 'COLUMN';
-
--- alter table us_stock_list
--- add has_option bit null;
--- drop column city;
-
--- use detes;
--- select *
--- from us_cal
-
--- select *
--- from cn_cal;
-
--- alter table us_stock_list
--- alter column sector varchar(25);
-
--- select top 6000
+-- select top 100
 --   *
--- from us_stock_list
--- where exchange is null;
--- where code = 'LDEM';
-
--- delete from us_stock_list
--- where code = 'LDEM'
-
--- alter table us_stock_list
--- add is_delisted bit not null default 0;
-
--- update us_stock_list 
--- set name='acac', city='death'
--- where code = 'AAAAA';
-
--- delete from us_cal
--- where trade_date > '2020-03-30';
--- delete from cn_cal
--- where trade_date > '2018-02-12';
-
--- select name
--- from sys.tables;
--- use detes;
--- EXEC sp_MSforeachtable @command1 = '
--- DROP TABLE ?'
+-- from us_daily_bars;
