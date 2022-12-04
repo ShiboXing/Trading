@@ -16,12 +16,33 @@ typedef bip::managed_shared_memory msm;
 
 struct Sample
 {
-    std::string ts_code, trade_date;
-    float open, close;
-    unsigned int vol;
-    Sample(PyObject *df_row);
-    void print() const;
-    bool operator>(Sample &rhs);
+    std::string code, trade_date;
+    float price;
+    Sample(PyObject *df_row)
+    {
+        char *ts_code_tmp, *trade_date_tmp;
+        assert((string)df_row->ob_type->tp_name == "list");
+        PyArg_Parse(PyList_GetItem(df_row, 0), "s", &ts_code_tmp);
+        PyArg_Parse(PyList_GetItem(df_row, 1), "s", &trade_date_tmp);
+        PyArg_Parse(PyList_GetItem(df_row, 2), "f", &price);
+
+        code = string(ts_code_tmp);
+        trade_date = string(trade_date_tmp);
+    }
+
+    void print() const
+    {
+        cout << "code, trade_date, price";
+        cout << code << " " << trade_date << " " << price << endl;
+    }
+
+    bool operator>(Sample &rhs)
+    {
+        if (code != rhs.code)
+            return code > rhs.code;
+        else
+            return trade_date > rhs.trade_date;
+    }
 };
 
 int get_streaks(std::vector<Sample> &input, unsigned int streak_len, bool is_up, std::vector<std::string> &res_vec);

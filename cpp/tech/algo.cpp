@@ -4,34 +4,6 @@
 
 using namespace std;
 
-Sample::Sample(PyObject *df_row)
-{
-    char *ts_code_tmp, *trade_date_tmp;
-    assert((string)df_row->ob_type->tp_name == "list");
-    PyArg_Parse(PyList_GetItem(df_row, 0), "s", &ts_code_tmp);
-    PyArg_Parse(PyList_GetItem(df_row, 1), "s", &trade_date_tmp);
-    PyArg_Parse(PyList_GetItem(df_row, 2), "f", &open);
-    PyArg_Parse(PyList_GetItem(df_row, 3), "f", &close);
-    PyArg_Parse(PyList_GetItem(df_row, 4), "I", &vol);
-
-    ts_code = string(ts_code_tmp);
-    trade_date = string(trade_date_tmp);
-}
-
-void Sample::print() const
-{
-    cout << "tscode, trade_date, open, close: ";
-    cout << ts_code << " " << trade_date << " " << open << " " << close << endl;
-}
-
-bool Sample::operator>(Sample &rhs)
-{
-    if (ts_code != rhs.ts_code)
-        return ts_code > rhs.ts_code;
-    else
-        return trade_date > rhs.trade_date;
-}
-
 /**
  * @brief Get the streaks from data samples and write to output
  *
@@ -44,7 +16,7 @@ bool Sample::operator>(Sample &rhs)
 int get_streaks(std::vector<Sample> &input, unsigned int streak_len, bool is_up, std::vector<std::string> &res_vec)
 {
     deque<Sample> states;
-    string cur_code = input[0].ts_code;
+    string cur_code = input[0].code;
     unsigned int i = 0;
     function<bool(float, float)> cmptr = less<float>();
     if (is_up) // I have no idea why the ternary operator won't work here, any C++ expert?
@@ -58,7 +30,7 @@ int get_streaks(std::vector<Sample> &input, unsigned int streak_len, bool is_up,
             for (unsigned j = 1; j < states.size(); j++)
             {
                 auto &s = states[j];
-                sample_str += " " + s.ts_code + "_" + s.trade_date + "_" + to_string(s.open) + "_" + to_string(s.close) + "_" + to_string(s.vol);
+                sample_str += " " + s.code + "_" + s.trade_date + "_" + to_string(s.open) + "_" + to_string(s.close) + "_" + to_string(s.vol);
             }
             res_vec.push_back(sample_str);
             states.pop_front();

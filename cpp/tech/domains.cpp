@@ -13,6 +13,12 @@ using namespace std;
 
 static PyObject *day_streak(PyObject *self, PyObject *args)
 {
+    /**
+     * @brief calculates and returns the set of stock code and date key pair of stocks at which streaks end
+     * @param _hist 2D list, with [stock code, trading date, price] as the columns
+     * @param streak_len the length of required streak
+     * @param is_up bool, which signifies losing or gaining streak
+     */
 
     // Parse numpy arrays into pyobjects
     PyArrayObject *_hist;
@@ -23,7 +29,7 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
     };
 
     priority_queue<Sample, std::vector<Sample>, decltype(sample_less)> pq(sample_less), res_pq(sample_less);
-    // auto bip = boost::interprocess;
+
     if (!PyArg_ParseTuple(args, "Oii", &_hist, &streak_len, &is_up))
     {
         throw std::invalid_argument("parse tuple failed");
@@ -64,17 +70,17 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
         if (pq.empty())
             break;
         int cnt = 0;
-        string curr_code = pq.top().ts_code;
+        string curr_code = pq.top().code;
         vector<Sample> child_data_vec;
         // collect enough portion for child but cut off at the end of code section
-        while (!pq.empty() && (cnt < child_range || curr_code == pq.top().ts_code))
+        while (!pq.empty() && (cnt < child_range || curr_code == pq.top().code))
         {
             // append a sample for the child
             Sample sample = pq.top();
             pq.pop();
             child_data_vec.push_back(sample);
             // update state
-            curr_code = sample.ts_code;
+            curr_code = sample.code;
             cnt++;
         }
 
