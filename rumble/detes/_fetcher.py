@@ -13,14 +13,9 @@ class fetcher:
         self.__START_DATE = start_date
         self.region = region
 
-    def fetch_all_hist(self):
-        assert self.quotes is not None, "must fetch stock codes first"
-        _dtype = "hist"
-        if self.ch.cache_is_expired(_dtype):
-            hist_data = self.th.get_stock_hist(self.quotes["ts_code"], self.train_days)
-            self.ch.cache_data(hist_data, _dtype)
-        else:
-            print("hist data is not expired")
+    @staticmethod
+    def format_date(date):
+        return date.strftime("%Y%m%d")
 
     def update_quotes(self):
         if self.ch.cache_is_expired(type="quotes"):
@@ -28,10 +23,6 @@ class fetcher:
             self.ch.cache_data(self.quotes)
         else:
             self.quotes = self.ch.load_data()
-
-    @staticmethod
-    def format_date(date):
-        return date.strftime("%Y%m%d")
 
     def update_cal(self):
         for r in ["us", "cn"]:
