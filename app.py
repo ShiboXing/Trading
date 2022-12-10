@@ -1,5 +1,6 @@
 from rumble.detes import fetcher
 from rumble.detes.detes_helper import db_helper
+from rumble.detes._loader import TechBuilder
 import rumble_cpp as rc
 
 import time, os
@@ -37,8 +38,11 @@ if __name__ == "__main__":
     ft = fetcher("20000101", "us")
     ft.update_cal()
     ft.update_us_stock_lst()
+    ft.update_stock_hist()
     ft.update_option_status()
 
+    tb = TechBuilder()
+    tb.update_rsi()
     # print("nums: ", hist.shape)
     # obj = rc.day_streak(
     #     hist[["ts_code", "trade_date", "open", "close", "vol"]].to_numpy().tolist(),

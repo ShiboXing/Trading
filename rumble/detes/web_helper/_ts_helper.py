@@ -27,7 +27,7 @@ def retry_wrapper(func):
                         print("[TUSHARE] 1-min web request limitation hit")
                         time.sleep(60)
                     elif "抱歉，您每天最多访问该接口" in e.args[0]:
-                        print("[web helper] daily requests limit reached")
+                        print("[web helper] tushare daily requests limit reached")
                         return None
                     else:
                         raise e
@@ -90,7 +90,7 @@ class ts_helper:
     def get_stock_tickers(self, stocks=()):
         return Tickers(" ".join(stocks)).tickers
 
-    def get_stocks_hist(self, codes, start_date: list or date, end_date: list or date):
+    def iter_stocks_hist(self, codes, start_date: list or date, end_date: list or date):
         """
         generator, to return the stock history data one by one
         codes, start_date and end_date lists share the same indices

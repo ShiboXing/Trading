@@ -13,7 +13,10 @@ class StockSet(Dataset):
         pass
 
 
-class loader:
+class TechBuilder:
     def __init__(self):
         self.db = db()
         self.th = th()
+
+    def update_rsi(self):
+        self.db.iter_stocks_hist()

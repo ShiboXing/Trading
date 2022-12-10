@@ -3,9 +3,11 @@ import subprocess as sp
 import os
 import pickle
 
+from ipdb import set_trace
+from sys import getsizeof
 from datetime import datetime as dt, time
 from sqlalchemy import create_engine, text
-from sqlalchemy.engine import URL, Engine
+from sqlalchemy.engine import URL
 from sqlalchemy.orm import Session
 from ..web_helper import ts_helper as th
 from . import (
@@ -73,6 +75,37 @@ class db_helper:
             return f"{region}_cal"
         elif type == "hist":
             return f"{region}_daily_bars"
+
+    def iter_stocks_hist(self):
+        length = 0
+        batch_size = 0
+        first_code = ""
+        with Session(self.engine) as sess:
+            length = sess.execute(
+                f"""
+                select count(*) from us_daily_bars
+                """
+            ).fetchone()[0]
+            first_row = sess.execute(
+                f"""
+                select top 1 * from us_daily_bars
+                """
+            ).fetchone()
+            getsizeof(first_row)
+            row_size = 0
+            for n in first_row:
+                row_size += getsizeof(n)
+            batch_size = int(200 * 1e6 // row_size)  # each batch size <= 200MB
+            row_iter = sess.execute(
+                f"""
+                    select * from us_daily_bars
+                    order by code asc, bar_date asc
+                    """
+            )
+            while True:
+                row = row_iter.fetchone()
+
+                set_trace()
 
     def get_last_trading_date(self, region="us"):
         assert region in ["us", "cn", "hk"], "region is invalid"
