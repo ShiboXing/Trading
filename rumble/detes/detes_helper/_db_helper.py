@@ -3,7 +3,6 @@ import subprocess as sp
 import os
 import pickle
 
-from ipdb import set_trace
 from sys import getsizeof
 from datetime import datetime as dt, time
 from sqlalchemy import create_engine, text
@@ -77,35 +76,41 @@ class db_helper:
             return f"{region}_daily_bars"
 
     def iter_stocks_hist(self):
-        length = 0
-        batch_size = 0
-        first_code = ""
+        batch_size = 1024 * 1024 * 100  # 500MB
+        row_cnt = 0
+
+        # get row count in each batch based row mem size
         with Session(self.engine) as sess:
-            length = sess.execute(
-                f"""
-                select count(*) from us_daily_bars
-                """
-            ).fetchone()[0]
             first_row = sess.execute(
                 f"""
                 select top 1 * from us_daily_bars
                 """
             ).fetchone()
-            getsizeof(first_row)
             row_size = 0
             for n in first_row:
                 row_size += getsizeof(n)
-            batch_size = int(200 * 1e6 // row_size)  # each batch size <= 200MB
-            row_iter = sess.execute(
-                f"""
-                    select * from us_daily_bars
-                    order by code asc, bar_date asc
-                    """
-            )
-            while True:
-                row = row_iter.fetchone()
+            row_cnt = int(batch_size // row_size)  # each batch size <= 200MB
 
-                set_trace()
+        with Session(self.engine) as sess:
+            res = sess.execute(
+                f"""
+                select * from us_daily_bars
+                order by code asc, bar_date asc
+            """
+            )
+            rows = []
+            while True:
+                rows += res.fetchmany(row_cnt)
+                if not rows:  # end of query
+                    return
+
+                while True:  # finish getting rows from the last code
+                    next_row = res.fetchone()
+                    if not next_row or next_row[0] != rows[-1][0]:
+                        yield rows
+                        rows = [next_row] if next_row else []
+                        break
+                    rows.append(next_row)
 
     def get_last_trading_date(self, region="us"):
         assert region in ["us", "cn", "hk"], "region is invalid"

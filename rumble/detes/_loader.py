@@ -19,4 +19,7 @@ class TechBuilder:
         self.th = th()
 
     def update_rsi(self):
-        self.db.iter_stocks_hist()
+        from ipdb import set_trace
+
+        for rows in self.db.iter_stocks_hist():
+            set_trace()
