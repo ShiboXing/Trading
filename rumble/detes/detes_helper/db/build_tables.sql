@@ -99,6 +99,7 @@ BEGIN
     [high] float not null,
     [low] float not null,
     [vol] float not null,
+    [ma] float,
     [rsi] float,
     primary key (code, bar_date),
     constraint fk_code foreign key
@@ -108,6 +109,9 @@ BEGIN
 END;
 
 -- use detes;
--- select top 100
+-- select
+--   top 10
 --   *
--- from us_daily_bars;
+-- from us_daily_bars
+-- where code = 'AAPL'
+-- order by bar_date desc
