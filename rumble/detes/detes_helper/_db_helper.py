@@ -75,7 +75,12 @@ class db_helper:
         elif type == "hist":
             return f"{region}_daily_bars"
 
-    def iter_stocks_hist(self):
+
+    def iter_stocks_hist(self, nullma_only=False, select_close=False, select_prevma=False):
+        """
+        use generator to fetch stock daily bars
+        get previous moving average in every row
+        """
         batch_size = 1024 * 1024 * 100  # 500MB
         row_cnt = 0
 
@@ -89,13 +94,29 @@ class db_helper:
             row_size = 0
             for n in first_row:
                 row_size += getsizeof(n)
-            row_cnt = int(batch_size // row_size)  # each batch size <= 200MB
+            row_cnt = int(batch_size // row_size) # each batch size <= 200MB
 
-        with Session(self.engine) as sess:
+        with Session(self.engine) as sess: 
+            filter = ""
+            res_alias = "bars_res"
+            cols = []
+            if nullma_only:
+                filter = f"where {res_alias}.[ma] is NULL"
+            if select_close:
+                cols.append(f"{res_alias}.[close]")
+            if select_prevma:
+                cols.append(f"{res_alias}.[prevma]")
+                
+            cols_str = ", ".join(cols) if cols else "*"
             res = sess.execute(
                 f"""
-                select * from us_daily_bars
-                order by code asc, bar_date asc
+                select {cols_str} from
+                (
+                    select *, lag(bars.[ma]) over
+                    (order by code, bar_date) as prevma
+                    from us_daily_bars bars
+                ) bars_res
+                {filter}
             """
             )
             rows = []
@@ -111,6 +132,7 @@ class db_helper:
                         rows = [next_row] if next_row else []
                         break
                     rows.append(next_row)
+
 
     def get_last_trading_date(self, region="us"):
         assert region in ["us", "cn", "hk"], "region is invalid"

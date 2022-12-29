@@ -40,7 +40,6 @@ if __name__ == "__main__":
     # ft.update_option_status()
 
     tb = TechBuilder()
-    tb.update_rsi()
     # print("nums: ", hist.shape)
     # obj = rc.day_streak(
     #     hist[["ts_code", "trade_date", "open", "close", "vol"]].to_numpy().tolist(),

@@ -138,15 +138,18 @@ static PyObject *ma(PyObject *self, PyObject *args)
         throw std::invalid_argument("parse tuple failed");
         return NULL;
     }
-
-    string curr_code = "";
+    cout << "finished parsing _hist: " << PyList_Size((PyObject *)_hist) << endl;
+    // string curr_code = "";
     for (int i = 0; i < PyList_Size((PyObject *)_hist); i++)
     {
         PyObject *row = PyList_GetItem((PyObject *)_hist, i);
         Sample s(row);
     }
-    exit(1);
-    return PyList_New(1);
+
+    // _Py_DECREF((PyObject *)_hist);
+    // PyObject *res = PyList_New(2);
+
+    return PyList_New(2);
 }
 
 static PyMethodDef tech_methods[] = {
