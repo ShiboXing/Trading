@@ -122,9 +122,36 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
 
     return res;
 }
+/**
+ * @brief get the moving average of close prices of the stocks
+ *
+ * @param self
+ * @param args contains a 2D list of historical data, assumed sorted by (code, date) compound key
+ * @return PyObject*
+ */
+static PyObject *ma(PyObject *self, PyObject *args)
+{
+    PyArrayObject *_hist;
+
+    if (!PyArg_ParseTuple(args, "O", &_hist))
+    {
+        throw std::invalid_argument("parse tuple failed");
+        return NULL;
+    }
+
+    string curr_code = "";
+    for (int i = 0; i < PyList_Size((PyObject *)_hist); i++)
+    {
+        PyObject *row = PyList_GetItem((PyObject *)_hist, i);
+        Sample s(row);
+    }
+    exit(1);
+    return PyList_New(1);
+}
 
 static PyMethodDef tech_methods[] = {
     {"day_streak", (PyCFunction)day_streak, METH_VARARGS, "calculate the streak signals"},
+    {"ma", (PyCFunction)ma, METH_VARARGS, "calculate the streak signals"},
     {NULL, NULL, 0, NULL}};
 
 static PyModuleDef tech_module = {

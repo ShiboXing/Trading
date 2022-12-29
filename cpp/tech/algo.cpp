@@ -30,12 +30,12 @@ int get_streaks(std::vector<Sample> &input, unsigned int streak_len, bool is_up,
             for (unsigned j = 1; j < states.size(); j++)
             {
                 auto &s = states[j];
-                sample_str += " " + s.code + "_" + s.trade_date + "_" + to_string(s.open) + "_" + to_string(s.close) + "_" + to_string(s.vol);
+                sample_str += " " + s.code + "_" + s.trade_date + "_" + to_string(s.price);
             }
             res_vec.push_back(sample_str);
             states.pop_front();
         }
-        if (states.size() && cmptr(states.back().close, input[i].close)) // test if streak is broken by the next sample
+        if (states.size() && cmptr(states.back().price, input[i].price)) // test if streak is broken by the next sample
             states.clear();
         states.push_back(input[i]);
 
