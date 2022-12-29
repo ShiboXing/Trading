@@ -107,7 +107,7 @@ class db_helper:
                 while True:  # finish getting rows from the last code
                     next_row = res.fetchone()
                     if not next_row or next_row[0] != rows[-1][0]:
-                        yield rows
+                        yield rows  # send the batch
                         rows = [next_row] if next_row else []
                         break
                     rows.append(next_row)

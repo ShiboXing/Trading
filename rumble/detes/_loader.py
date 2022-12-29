@@ -1,8 +1,10 @@
 from .detes_helper import db_helper as db
 from .detes_helper import _us_stock_list_cols, _cn_stock_list_cols
 from .web_helper import ts_helper as th
-
 from torch.utils.data import Dataset
+
+import rumble_cpp as rc
+from ipdb import set_trace
 
 
 class StockSet(Dataset):
@@ -18,8 +20,14 @@ class TechBuilder:
         self.db = db()
         self.th = th()
 
+    def update_ma(self):
+        for rows in self.db.iter_stocks_hist():
+            set_trace()
+
     def update_rsi(self):
-        from ipdb import set_trace
 
         for rows in self.db.iter_stocks_hist():
+            for i in range(len(rows)):
+                rows[i] = (rows[i][0], rows[i][1].strftime("%Y%m%d"), rows[i][3])
+            rc.ma(rows)
             set_trace()

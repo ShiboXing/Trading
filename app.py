@@ -4,9 +4,7 @@ from rumble.detes._loader import TechBuilder
 import rumble_cpp as rc
 
 import time, os
-import numpy as np
 from operator import lt, gt
-from sqlalchemy.engine import URL
 
 
 def rsi(df):
@@ -37,9 +35,9 @@ if __name__ == "__main__":
 
     ft = fetcher("20000101", "us")
     ft.update_cal()
-    ft.update_us_stock_lst()
-    ft.update_stock_hist()
-    ft.update_option_status()
+    # ft.update_us_stock_lst()
+    # ft.update_stock_hist()
+    # ft.update_option_status()
 
     tb = TechBuilder()
     tb.update_rsi()
