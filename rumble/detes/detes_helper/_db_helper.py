@@ -76,7 +76,7 @@ class db_helper:
             return f"{region}_daily_bars"
 
 
-    def iter_stocks_hist(self, nullma_only=False, select_close=False, select_prevma=False):
+    def iter_stocks_hist(self, nullma_only=False, select_close=False, select_prevma=False, select_pk=False):
         """
         use generator to fetch stock daily bars
         get previous moving average in every row
@@ -102,6 +102,9 @@ class db_helper:
             cols = []
             if nullma_only:
                 filter = f"where {res_alias}.[ma] is NULL"
+            if select_pk:
+                cols.append(f"{res_alias}.[code]")
+                cols.append(f"{res_alias}.[bar_date]")
             if select_close:
                 cols.append(f"{res_alias}.[close]")
             if select_prevma:

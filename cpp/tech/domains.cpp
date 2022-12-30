@@ -138,8 +138,9 @@ static PyObject *ma(PyObject *self, PyObject *args)
         throw std::invalid_argument("parse tuple failed");
         return NULL;
     }
-    cout << "finished parsing _hist: " << PyList_Size((PyObject *)_hist) << endl;
-    // string curr_code = "";
+
+    string curr_code = "";
+
     for (int i = 0; i < PyList_Size((PyObject *)_hist); i++)
     {
         PyObject *row = PyList_GetItem((PyObject *)_hist, i);
