@@ -126,7 +126,7 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
  * @brief get the moving average of close prices of the stocks
  *
  * @param self
- * @param args contains a 2D list of historical data, assumed sorted by (code, date) compound key
+ * @param args contains a 2D list of historical data, assumed sorted by (code: str, date: Datetime, price: float, prev_ma: float) compound key
  * @return PyObject*
  */
 static PyObject *ma(PyObject *self, PyObject *args)
@@ -141,11 +141,12 @@ static PyObject *ma(PyObject *self, PyObject *args)
 
     string curr_code = "";
 
-    for (int i = 0; i < PyList_Size((PyObject *)_hist); i++)
+    for (int i = 0; i < 10; i++)
     {
         PyObject *row = PyList_GetItem((PyObject *)_hist, i);
 
         Sample s(row);
+        Py_DECREF(row);
     }
 
     // _Py_DECREF((PyObject *)_hist);
