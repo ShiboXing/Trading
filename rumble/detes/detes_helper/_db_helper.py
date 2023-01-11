@@ -65,6 +65,7 @@ class db_helper:
         self.__run_sqlfile(self.engine, "build_tables.sql")
         self.__run_sqlfile(self.engine, "build_funcs.sql")
 
+
     def __get_table_name(self, region="us", type="lst"):
         assert region in ("us", "cn", "hk"), "region parameter is incorrect"
         assert type in ("lst", "cal", "hist"), "table type parameter is incorrect"
@@ -101,7 +102,7 @@ class db_helper:
             res_alias = "bars_res"
             cols = []
             if nullma_only:
-                filter = f"where {res_alias}.[ma] is NULL"
+                filter = f"where {res_alias}.[ma14] is NULL"
             if select_pk:
                 cols.append(f"{res_alias}.[code]")
                 cols.append(f"{res_alias}.[bar_date]")
@@ -115,7 +116,7 @@ class db_helper:
                 f"""
                 select {cols_str} from
                 (
-                    select *, lag(bars.[ma]) over
+                    select *, lag(bars.[ma14]) over
                     (order by code, bar_date) as prevma
                     from us_daily_bars bars
                 ) bars_res

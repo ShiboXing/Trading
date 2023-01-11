@@ -99,6 +99,7 @@ BEGIN
     [high] float not null,
     [low] float not null,
     [vol] float not null,
+    -- rolling moving average of 14 days
     [ma] float,
     [rsi] float,
     primary key (code, bar_date),
@@ -108,10 +109,13 @@ BEGIN
   )
 END;
 
--- use detes;
+use detes;
 -- select
 --   top 10
 --   *
 -- from us_daily_bars
 -- where code = 'AAPL'
 -- order by bar_date desc
+
+-- use detes
+-- exec sp_rename 'dbo.us_daily_bars.ma', 'ma14', 'COLUMN'
