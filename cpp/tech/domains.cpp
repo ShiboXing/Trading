@@ -144,6 +144,7 @@ static PyObject *ma(PyObject *self, PyObject *args)
     for (int i = 0; i < PyList_Size((PyObject *)_hist); i++)
     {
         PyObject *row = PyList_GetItem((PyObject *)_hist, i);
+
         Sample s(row);
     }
 

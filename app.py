@@ -40,11 +40,11 @@ if __name__ == "__main__":
     tb = TechBuilder()
     tb.update_ma()
 
-    import yfinance as yf
-    tickers = yf.Tickers(["MSFT"])
-    msft = yf.Ticker("MSFT")
-    df = msft.history(period="1mo")
-    rsi(df.Close.diff())
+    # import yfinance as yf
+    # tickers = yf.Tickers(["MSFT"])
+    # msft = yf.Ticker("MSFT")
+    # df = msft.history(period="1mo")
+    # rsi(df.Close.diff())
     
     # print("nums: ", hist.shape)
     # obj = rc.day_streak(
