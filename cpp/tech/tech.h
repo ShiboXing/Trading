@@ -18,8 +18,7 @@ typedef bip::managed_shared_memory msm;
 struct Sample
 {
     std::string code = "", trade_date = "";
-    float price = 0;
-    float prev_ma = 0;
+    float price = 0, neg_prev_ma = 0, pos_prev_ma = 0;
 
     Sample(PyObject *df_row)
     {
@@ -36,18 +35,13 @@ struct Sample
         // parse stock price
         PyArg_Parse(PyTuple_GetItem(df_row, 2), "f", &price);
 
-        // parse previous moving average
+        // parse previous moving averages
         PyObject *price_obj = PyTuple_GetItem(df_row, 3);
         if (price_obj != Py_None)
-            PyArg_Parse(price_obj, "f", &prev_ma);
-
-        print();
-    }
-
-    void print() const
-    {
-        std::cout << "code, trade_date, price, prev_ma";
-        std::cout << code << " " << trade_date << " " << price << " " << prev_ma << "\n";
+            PyArg_Parse(price_obj, "f", &pos_prev_ma);
+        price_obj = PyTuple_GetItem(df_row, 4);
+        if (price_obj != Py_None)
+            PyArg_Parse(price_obj, "f", &neg_prev_ma);
     }
 
     bool operator>(Sample &rhs)
@@ -56,6 +50,13 @@ struct Sample
             return code > rhs.code;
         else
             return trade_date > rhs.trade_date;
+    }
+
+    operator std::string() const
+    {
+        return "code, trade_date, price, pos_prev_ma, neg_prev_ma\n" + code + " " +
+               trade_date + " " + std::to_string(price) + " " +
+               std::to_string(pos_prev_ma) + " " + std::to_string(neg_prev_ma) + "\n";
     }
 };
 

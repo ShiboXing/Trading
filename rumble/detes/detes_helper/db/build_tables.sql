@@ -109,7 +109,7 @@ BEGIN
   )
 END;
 
-use detes;
+-- use detes;
 -- select
 --   top 10
 --   *
@@ -118,4 +118,10 @@ use detes;
 -- order by bar_date desc
 
 -- use detes
--- exec sp_rename 'dbo.us_daily_bars.ma', 'ma14', 'COLUMN'
+-- exec sp_rename 'dbo.us_daily_bars.ma14', 'close_pos_ma14', 'COLUMN'
+
+-- alter table us_daily_bars
+-- add open_pos_ma14 float;
+
+-- alter table us_daily_bars
+-- drop column open_pos_ma14;

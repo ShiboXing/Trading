@@ -102,22 +102,25 @@ class db_helper:
             res_alias = "bars_res"
             cols = []
             if nullma_only:
-                filter = f"where {res_alias}.[ma14] is NULL"
+                filter = f"where {res_alias}.[close_pos_ma14] is NULL"
             if select_pk:
                 cols.append(f"{res_alias}.[code]")
                 cols.append(f"{res_alias}.[bar_date]")
             if select_close:
                 cols.append(f"{res_alias}.[close]")
             if select_prevma:
-                cols.append(f"{res_alias}.[prevma]")
+                cols.append(f"{res_alias}.[pos_prevma]")
+                cols.append(f"{res_alias}.[neg_prevma]")
                 
             cols_str = ", ".join(cols) if cols else "*"
             res = sess.execute(
                 f"""
                 select {cols_str} from
                 (
-                    select *, lag(bars.[ma14]) over
-                    (order by code, bar_date) as prevma
+                    select *, lag(bars.[close_pos_ma14]) over
+                    (order by code, bar_date) as pos_prevma, 
+                    lag(bars.[close_neg_ma14]) over
+                    (order by code, bar_date) as neg_prevma
                     from us_daily_bars bars
                 ) bars_res
                 {filter}

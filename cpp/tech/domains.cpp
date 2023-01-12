@@ -144,8 +144,8 @@ static PyObject *ma(PyObject *self, PyObject *args)
     for (int i = 0; i < 10; i++)
     {
         PyObject *row = PyList_GetItem((PyObject *)_hist, i);
-
         Sample s(row);
+        cout << string(s);
         Py_DECREF(row);
     }
 
