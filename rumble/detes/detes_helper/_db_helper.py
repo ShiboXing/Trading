@@ -108,6 +108,11 @@ class db_helper:
                 cols.append(f"{res_alias}.[bar_date]")
             if select_close:
                 cols.append(f"{res_alias}.[close]")
+                cols.append(f"{res_alias}.[prev_close]")
+            else:
+                cols.append(f"{res_alias}.[open]")
+                cols.append(f"{res_alias}.[prev_open]")
+
             if select_prevma:
                 cols.append(f"{res_alias}.[pos_prevma]")
                 cols.append(f"{res_alias}.[neg_prevma]")
@@ -117,11 +122,15 @@ class db_helper:
                 f"""
                 select {cols_str} from
                 (
-                    select *, lag(bars.[close_pos_ma14]) over
+                    select *, lag([close_pos_ma14]) over
                     (order by code, bar_date) as pos_prevma, 
-                    lag(bars.[close_neg_ma14]) over
-                    (order by code, bar_date) as neg_prevma
-                    from us_daily_bars bars
+                    lag([close_neg_ma14]) over
+                    (order by code, bar_date) as neg_prevma,
+                    lag([close]) over
+                    (order by code, bar_date) as prev_close,
+                    lag([open]) over
+                    (order by code, bar_date) as prev_open
+                    from us_daily_bars
                 ) bars_res
                 {filter}
             """

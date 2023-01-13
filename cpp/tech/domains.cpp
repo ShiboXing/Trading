@@ -139,13 +139,39 @@ static PyObject *ma(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    string curr_code = "";
+    // create lambda to calculate moving average
+    auto get_ma = [](Sample &s)
+    {
+        float ret = s.price - s.prev_price;
+        if (ret > 0)
+        {
+            s.pos_prev_ma = (s.pos_prev_ma * 13 + ret) / 14;
+        }
+        else if (ret < 0)
+        {
+            s.neg_prev_ma = (s.neg_prev_ma * 13 + ret) / 14;
+        }
+    };
 
+    // calculate the postive and negative moving averages
+    Sample prev_s;
+    // return list: a list of size-2 tuples
+    PyObject *res_lst = PyList_New(PyList_Size((PyObject *)_hist));
     for (int i = 0; i < 10; i++)
     {
         PyObject *row = PyList_GetItem((PyObject *)_hist, i);
-        Sample s(row);
-        cout << string(s);
+        Sample curr_s(row);
+        if (curr_s.code != prev_s.code) // new code series
+        {
+            curr_s.prev_price = curr_s.prev_price == 0 ? curr_s.price : curr_s.prev_price;
+        }
+        else // inherited the previously calculated ma
+        {
+            curr_s.pos_prev_ma = curr_s.pos_prev_ma == 0 ? prev_s.pos_prev_ma : curr_s.pos_prev_ma;
+            curr_s.neg_prev_ma = curr_s.neg_prev_ma == 0 ? prev_s.neg_prev_ma : curr_s.neg_prev_ma;
+        }
+        get_ma(curr_s);
+        prev_s = curr_s;
         Py_DECREF(row);
     }
 

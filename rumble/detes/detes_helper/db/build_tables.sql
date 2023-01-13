@@ -125,3 +125,7 @@ END;
 
 -- alter table us_daily_bars
 -- drop column open_pos_ma14;
+
+-- update us_daily_bars
+-- set close_pos_ma14=null, close_neg_ma14=null
+-- where code='A' and bar_date='20000103'

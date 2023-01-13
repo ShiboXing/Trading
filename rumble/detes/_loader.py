@@ -20,20 +20,12 @@ class TechBuilder:
         self.db = db()
         self.th = th()
     
-    def __parse_rows_date(self, rows):
-        """parse the datetime object in each row into string"""
-        for i in range(len(rows)):
-            row_copy = list(rows[i])
-            row_copy[1] = rows[i][1].strftime("%Y%m%d")
-            rows[i] = row_copy
-
-        return rows
-
 
     def update_ma(self):
         for rows in self.db.iter_stocks_hist(nullma_only=True, select_close=True, select_prevma=True, select_pk=True):
             set_trace()
             rc.ma(list(map(tuple, rows)))
+
 
     def update_rsi(self):
         for rows in self.db.iter_stocks_hist():
