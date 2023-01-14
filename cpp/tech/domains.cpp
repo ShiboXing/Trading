@@ -138,7 +138,7 @@ static PyObject *ma(PyObject *self, PyObject *args)
     auto get_ma = [](Sample &s)
     {
         float ret = s.price - s.prev_price;
-        if (ret > 0)
+        if (ret >= 0)
         {
             s.pos_prev_ma = (s.pos_prev_ma * 13 + ret) / 14;
             s.neg_prev_ma = s.neg_prev_ma * 13 / 14;
@@ -147,11 +147,6 @@ static PyObject *ma(PyObject *self, PyObject *args)
         {
             s.pos_prev_ma = s.pos_prev_ma * 13 / 14;
             s.neg_prev_ma = (s.neg_prev_ma * 13 + ret) / 14;
-        }
-        else
-        {
-            s.neg_prev_ma = s.neg_prev_ma * 13 / 14;
-            s.pos_prev_ma = s.pos_prev_ma * 13 / 14;
         }
     };
 
