@@ -5,6 +5,7 @@ import rumble_cpp as rc
 
 import time, os
 from operator import lt, gt
+from yfinance import Tickers, download
 
 
 def rsi(closes):
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     # os.environ["TZ"] = "Asia/Shanghai"
     os.environ["TZ"] = "US/Eastern"
     time.tzset()
-
+    
     ft = fetcher("20000101", "us")
     ft.update_cal()
     # ft.update_us_stock_lst()
@@ -39,8 +40,6 @@ if __name__ == "__main__":
 
     tb = TechBuilder()
     tb.update_ma()
-
-    import yfinance as yf
     
     # print("nums: ", hist.shape)
     # obj = rc.day_streak(

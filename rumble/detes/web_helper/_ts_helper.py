@@ -90,7 +90,7 @@ class ts_helper:
     def get_stock_tickers(self, stocks=()):
         return Tickers(" ".join(stocks)).tickers
 
-    def iter_stocks_hist(self, codes, start_date: list or date, end_date: list or date):
+    def fetch_stocks_hist(self, codes, start_date: list or date, end_date: list or date):
         """
         generator, to return the stock history data one by one
         codes, start_date and end_date lists share the same indices
@@ -114,7 +114,7 @@ class ts_helper:
             lo = start_date[i] if start_islst else start_date
             hi = end_date[i] if end_islst else end_date
             df = download(c, start=lo, end=hi + timedelta(days=1))
-
+            
             # guard for yfinance fetch-out-of-range error
             if len(df) == 1 and df.index[0].to_pydatetime().date() < lo:
                 yield None

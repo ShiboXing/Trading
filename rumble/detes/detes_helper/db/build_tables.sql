@@ -99,9 +99,8 @@ BEGIN
     [high] float not null,
     [low] float not null,
     [vol] float not null,
-    -- rolling moving average of 14 days
-    [ma] float,
-    [rsi] float,
+    [close_pos_ma14] float,
+    [close_neg_ma14] float,
     primary key (code, bar_date),
     constraint fk_code foreign key
     (code) references us_stock_list
@@ -109,11 +108,12 @@ BEGIN
   )
 END;
 
--- use detes;
--- select
---   top 10
---   *
--- from us_daily_bars
+use detes;
+select
+  top 100
+  *
+from us_daily_bars;
+
 -- where code = 'AAPL'
 -- order by bar_date desc
 
@@ -124,7 +124,7 @@ END;
 -- add open_pos_ma14 float;
 
 -- alter table us_daily_bars
--- drop column open_pos_ma14;
+-- drop column rsi;
 
 -- update us_daily_bars
 -- set close_pos_ma14=null, close_neg_ma14=null

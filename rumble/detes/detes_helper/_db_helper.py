@@ -65,7 +65,6 @@ class db_helper:
         self.__run_sqlfile(self.engine, "build_tables.sql")
         self.__run_sqlfile(self.engine, "build_funcs.sql")
 
-
     def __get_table_name(self, region="us", type="lst"):
         assert region in ("us", "cn", "hk"), "region parameter is incorrect"
         assert type in ("lst", "cal", "hist"), "table type parameter is incorrect"
@@ -76,13 +75,21 @@ class db_helper:
         elif type == "hist":
             return f"{region}_daily_bars"
 
+    def __format_filter_str(self, keys, sep="and"):
+        return f" {sep} ".join([f"{k}= :{k}" for k in keys])
 
-    def iter_stocks_hist(self, nullma_only=False, select_close=False, select_prevma=False, select_pk=False):
+    def iter_stocks_hist(
+        self,
+        nullma_only=False,
+        select_close=False,
+        select_prevma=False,
+        select_pk=False,
+    ):
         """
         use generator to fetch stock daily bars
         get previous moving average in every row
         """
-        batch_size = 1024 * 1024 * 100  # 100MB
+        batch_size = 1024 * 1024 * 100  # 100MB batch size
         row_cnt = 0
 
         # get row count in each batch based row mem size
@@ -95,9 +102,9 @@ class db_helper:
             row_size = 0
             for n in first_row:
                 row_size += getsizeof(n)
-            row_cnt = int(batch_size // row_size) 
+            row_cnt = int(batch_size // row_size)
 
-        with Session(self.engine) as sess: 
+        with Session(self.engine) as sess:
             filter = ""
             res_alias = "bars_res"
             cols = []
@@ -116,7 +123,7 @@ class db_helper:
             if select_prevma:
                 cols.append(f"{res_alias}.[pos_prevma]")
                 cols.append(f"{res_alias}.[neg_prevma]")
-                
+
             cols_str = ", ".join(cols) if cols else "*"
             res = sess.execute(
                 f"""
@@ -149,6 +156,25 @@ class db_helper:
                         break
                     rows.append(next_row)
 
+    def update_ma(self, ma_lst: list, region="us"):
+        """
+        Keywords Arguments:
+        ma_df -- a Iterable of tuples (code, date, pos_ma, neg_ma)
+        """
+        keys = ["code", "bar_date", "close_pos_ma14", "close_neg_ma14"]
+        set_cond = self.__format_filter_str(keys[2:], sep=",")
+        where_cond = self.__format_filter_str(keys[:2], sep="and")
+
+        with Session(self.engine) as sess:
+            for row in iter(ma_lst):
+                sess.execute(
+                    f"""
+                    update us_daily_bars
+                    set {set_cond}
+                    where {where_cond}
+                    """,
+                    dict(zip(keys, row)),
+                )
 
     def get_last_trading_date(self, region="us"):
         assert region in ["us", "cn", "hk"], "region is invalid"
