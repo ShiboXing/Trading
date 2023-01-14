@@ -139,9 +139,20 @@ static PyObject *ma(PyObject *self, PyObject *args)
     {
         float ret = s.price - s.prev_price;
         if (ret > 0)
+        {
             s.pos_prev_ma = (s.pos_prev_ma * 13 + ret) / 14;
+            s.neg_prev_ma = s.neg_prev_ma * 13 / 14;
+        }
         else if (ret < 0)
+        {
+            s.pos_prev_ma = s.pos_prev_ma * 13 / 14;
             s.neg_prev_ma = (s.neg_prev_ma * 13 + ret) / 14;
+        }
+        else
+        {
+            s.neg_prev_ma = s.neg_prev_ma * 13 / 14;
+            s.pos_prev_ma = s.pos_prev_ma * 13 / 14;
+        }
     };
 
     // calculate the postive and negative moving averages
@@ -155,10 +166,10 @@ static PyObject *ma(PyObject *self, PyObject *args)
         {
             curr_s.prev_price = curr_s.prev_price == 0 ? curr_s.price : curr_s.prev_price;
         }
-        else // inherited the previously calculated ma
+        else // inherit the previously calculated ma
         {
-            curr_s.pos_prev_ma = curr_s.pos_prev_ma == 0 ? prev_s.pos_prev_ma : curr_s.pos_prev_ma;
-            curr_s.neg_prev_ma = curr_s.neg_prev_ma == 0 ? prev_s.neg_prev_ma : curr_s.neg_prev_ma;
+            curr_s.neg_prev_ma = prev_s.neg_prev_ma;
+            curr_s.pos_prev_ma = prev_s.pos_prev_ma;
         }
 
         // calculate and collect
