@@ -24,7 +24,7 @@ class TechBuilder:
     def update_ma(self):
         for rows in self.db.iter_stocks_hist(nullma_only=True, select_close=True, select_prevma=True, select_pk=True):
             set_trace()
-            rc.ma(list(map(tuple, rows)))
+            averages = rc.ma(list(map(tuple, rows)))
 
 
     def update_rsi(self):

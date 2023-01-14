@@ -131,35 +131,25 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
  */
 static PyObject *ma(PyObject *self, PyObject *args)
 {
-    PyArrayObject *_hist;
-
-    if (!PyArg_ParseTuple(args, "O", &_hist))
-    {
-        throw std::invalid_argument("parse tuple failed");
-        return NULL;
-    }
+    PyObject *_hist;
+    PyArg_ParseTuple(args, "O", &_hist);
 
     // create lambda to calculate moving average
     auto get_ma = [](Sample &s)
     {
         float ret = s.price - s.prev_price;
         if (ret > 0)
-        {
             s.pos_prev_ma = (s.pos_prev_ma * 13 + ret) / 14;
-        }
         else if (ret < 0)
-        {
             s.neg_prev_ma = (s.neg_prev_ma * 13 + ret) / 14;
-        }
     };
 
     // calculate the postive and negative moving averages
+    PyObject *res_lst = PyList_New(0);
     Sample prev_s;
-    // return list: a list of size-2 tuples
-    PyObject *res_lst = PyList_New(PyList_Size((PyObject *)_hist));
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < PyList_Size(_hist); i++)
     {
-        PyObject *row = PyList_GetItem((PyObject *)_hist, i);
+        PyObject *row = PyList_GetItem(_hist, i);
         Sample curr_s(row);
         if (curr_s.code != prev_s.code) // new code series
         {
@@ -170,15 +160,18 @@ static PyObject *ma(PyObject *self, PyObject *args)
             curr_s.pos_prev_ma = curr_s.pos_prev_ma == 0 ? prev_s.pos_prev_ma : curr_s.pos_prev_ma;
             curr_s.neg_prev_ma = curr_s.neg_prev_ma == 0 ? prev_s.neg_prev_ma : curr_s.neg_prev_ma;
         }
+
+        // calculate and collect
         get_ma(curr_s);
+        PyList_Append(res_lst, PyTuple_Pack(2, Py_BuildValue("f", curr_s.pos_prev_ma), Py_BuildValue("f", curr_s.neg_prev_ma)));
+
         prev_s = curr_s;
-        Py_DECREF(row);
+        // cout << "ma row " << i << ": " << curr_s.pos_prev_ma << "  " << curr_s.neg_prev_ma << endl;
     }
 
-    // _Py_DECREF((PyObject *)_hist);
-    // PyObject *res = PyList_New(2);
+    Py_DECREF(_hist);
 
-    return PyList_New(2);
+    return res_lst;
 }
 
 static PyMethodDef tech_methods[] = {

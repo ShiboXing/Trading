@@ -82,7 +82,7 @@ class db_helper:
         use generator to fetch stock daily bars
         get previous moving average in every row
         """
-        batch_size = 1024 * 1024 * 100  # 500MB
+        batch_size = 1024 * 1024 * 100  # 100MB
         row_cnt = 0
 
         # get row count in each batch based row mem size
@@ -95,7 +95,7 @@ class db_helper:
             row_size = 0
             for n in first_row:
                 row_size += getsizeof(n)
-            row_cnt = int(batch_size // row_size) # each batch size <= 200MB
+            row_cnt = int(batch_size // row_size) 
 
         with Session(self.engine) as sess: 
             filter = ""
