@@ -108,11 +108,11 @@ BEGIN
   )
 END;
 
-use detes;
-select
-  top 100
-  *
-from us_daily_bars;
+-- use detes;
+-- select
+--   top 2000
+--   *
+-- from us_daily_bars;
 
 -- where code = 'AAPL'
 -- order by bar_date desc

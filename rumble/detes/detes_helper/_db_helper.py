@@ -175,6 +175,8 @@ class db_helper:
                     """,
                     dict(zip(keys, row)),
                 )
+                sess.commit()
+        print(f"finished update ma for {len(ma_lst)} rows")
 
     def get_last_trading_date(self, region="us"):
         assert region in ["us", "cn", "hk"], "region is invalid"

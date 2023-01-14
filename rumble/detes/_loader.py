@@ -31,7 +31,6 @@ class TechBuilder:
                 ma_row = averages[i]
                 rows[i] = (row[0], row[1], ma_row[0], ma_row[1])
             self.db.update_ma(rows)
-        print(f"finished update ma for {len(rows)} rows")
 
     def update_rsi(self):
         for rows in self.db.iter_stocks_hist():
