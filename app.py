@@ -8,30 +8,12 @@ from operator import lt, gt
 from yfinance import Tickers, download
 
 
-def rsi(closes):
-
-    def ma(op):
-        init_indx = -len(closes)
-        avg = closes[init_indx] if op(closes[init_indx], 0) else 0
-        for i in range(init_indx + 1, 0):
-            inc = 0
-            if op(closes[i], 0):
-                inc = closes[i]
-            avg = (avg * 13 + inc) / 14
-        return avg
-
-    lavg = abs(ma(lt))
-    gavg = ma(gt)
-    rs = gavg / lavg
-    return 100 - 100 / (1 + rs)
-
-
 if __name__ == "__main__":
 
     # os.environ["TZ"] = "Asia/Shanghai"
     os.environ["TZ"] = "US/Eastern"
     time.tzset()
-    
+
     ft = fetcher("20000101", "us")
     ft.update_cal()
     # ft.update_us_stock_lst()
@@ -40,7 +22,7 @@ if __name__ == "__main__":
 
     tb = TechBuilder()
     tb.update_ma()
-    
+
     # print("nums: ", hist.shape)
     # obj = rc.day_streak(
     #     hist[["ts_code", "trade_date", "open", "close", "vol"]].to_numpy().tolist(),

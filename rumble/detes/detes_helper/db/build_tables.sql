@@ -101,6 +101,7 @@ BEGIN
     [vol] float not null,
     [close_pos_ma14] float,
     [close_neg_ma14] float,
+    [streak] int,
     primary key (code, bar_date),
     constraint fk_code foreign key
     (code) references us_stock_list
@@ -108,11 +109,10 @@ BEGIN
   )
 END;
 
+
 -- use detes;
--- select
---   top 2000
---   *
--- from us_daily_bars;
+-- alter table us_daily_bars
+-- add streak int null;
 
 -- where code = 'AAPL'
 -- order by bar_date desc

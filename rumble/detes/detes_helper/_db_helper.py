@@ -4,6 +4,8 @@ import os
 import pickle
 
 from sys import getsizeof
+from threading import Thread
+from multiprocessing import cpu_count, Process
 from datetime import datetime as dt, time
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL
@@ -21,7 +23,7 @@ from . import (
 
 
 class db_helper:
-    def __connect_to_db(self, db_name):
+    def __connect_to_db(self, db_name="detes"):
         creds_pth = os.path.join(self.__file_dir__, "db", ".sql_creds")
         with open(creds_pth, "r") as f:
             server, port, username, password, driver = f.readline().split(",")
@@ -61,7 +63,7 @@ class db_helper:
         self.__schema_script__ = ""
         tmp_engine = self.__connect_to_db("master")
         self.__run_sqlfile(tmp_engine, "build_schema.sql")
-        self.engine = self.__connect_to_db("detes")
+        self.engine = self.__connect_to_db()
         self.__run_sqlfile(self.engine, "build_tables.sql")
         self.__run_sqlfile(self.engine, "build_funcs.sql")
 
@@ -166,7 +168,7 @@ class db_helper:
         where_cond = self.__format_filter_str(keys[:2], sep="and")
 
         with Session(self.engine) as sess:
-            for row in iter(ma_lst):
+            for i, row in enumerate(ma_lst):
                 sess.execute(
                     f"""
                     update us_daily_bars
@@ -175,8 +177,11 @@ class db_helper:
                     """,
                     dict(zip(keys, row)),
                 )
-                sess.commit()
-        print(f"finished update ma for {len(ma_lst)} rows")
+                if i % 10000 == 0:
+                    sess.commit()
+                    print(f"commit: {i}")
+            sess.commit()
+            print(f"finished updateing {len(ma_lst)} MAs")
 
     def get_last_trading_date(self, region="us"):
         assert region in ["us", "cn", "hk"], "region is invalid"
