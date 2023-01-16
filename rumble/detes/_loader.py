@@ -2,9 +2,7 @@ from .detes_helper import db_helper as db
 from .detes_helper import _us_stock_list_cols, _cn_stock_list_cols
 from .web_helper import ts_helper as th
 from torch.utils.data import Dataset
-
 import rumble_cpp as rc
-from ipdb import set_trace
 
 
 class StockSet(Dataset):
@@ -27,9 +25,9 @@ class TechBuilder:
 
     def update_ma(self):
         for rows in self.db.iter_stocks_hist(
-            nullstreak_filter=True,
             select_close=True,
             select_prevma=True,
+            nullma_filter=True,
             select_pk=True,
         ):
             # get moving averages from c++
@@ -51,4 +49,5 @@ class TechBuilder:
             select_prevstreak=True,
         ):
             # get streak counts from c++
+            num_streaks = rc.day_streak(rows)
             pass

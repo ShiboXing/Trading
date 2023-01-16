@@ -18,13 +18,18 @@ typedef bip::managed_shared_memory msm;
 struct Sample
 {
     std::string code = "", trade_date = "";
-    float price = 0, prev_price = 0, neg_prev_ma = 0, pos_prev_ma = 0;
+    float price = 0;
 
     Sample() {}
 
     Sample(PyObject *df_row)
     {
         char *ts_code_tmp, *trade_date_tmp;
+        if (PyTuple_Size(df_row) < 3)
+        {
+            cout << "invalid row size! " << PyTuple_Size(df_row) << std::endl;
+            exit(1);
+        }
         // parse stock code
         PyArg_Parse(PyTuple_GetItem(df_row, 0), "s", &ts_code_tmp);
         code = std::string(ts_code_tmp);
@@ -34,21 +39,10 @@ struct Sample
         PyArg_Parse(date_str_obj, "s", &trade_date_tmp);
         trade_date = std::string(trade_date_tmp);
 
-        // parse stock price, prev_price
+        // parse stock price
         PyArg_Parse(PyTuple_GetItem(df_row, 2), "f", &price);
-        PyObject *price_obj = PyTuple_GetItem(df_row, 3);
-        if (price_obj != Py_None)
-            PyArg_Parse(price_obj, "f", &prev_price);
 
-        // parse previous moving averages
-        price_obj = PyTuple_GetItem(df_row, 4);
-        if (price_obj != Py_None)
-            PyArg_Parse(price_obj, "f", &pos_prev_ma);
-        price_obj = PyTuple_GetItem(df_row, 5);
-        if (price_obj != Py_None)
-            PyArg_Parse(price_obj, "f", &neg_prev_ma);
-
-        std::cout << "parrrent constructor finished" << std::endl;
+        std::cout << "Sample constructor finished" << std::endl;
     }
 
     bool operator>(Sample &rhs)
@@ -58,6 +52,34 @@ struct Sample
         else
             return trade_date > rhs.trade_date;
     }
+};
+
+struct MA_Sample : Sample
+{
+    float prev_price = 0, neg_prev_ma = 0, pos_prev_ma = 0;
+    MA_Sample(PyObject *df_row) : Sample(df_row)
+    {
+        if (PyTuple_Size(df_row) != 6)
+        {
+            cout << "invalid row size! " << PyTuple_Size(df_row) << std::endl;
+            exit(1);
+        }
+        // parse previous price
+        PyObject *price_obj = PyTuple_GetItem(df_row, 3);
+        if (price_obj != Py_None)
+            PyArg_Parse(price_obj, "f", &prev_price);
+
+        // parse previous moving averages
+        price_obj = PyTuple_GetItem(df_row, 4);
+        if (price_obj != Py_None)
+            PyArg_Parse(price_obj, "f", &pos_prev_ma);
+
+        price_obj = PyTuple_GetItem(df_row, 5);
+        if (price_obj != Py_None)
+            PyArg_Parse(price_obj, "f", &neg_prev_ma);
+    }
+
+    MA_Sample() : Sample() {}
 
     operator std::string() const
     {
@@ -67,15 +89,42 @@ struct Sample
     }
 };
 
-struct MA_Sample : Sample
+struct ST_Sample : Sample
 {
-    float prev_price = 0, neg_prev_ma = 0, pos_prev_ma = 0;
-    MA_Sample(PyObject *df_row) : Sample(df_row)
+    float prev_price1 = 0, prev_price2 = 0;
+    unsigned short prev_streak = 0;
+    ST_Sample() : Sample() {}
+    ST_Sample(PyObject *df_row) : Sample(df_row)
     {
-        std::cout << "MA_Sample constructor finished" << std::endl;
+
+        if (PyTuple_Size(df_row) != 6)
+        {
+            cout << "invalid row size! " << PyTuple_Size(df_row) << std::endl;
+            exit(1);
+        }
+        // parse previous prices
+        PyObject *price_obj = PyTuple_GetItem(df_row, 3);
+        if (price_obj != Py_None)
+            PyArg_Parse(price_obj, "f", &prev_price1);
+
+        price_obj = PyTuple_GetItem(df_row, 4);
+        if (price_obj != Py_None)
+            PyArg_Parse(price_obj, "f", &prev_price2);
+
+        price_obj = PyTuple_GetItem(df_row, 5);
+        if (price_obj != Py_None) // parse short int
+            PyArg_Parse(price_obj, "H", &prev_streak);
+
+        std::cout << "ST_Sample constructor finished" << std::endl;
     }
 
-    MA_Sample() : Sample() {}
+    operator std::string() const
+    {
+        return "code, trade_date, price, prev_price1, prev_price2, prev_streak\n" + code + " " +
+               trade_date + " " + std::to_string(price) + " " + std::to_string(prev_price1) + " " +
+               std::to_string(prev_price2) + " " + std::to_string(prev_streak) + "\n";
+    }
 };
 
-int get_streaks(std::vector<Sample> &input, unsigned int streak_len, bool is_up, std::vector<std::string> &res_vec);
+static PyObject *ma(PyObject *self, PyObject *args);
+static PyObject *day_streak(PyObject *self, PyObject *args);

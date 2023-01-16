@@ -126,6 +126,6 @@ END;
 -- alter table us_daily_bars
 -- drop column rsi;
 
--- update us_daily_bars
--- set streak=NULL
--- where code='A' and bar_date BETWEEN '2000-01-04' and '2000-01-07';
+-- select *
+-- from us_daily_bars
+-- where code='BABL' and bar_date BETWEEN '2020-12-09' and '2020-12-13';

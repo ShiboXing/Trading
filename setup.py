@@ -15,8 +15,9 @@ setup(
                 "/usr/local/include/",
             ],
             sources=[
+                "cpp/tech/module.cpp",
                 "cpp/tech/tech.cpp",
-                "cpp/tech/algo.cpp",
+                "cpp/tech/domains.cpp",
             ],
             extra_compile_args=["-std=c++20"],
         )

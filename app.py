@@ -21,8 +21,8 @@ if __name__ == "__main__":
     # ft.update_option_status()
 
     tb = TechBuilder()
-    tb.update_ma()
-    # tb.update_streaks()
+    # tb.update_ma()
+    tb.update_streaks()
 
     # print("nums: ", hist.shape)
     # obj = rc.day_streak(
