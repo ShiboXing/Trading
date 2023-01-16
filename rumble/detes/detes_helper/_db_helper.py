@@ -82,10 +82,14 @@ class db_helper:
 
     def iter_stocks_hist(
         self,
-        nullma_only=False,
+        price_lag=0,
+        nullma_filter=False,
+        nullstreak_filter=False,
         select_close=False,
         select_prevma=False,
+        select_prevstreak=False,
         select_pk=False,
+        lag_degree=1,
     ):
         """
         use generator to fetch stock daily bars
@@ -110,21 +114,27 @@ class db_helper:
             filter = ""
             res_alias = "bars_res"
             cols = []
-            if nullma_only:
+            if nullma_filter:
                 filter = f"where {res_alias}.[close_pos_ma14] is NULL"
+            if nullstreak_filter:
+                filter = f"where {res_alias}.[streak] is NULL"
             if select_pk:
                 cols.append(f"{res_alias}.[code]")
                 cols.append(f"{res_alias}.[bar_date]")
             if select_close:
                 cols.append(f"{res_alias}.[close]")
-                cols.append(f"{res_alias}.[prev_close]")
+                for i in range(1, lag_degree + 1):
+                    cols.append(f"{res_alias}.[prev_close{i}]")
             else:
                 cols.append(f"{res_alias}.[open]")
-                cols.append(f"{res_alias}.[prev_open]")
+                for i in range(1, lag_degree + 1):
+                    cols.append(f"{res_alias}.[prev_open{i}]")
 
             if select_prevma:
                 cols.append(f"{res_alias}.[pos_prevma]")
                 cols.append(f"{res_alias}.[neg_prevma]")
+            if select_prevstreak:
+                cols.append(f"{res_alias}.[prev_streak]")
 
             cols_str = ", ".join(cols) if cols else "*"
             res = sess.execute(
@@ -135,12 +145,18 @@ class db_helper:
                     (order by code, bar_date) as pos_prevma, 
                     lag([close_neg_ma14]) over
                     (order by code, bar_date) as neg_prevma,
+                    lag([streak]) over
+                    (order by code, bar_date) as prev_streak,
                     lag([close]) over
-                    (order by code, bar_date) as prev_close,
+                    (order by code, bar_date) as prev_close1,
+                    lag([close], 2) over
+                    (order by code, bar_date) as prev_close2,
                     lag([open]) over
-                    (order by code, bar_date) as prev_open
+                    (order by code, bar_date) as prev_open1,
+                    lag([open], 2) over
+                    (order by code, bar_date) as prev_open2
                     from us_daily_bars
-                ) bars_res
+                ) {res_alias}
                 {filter}
             """
             )

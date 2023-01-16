@@ -127,7 +127,7 @@ static PyObject *day_streak(PyObject *self, PyObject *args)
  *
  * @param self
  * @param args contains a 2D list of historical data, assumed sorted by (code: str, date: Datetime, price: float, prev_ma: float) compound key
- * @return PyObject*
+ * @return PyList* of tuples (positive ma, negative ma), with the same order as the input list.
  */
 static PyObject *ma(PyObject *self, PyObject *args)
 {
@@ -152,11 +152,12 @@ static PyObject *ma(PyObject *self, PyObject *args)
 
     // calculate the postive and negative moving averages
     PyObject *res_lst = PyList_New(0);
-    Sample prev_s;
+    MA_Sample prev_s;
     for (int i = 0; i < PyList_Size(_hist); i++)
     {
         PyObject *row = PyList_GetItem(_hist, i);
-        Sample curr_s(row);
+        MA_Sample curr_s(row);
+        exit(0);
         if (curr_s.code != prev_s.code) // new code series
         {
             curr_s.prev_price = curr_s.prev_price == 0 ? curr_s.price : curr_s.prev_price;

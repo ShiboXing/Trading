@@ -27,7 +27,10 @@ class TechBuilder:
 
     def update_ma(self):
         for rows in self.db.iter_stocks_hist(
-            nullma_only=True, select_close=True, select_prevma=True, select_pk=True
+            nullstreak_filter=True,
+            select_close=True,
+            select_prevma=True,
+            select_pk=True,
         ):
             # get moving averages from c++
             averages = rc.ma(list(map(tuple, rows)))
@@ -38,3 +41,14 @@ class TechBuilder:
                 ma_row = averages[i]
                 rows[i] = (row[0], row[1], ma_row[0], ma_row[1])
             self.db.update_ma(rows)
+
+    def update_streaks(self):
+        for rows in self.db.iter_stocks_hist(
+            select_close=True,
+            lag_degree=2,
+            select_pk=True,
+            nullstreak_filter=True,
+            select_prevstreak=True,
+        ):
+            # get streak counts from c++
+            pass

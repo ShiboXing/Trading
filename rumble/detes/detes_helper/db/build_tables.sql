@@ -127,5 +127,5 @@ END;
 -- drop column rsi;
 
 -- update us_daily_bars
--- set close_pos_ma14=null, close_neg_ma14=null
--- where code='A' and bar_date='20000103'
+-- set streak=NULL
+-- where code='A' and bar_date BETWEEN '2000-01-04' and '2000-01-07';

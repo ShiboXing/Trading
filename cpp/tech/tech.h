@@ -47,6 +47,8 @@ struct Sample
         price_obj = PyTuple_GetItem(df_row, 5);
         if (price_obj != Py_None)
             PyArg_Parse(price_obj, "f", &neg_prev_ma);
+
+        std::cout << "parrrent constructor finished" << std::endl;
     }
 
     bool operator>(Sample &rhs)
@@ -63,6 +65,17 @@ struct Sample
                trade_date + " " + std::to_string(price) + " " + std::to_string(prev_price) + " " +
                std::to_string(pos_prev_ma) + " " + std::to_string(neg_prev_ma) + "\n";
     }
+};
+
+struct MA_Sample : Sample
+{
+    float prev_price = 0, neg_prev_ma = 0, pos_prev_ma = 0;
+    MA_Sample(PyObject *df_row) : Sample(df_row)
+    {
+        std::cout << "MA_Sample constructor finished" << std::endl;
+    }
+
+    MA_Sample() : Sample() {}
 };
 
 int get_streaks(std::vector<Sample> &input, unsigned int streak_len, bool is_up, std::vector<std::string> &res_vec);
