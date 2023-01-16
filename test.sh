@@ -13,4 +13,4 @@ rm -rf build/ rumble.egg-info
 pip install .
 
 # run
-python app.py
+# python app.py

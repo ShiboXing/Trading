@@ -27,7 +27,7 @@ struct Sample
         char *ts_code_tmp, *trade_date_tmp;
         if (PyTuple_Size(df_row) < 3)
         {
-            cout << "invalid row size! " << PyTuple_Size(df_row) << std::endl;
+            std::cout << "invalid row size! " << PyTuple_Size(df_row) << std::endl;
             exit(1);
         }
         // parse stock code
@@ -41,8 +41,6 @@ struct Sample
 
         // parse stock price
         PyArg_Parse(PyTuple_GetItem(df_row, 2), "f", &price);
-
-        std::cout << "Sample constructor finished" << std::endl;
     }
 
     bool operator>(Sample &rhs)
@@ -61,7 +59,7 @@ struct MA_Sample : Sample
     {
         if (PyTuple_Size(df_row) != 6)
         {
-            cout << "invalid row size! " << PyTuple_Size(df_row) << std::endl;
+            std::cout << "invalid row size! " << PyTuple_Size(df_row) << std::endl;
             exit(1);
         }
         // parse previous price
@@ -92,30 +90,32 @@ struct MA_Sample : Sample
 struct ST_Sample : Sample
 {
     float prev_price1 = 0, prev_price2 = 0;
-    unsigned short prev_streak = 0;
+    unsigned short prev_streak = 0; // initial value, the minimum streak num is 1
     ST_Sample() : Sample() {}
     ST_Sample(PyObject *df_row) : Sample(df_row)
     {
 
         if (PyTuple_Size(df_row) != 6)
         {
-            cout << "invalid row size! " << PyTuple_Size(df_row) << std::endl;
+            std::cout << "invalid row size! " << PyTuple_Size(df_row) << std::endl;
             exit(1);
         }
         // parse previous prices
         PyObject *price_obj = PyTuple_GetItem(df_row, 3);
         if (price_obj != Py_None)
             PyArg_Parse(price_obj, "f", &prev_price1);
+        else
+            prev_price1 = price;
 
         price_obj = PyTuple_GetItem(df_row, 4);
         if (price_obj != Py_None)
             PyArg_Parse(price_obj, "f", &prev_price2);
+        else
+            prev_price2 = price;
 
         price_obj = PyTuple_GetItem(df_row, 5);
         if (price_obj != Py_None) // parse short int
             PyArg_Parse(price_obj, "H", &prev_streak);
-
-        std::cout << "ST_Sample constructor finished" << std::endl;
     }
 
     operator std::string() const

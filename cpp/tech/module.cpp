@@ -69,17 +69,38 @@ static PyObject *ma(PyObject *self, PyObject *args)
  */
 static PyObject *day_streak(PyObject *self, PyObject *args)
 {
+    // parse input list
     PyObject *_hist;
     PyArg_ParseTuple(args, "O", &_hist);
-    for (int i = 0; i < 5; i++)
+
+    auto cnt_streak = [](ST_Sample &st)
+    {
+        float ret = st.price - st.prev_price1, prev_ret = st.prev_price1 - st.prev_price2;
+        if ((ret < 0 && prev_ret < 0) || (ret > 0 && prev_ret > 0))
+            st.prev_streak++;
+        else
+            st.prev_streak = 1;
+    };
+
+    // calculate the streak count row by row
+    ST_Sample prev_s;
+    PyObject *res_lst = PyList_New(0);
+    for (int i = 0; i < PyList_Size(_hist); i++)
     {
         PyObject *row = PyList_GetItem(_hist, i);
-        ST_Sample s(row);
+        ST_Sample curr_s(row);
 
-        cout << string(s) << endl;
+        if (prev_s.code == curr_s.code)
+            curr_s.prev_streak = curr_s.prev_streak == 0 ? prev_s.prev_streak : curr_s.prev_streak;
+        cnt_streak(curr_s);
+        PyList_Append(res_lst, Py_BuildValue("H", curr_s.prev_streak));
+
+        // iterate
+        prev_s = curr_s;
     }
-    PyObject *res;
-    return res;
+    Py_DECREF(_hist);
+
+    return res_lst;
 }
 
 static PyMethodDef tech_methods[] = {

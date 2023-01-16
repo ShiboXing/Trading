@@ -19,7 +19,7 @@ setup(
                 "cpp/tech/tech.cpp",
                 "cpp/tech/domains.cpp",
             ],
-            extra_compile_args=["-std=c++20"],
+            extra_compile_args=["--std=c++20"],
         )
     ],
 )

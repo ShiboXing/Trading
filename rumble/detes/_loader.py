@@ -2,6 +2,8 @@ from .detes_helper import db_helper as db
 from .detes_helper import _us_stock_list_cols, _cn_stock_list_cols
 from .web_helper import ts_helper as th
 from torch.utils.data import Dataset
+from copy import copy
+
 import rumble_cpp as rc
 
 
@@ -31,8 +33,7 @@ class TechBuilder:
             select_pk=True,
         ):
             # get moving averages from c++
-            averages = rc.ma(list(map(tuple, rows)))
-
+            averages = rc.ma(copy(rows))  # copy rows since it will be deferenced in cpp
             # reformat the data
             for i in range(len(rows)):
                 row = rows[i]
@@ -49,5 +50,8 @@ class TechBuilder:
             select_prevstreak=True,
         ):
             # get streak counts from c++
-            num_streaks = rc.day_streak(rows)
+            num_streaks = rc.day_streak(
+                copy(rows)
+            )  # copy rows since it will be deferenced in cpp
+
             pass

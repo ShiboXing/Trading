@@ -23,6 +23,13 @@ from . import (
 
 
 class db_helper:
+    @staticmethod
+    def tuple_transform(rows):
+        """
+        Decorator used to parse rows from sqlalchemy to list of native python tuples
+        """
+        return list(map(tuple, rows))
+
     def __connect_to_db(self, db_name="detes"):
         creds_pth = os.path.join(self.__file_dir__, "db", ".sql_creds")
         with open(creds_pth, "r") as f:
@@ -169,7 +176,7 @@ class db_helper:
                 while True:  # finish getting rows from the last code
                     next_row = res.fetchone()
                     if not next_row or next_row[0] != rows[-1][0]:
-                        yield rows  # send the batch
+                        yield self.tuple_transform(rows)  # send the batch
                         rows = [next_row] if next_row else []
                         break
                     rows.append(next_row)
@@ -473,4 +480,5 @@ class cache_helper:
         elif self.calendar.loc[dt.now().date().strftime("%Y%m%d")].is_open == 0:
             return False
         start, end = windows[ex]
+
         return start < timestamp.time() < end
