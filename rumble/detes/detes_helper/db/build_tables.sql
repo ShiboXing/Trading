@@ -126,6 +126,7 @@ END;
 -- alter table us_daily_bars
 -- drop column rsi;
 
+-- use detes;
 -- select *
 -- from us_daily_bars
--- where code='BABL' and bar_date BETWEEN '2020-12-09' and '2020-12-13';
+-- where code='BAC' and bar_date BETWEEN '2018-08-20' and '2018-09-10';

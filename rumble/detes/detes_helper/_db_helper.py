@@ -184,7 +184,7 @@ class db_helper:
     def update_ma(self, ma_lst: list, region="us"):
         """
         Keywords Arguments:
-        ma_df -- a Iterable of tuples (code, date, pos_ma, neg_ma)
+        ma_lst -- a Iterable of tuples (code, date, pos_ma, neg_ma)
         """
         keys = ["code", "bar_date", "close_pos_ma14", "close_neg_ma14"]
         set_cond = self.__format_filter_str(keys[2:], sep=",")
@@ -204,7 +204,32 @@ class db_helper:
                     sess.commit()
                     print(f"commit: {i}")
             sess.commit()
-            print(f"finished updateing {len(ma_lst)} MAs")
+            print(f"finished updating {len(ma_lst)} MAs")
+
+    def update_streaks(self, st_lst: list, region="us"):
+        """
+        Keywords Arguments:
+        st_lst -- a Iterable of tuples (code, date, streak_count)
+        """
+        keys = ["code", "bar_date", "streak"]
+        set_cond = self.__format_filter_str(keys[2:], sep=",")
+        where_cond = self.__format_filter_str(keys[:2], sep="and")
+
+        with Session(self.engine) as sess:
+            for i, row in enumerate(st_lst):
+                sess.execute(
+                    f"""
+                    update us_daily_bars
+                    set {set_cond}
+                    where {where_cond}
+                    """,
+                    dict(zip(keys, row)),
+                )
+                if i % 10000 == 0:
+                    sess.commit()
+                    print(f"commit: {i}")
+            sess.commit()
+            print(f"finished updating {len(st_lst)} streaks")
 
     def get_last_trading_date(self, region="us"):
         assert region in ["us", "cn", "hk"], "region is invalid"

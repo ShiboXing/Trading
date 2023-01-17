@@ -35,10 +35,7 @@ class TechBuilder:
             # get moving averages from c++
             averages = rc.ma(copy(rows))  # copy rows since it will be deferenced in cpp
             # reformat the data
-            for i in range(len(rows)):
-                row = rows[i]
-                ma_row = averages[i]
-                rows[i] = (row[0], row[1], ma_row[0], ma_row[1])
+            rows = [(*rows[i][:2], *averages[i][:2]) for i in range(len(rows))]
             self.db.update_ma(rows)
 
     def update_streaks(self):
@@ -53,5 +50,6 @@ class TechBuilder:
             num_streaks = rc.day_streak(
                 copy(rows)
             )  # copy rows since it will be deferenced in cpp
-
-            pass
+            # reformat the data
+            rows = [(*r[:2], num_streaks[i]) for i, r in enumerate(rows)]
+            self.db.update_streaks(rows)
