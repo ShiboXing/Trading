@@ -109,7 +109,7 @@ class fetcher:
         for i, df in enumerate(
             self.th.fetch_stocks_hist(stocks, start_date=dates, end_date=last_tr_date)
         ):
-            if df is None:
+            if df is None or not len(df):
                 print(f"[fetcher] {stocks[i]} hist data update skipped")
                 continue
             df = df.reset_index().rename(
