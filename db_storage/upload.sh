@@ -1,7 +1,9 @@
 #!/bin/bash
 
+set -e
+
 # write to disk 
-pushd Storage
+pushd db_storage/Storage
 git checkout -f detes
 docker export sql1 > latest.tar
 ls -alh latest.tar
