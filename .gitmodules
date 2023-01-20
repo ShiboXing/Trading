@@ -1,3 +1,4 @@
 [submodule "db_storage/Storage"]
 	path = db_storage/Storage
 	url = https://github.com/ShiboXing/Storage
+	branch = main
