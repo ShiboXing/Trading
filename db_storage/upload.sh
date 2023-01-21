@@ -2,6 +2,9 @@
 
 set -e
 
+git submodule sync --recursive
+git submodule foreach git pull
+
 # write to disk 
 pushd db_storage/Storage
 git checkout -f detes

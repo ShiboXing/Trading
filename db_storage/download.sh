@@ -2,6 +2,7 @@
 
 set -e
 
+git submodule sync --recursive
 git submodule foreach git pull
 
 # switch to storage place
