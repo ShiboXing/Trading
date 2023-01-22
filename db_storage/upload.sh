@@ -2,8 +2,7 @@
 
 set -e
 
-git submodule sync --recursive
-git submodule foreach git pull
+git submodule update --init --recursive
 
 # write to disk 
 pushd db_storage/Storage

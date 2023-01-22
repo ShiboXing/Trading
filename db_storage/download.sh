@@ -2,8 +2,7 @@
 
 set -e
 
-git submodule sync --recursive
-git submodule foreach git pull
+git submodule update --init --recursive
 
 # switch to storage place
 pushd db_storage/Storage
