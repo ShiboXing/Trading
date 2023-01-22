@@ -117,69 +117,61 @@ class db_helper:
                 row_size += getsizeof(n)
             row_cnt = int(batch_size // row_size)
 
-        with Session(self.engine) as sess:
-            filter = ""
-            res_alias = "bars_res"
-            cols = []
-            if nullma_filter:
-                filter = f"where {res_alias}.[close_pos_ma14] is NULL"
-            if nullstreak_filter:
-                filter = f"where {res_alias}.[streak] is NULL"
-            if select_pk:
-                cols.append(f"{res_alias}.[code]")
-                cols.append(f"{res_alias}.[bar_date]")
-            if select_close:
-                cols.append(f"{res_alias}.[close]")
-                for i in range(1, lag_degree + 1):
-                    cols.append(f"{res_alias}.[prev_close{i}]")
-            else:
-                cols.append(f"{res_alias}.[open]")
-                for i in range(1, lag_degree + 1):
-                    cols.append(f"{res_alias}.[prev_open{i}]")
+        filter = ""
+        res_alias = "bars_res"
+        cols = []
+        if nullma_filter:
+            filter = f"where {res_alias}.[close_pos_ma14] is NULL"
+        if nullstreak_filter:
+            filter = f"where {res_alias}.[streak] is NULL"
+        if select_pk:
+            cols.append(f"{res_alias}.[code]")
+            cols.append(f"{res_alias}.[bar_date]")
+        if select_close:
+            cols.append(f"{res_alias}.[close]")
+            for i in range(1, lag_degree + 1):
+                cols.append(f"{res_alias}.[prev_close{i}]")
+        else:
+            cols.append(f"{res_alias}.[open]")
+            for i in range(1, lag_degree + 1):
+                cols.append(f"{res_alias}.[prev_open{i}]")
 
-            if select_prevma:
-                cols.append(f"{res_alias}.[pos_prevma]")
-                cols.append(f"{res_alias}.[neg_prevma]")
-            if select_prevstreak:
-                cols.append(f"{res_alias}.[prev_streak]")
+        if select_prevma:
+            cols.append(f"{res_alias}.[pos_prevma]")
+            cols.append(f"{res_alias}.[neg_prevma]")
+        if select_prevstreak:
+            cols.append(f"{res_alias}.[prev_streak]")
 
-            cols_str = ", ".join(cols) if cols else "*"
-            res = sess.execute(
-                f"""
-                select {cols_str} from
-                (
-                    select *, lag([close_pos_ma14]) over
-                    (order by code, bar_date) as pos_prevma, 
-                    lag([close_neg_ma14]) over
-                    (order by code, bar_date) as neg_prevma,
-                    lag([streak]) over
-                    (order by code, bar_date) as prev_streak,
-                    lag([close]) over
-                    (order by code, bar_date) as prev_close1,
-                    lag([close], 2) over
-                    (order by code, bar_date) as prev_close2,
-                    lag([open]) over
-                    (order by code, bar_date) as prev_open1,
-                    lag([open], 2) over
-                    (order by code, bar_date) as prev_open2
-                    from us_daily_bars
-                ) {res_alias}
-                {filter}
-            """
-            )
-            rows = []
-            while True:
-                rows += res.fetchmany(row_cnt)
-                if not rows:  # end of query
-                    return
+        cols_str = ", ".join(cols) if cols else "*"
+        while True:
+            with Session(self.engine) as sess:
+                res = sess.execute(
+                    f"""
+                    select {cols_str} from
+                    (
+                        select *, lag([close_pos_ma14]) over
+                        (order by code, bar_date) as pos_prevma,
+                        lag([close_neg_ma14]) over
+                        (order by code, bar_date) as neg_prevma,
+                        lag([streak]) over
+                        (order by code, bar_date) as prev_streak,
+                        lag([close]) over
+                        (order by code, bar_date) as prev_close1,
+                        lag([close], 2) over
+                        (order by code, bar_date) as prev_close2,
+                        lag([open]) over
+                        (order by code, bar_date) as prev_open1,
+                        lag([open], 2) over
+                        (order by code, bar_date) as prev_open2
+                        from us_daily_bars
+                    ) {res_alias}
+                    {filter}
+                """
+                )
+                batch = res.fetchmany(row_cnt)
+                if not batch: break
+                yield self.tuple_transform(batch)
 
-                while True:  # finish getting rows from the last code
-                    next_row = res.fetchone()
-                    if not next_row or next_row[0] != rows[-1][0]:
-                        yield self.tuple_transform(rows)  # send the batch
-                        rows = [next_row] if next_row else []
-                        break
-                    rows.append(next_row)
 
     def update_ma(self, ma_lst: list, region="us"):
         """
@@ -202,7 +194,7 @@ class db_helper:
                 )
                 if i % 10000 == 0:
                     sess.commit()
-                    print(f"commit: {i}")
+                    print(f"commit: {i}", end=" ", flush=True)
             sess.commit()
             print(f"finished updating {len(ma_lst)} MAs")
 
@@ -227,7 +219,7 @@ class db_helper:
                 )
                 if i % 10000 == 0:
                     sess.commit()
-                    print(f"commit: {i}")
+                    print(f"commit: {i}", end=" ", flush=True)
             sess.commit()
             print(f"finished updating {len(st_lst)} streaks")
 
