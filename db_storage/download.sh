@@ -24,3 +24,6 @@ docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=<YourStrong@Passw0rd>" \
 docker exec sql1 /opt/mssql-tools/bin/sqlcmd \
 -S localhost -U SA -P '<YourStrong@Passw0rd>' \
 -Q 'SELECT @@VERSION'
+
+# free the filesystem
+rm -rf Storage
