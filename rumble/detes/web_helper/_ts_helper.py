@@ -1,13 +1,12 @@
 # -*- coding: UTF-8 -*-
 import tushare as _ts
 import pandas as pd
-import time, heapq as pq
+import time
 from yfinance import Tickers, download
 from re import search
 from urllib.error import URLError
 from datetime import date, timedelta, datetime as dt
-from . import _TOKEN, _hs300_url, _zz500_url
-from urllib3.exceptions import ReadTimeoutError, ProtocolError
+from . import _TOKEN
 from requests.exceptions import ConnectionError
 
 

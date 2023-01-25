@@ -1,26 +1,11 @@
 import pandas as pd
-import subprocess as sp
 import os
-import pickle
 
 from sys import getsizeof
-from threading import Thread
-from multiprocessing import cpu_count, Process
-from datetime import datetime as dt, time
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import Session
-from ..web_helper import ts_helper as th
-from . import (
-    _TRAIN_PATH,
-    _hist_data_pth,
-    _stock_list_pth,
-    _quotes_pth,
-    _timestamp_pth,
-    _train_pth,
-    _stock_table_cols,
-)
-
+from . import _stock_table_cols
 
 class db_helper:
     @staticmethod

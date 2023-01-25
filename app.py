@@ -1,10 +1,7 @@
 from rumble.detes import fetcher
-from rumble.detes.detes_helper import db_helper
 from rumble.detes._loader import TechBuilder
-import rumble_cpp as rc
 
 import time, os
-from operator import lt, gt
 from yfinance import Tickers, download
 
 
@@ -16,9 +13,9 @@ if __name__ == "__main__":
 
     ft = fetcher("20000101", "us")
     ft.update_cal()
-    # ft.update_us_stock_lst()
-    # ft.update_stock_hist()
-    # ft.update_option_status()
+    ft.update_us_stock_lst()
+    ft.update_stock_hist()
+    ft.update_option_status()
 
     tb = TechBuilder()
     tb.update_ma()
