@@ -1,10 +1,7 @@
 from typing import Callable
 import pandas as pd
 
-from detes.cache_helper import *
-
-
-class dataset:
+class rumbleset:
     def __init__(self, ch: cache_helper, batch_size: int):
         self.b_size = batch_size
 
