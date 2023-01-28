@@ -135,22 +135,23 @@ class db_helper:
                     select {cols_str} from
                     (
                         select *, lag([close_pos_ma14]) over
-                        (order by code, bar_date) as pos_prevma,
+                        (order by code asc, bar_date asc) as pos_prevma,
                         lag([close_neg_ma14]) over
-                        (order by code, bar_date) as neg_prevma,
+                        (order by code asc, bar_date asc) as neg_prevma,
                         lag([streak]) over
-                        (order by code, bar_date) as prev_streak,
+                        (order by code asc, bar_date asc) as prev_streak,
                         lag([close]) over
-                        (order by code, bar_date) as prev_close1,
+                        (order by code asc, bar_date asc) as prev_close1,
                         lag([close], 2) over
-                        (order by code, bar_date) as prev_close2,
+                        (order by code asc, bar_date asc) as prev_close2,
                         lag([open]) over
-                        (order by code, bar_date) as prev_open1,
+                        (order by code asc, bar_date asc) as prev_open1,
                         lag([open], 2) over
-                        (order by code, bar_date) as prev_open2
+                        (order by code asc, bar_date asc) as prev_open2
                         from us_daily_bars
                     ) {res_alias}
                     {filter}
+                    order by code asc, bar_date asc
                 """
                 )
                 batch = res.fetchmany(row_cnt)
@@ -213,8 +214,8 @@ class db_helper:
         with Session(self.engine) as sess:
             res = sess.execute(
                 f"""
-                exec get_last_trading_date @region = :region;
-            """,
+                    select dbo.get_last_trading_date(:region);
+                """,
                 {"region": region},
             ).fetchall()
 
@@ -324,6 +325,11 @@ class db_helper:
 
             sess.commit()
 
+    def delist_stocks(self):
+        with Session(self.engine) as sess:
+            res = sess.execute("select * from dbo.delist_stocks()")
+            return res.fetchall()
+
     def get_stock_info(
         self,
         params={},
@@ -376,7 +382,7 @@ class db_helper:
         with Session(self.engine) as sess:
             res = sess.execute(
                 f"""
-                exec get_all_last_dates;
+                select * from get_all_last_dates;
                 """
             ).all()
 
