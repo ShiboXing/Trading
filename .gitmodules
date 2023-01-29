@@ -2,3 +2,8 @@
 	path = db_storage/Storage
 	url = https://github.com/ShiboXing/Storage
 	branch = main
+	
+[submodule "SOTA"]
+	path = sota/
+	url = https://github.com/ShiboXing/SOTA
+	branch = main
