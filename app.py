@@ -1,35 +1,9 @@
-from rumble.detes import fetcher
-from rumble.detes._loader import TechBuilder
+from sota.computer_vision.models.vgg import VGG
 
-import time, os
-from yfinance import Tickers, download
-
+import torch.nn.modules.module
 
 if __name__ == "__main__":
-
-    # os.environ["TZ"] = "Asia/Shanghai"
-    os.environ["TZ"] = "US/Eastern"
-    time.tzset()
-
-    ft = fetcher("20000101", "us")
-    ft.update_cal()
-    ft.update_us_stock_lst()
-    ft.update_stock_hist()
-    ft.update_option_status()
-
-    tb = TechBuilder()
-    tb.update_ma()
-    tb.update_streaks()
-
-    # print("nums: ", hist.shape)
-    # obj = rc.day_streak(
-    #     hist[["ts_code", "trade_date", "open", "close", "vol"]].to_numpy().tolist(),
-    #     5,
-    #     True,
-    # )
-    # print("returned objsize : ", len(obj))
-
-    # # fetch dataset samples
-    # hist = hist.sort_values(by=["ts_code", "trade_date"])
-    # for key in obj:
-    #     print(key)
+    vgg = VGG(input_c=1).cuda()
+    test = torch.rand((4, 1, 40, 200), dtype=torch.float).cuda()
+    res = vgg(test)
+    print(res)
