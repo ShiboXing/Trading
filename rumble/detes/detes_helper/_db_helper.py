@@ -2,6 +2,7 @@ import pandas as pd
 import os
 
 from sys import getsizeof
+from datetime import datetime as dt
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import Session
@@ -325,10 +326,37 @@ class db_helper:
 
             sess.commit()
 
-    def delist_stocks(self):
+    def delist_stocks(self):    
         with Session(self.engine) as sess:
-            res = sess.execute("select * from dbo.delist_stocks()")
-            return res.fetchall()
+            last_day = sess.execute("""                
+                select max(trade_date)
+                from us_cal
+            """).fetchone()[0]
+
+        if last_day != dt.now().date():
+            print("skipping stock delisting as calendar is not up to date")
+            return
+            
+        with Session(self.engine) as sess:
+            res = sess.execute("select * from dbo.get_delisted_stocks()")
+            stocks = res.fetchall()
+
+        if not stocks:
+            return
+
+        with Session(self.engine) as sess:
+            filter = "code"
+            for s in stocks:
+                sess.execute(f"""
+                    update us_stock_list
+                    set is_delisted=1
+                    where {filter} = :{filter};
+                """, {filter: s[1]})
+            sess.commit()
+            
+        print("""stocks delisted: 
+            (last traded date, code, days not traded)\n""", stocks)
+
 
     def get_stock_info(
         self,

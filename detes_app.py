@@ -5,8 +5,7 @@ import time, os
 from yfinance import Tickers, download
 
 
-if __name__ == "__main__":
-
+if __name__ == "__main__":    
     # os.environ["TZ"] = "Asia/Shanghai"
     os.environ["TZ"] = "US/Eastern"
     time.tzset()
@@ -15,6 +14,8 @@ if __name__ == "__main__":
     ft.update_cal()
     ft.update_us_stock_lst()
     ft.update_stock_hist()
+    
+    # TODO: implement stock delisting
     ft.update_option_status()
 
     tb = TechBuilder()

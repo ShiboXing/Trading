@@ -88,10 +88,6 @@ class fetcher:
             df = DataFrame({"code": [k], "has_option": [bool(v.options)]})
             self.db.renew_stock_list(df, region="us")
             print(f"{k} option has been recorded")
-
-
-    def delist_stocks(self):
-        pass
     
 
     def update_stock_hist(self):
@@ -128,3 +124,6 @@ class fetcher:
             df["code"] = stocks[i]
             self.db.renew_stock_hist(df, region="us")
             print(f"[fetcher] {stocks[i]} hist data updated")
+        
+        # only delist stocks after they are up to date
+        self.db.delist_stocks()

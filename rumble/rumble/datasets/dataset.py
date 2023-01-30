@@ -1,13 +1,7 @@
-from typing import Callable
-import pandas as pd
+from torch.utils.data import Dataset as DS
+from ...detes.detes_helper import db_helper
 
-class rumbleset:
-    def __init__(self, ch: cache_helper, batch_size: int):
-        self.b_size = batch_size
-
-    def build(self, domain: Callable):
-        """
-        TODO: load the data from disk by batches and process them with domain func
-        """
-        self.mat = pd.read_pickle(_stock_list_pth)
-        self.mat = domain(self.mat)
+class rumbleset(DS):
+    def __init__(self):
+        pass
+        

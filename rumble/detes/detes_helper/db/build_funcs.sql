@@ -33,8 +33,8 @@ create or alter function get_last_trading_date (
     end
 go
 
-create or alter function delist_stocks()
-returns @old_stocks table (last_date date, code VARCHAR(6), diff int)
+create or alter function get_delisted_stocks()
+returns @old_stocks table (last_date date, code VARCHAR(7), diff int)
     begin
         declare @last_date date;
         set @last_date = dbo.get_last_trading_date('us')
@@ -52,5 +52,5 @@ returns @old_stocks table (last_date date, code VARCHAR(6), diff int)
 go
 
 -- select dbo.get_last_trading_date('us')
--- select * from dbo.delist_stocks()
+-- select * from dbo.get_delisted_stocks()
 -- select * from get_all_last_dates
