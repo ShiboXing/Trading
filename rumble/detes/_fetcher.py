@@ -89,6 +89,11 @@ class fetcher:
             self.db.renew_stock_list(df, region="us")
             print(f"{k} option has been recorded")
 
+
+    def delist_stocks(self):
+        pass
+    
+
     def update_stock_hist(self):
         """
         update stocks' historical data, starting from their last recorded dates
