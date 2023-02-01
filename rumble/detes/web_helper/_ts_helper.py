@@ -73,7 +73,6 @@ class ts_helper:
     @retry_wrapper
     def __ts_get_lst(self, trade_date, offset, region="us"):
         return _pro_ts.us_daily(trade_date=trade_date, offset=offset)
-        
 
     def get_stock_lst(self, region="us"):
         """
@@ -81,7 +80,9 @@ class ts_helper:
             1. 5 times max per 24 hrs
             2. 2 times max per 1 min
         """
-        
+        """
+        TODO: cache last offset and start iterating at different offset each trading day
+        """
         today = dt.now().date().strftime("%Y%m%d")
         for i in range(0, 24001, 6000):
             yield self.__ts_get_lst(today, i)
@@ -90,7 +91,9 @@ class ts_helper:
     def get_stock_tickers(self, stocks=()):
         return Tickers(" ".join(stocks)).tickers
 
-    def fetch_stocks_hist(self, codes, start_date: list or date, end_date: list or date):
+    def fetch_stocks_hist(
+        self, codes, start_date: list or date, end_date: list or date
+    ):
         """
         generator, to return the stock history data one by one
         codes, start_date and end_date lists share the same indices
@@ -114,7 +117,7 @@ class ts_helper:
             lo = start_date[i] if start_islst else start_date
             hi = end_date[i] if end_islst else end_date
             df = download(c, start=lo, end=hi + timedelta(days=1))
-            
+
             # guard for yfinance fetch-out-of-range by 1 day error
             if len(df) and df.index[0].to_pydatetime().date() < lo:
                 df = df.drop(df.index[0])

@@ -9,6 +9,7 @@ from sqlalchemy.engine import URL
 from sqlalchemy.orm import Session
 from . import _stock_table_cols
 
+
 class db_helper:
     @staticmethod
     def tuple_transform(rows):
@@ -95,9 +96,11 @@ class db_helper:
         # get row count in each batch based row mem size
         with Session(self.engine) as sess:
             first_row = sess.execute(
-                text(f"""
+                text(
+                    f"""
                 select top 1 * from us_daily_bars
-                """)
+                """
+                )
             ).fetchone()
             row_size = 0
             for n in first_row:
@@ -133,7 +136,8 @@ class db_helper:
         while True:
             with Session(self.engine) as sess:
                 res = sess.execute(
-                    text(f"""
+                    text(
+                        f"""
                     select {cols_str} from
                     (
                         select *, lag([close_pos_ma14]) over
@@ -154,12 +158,13 @@ class db_helper:
                     ) {res_alias}
                     {filter}
                     order by code asc, bar_date asc
-                """)
+                """
+                    )
                 )
                 batch = res.fetchmany(row_cnt)
-                if not batch: break
+                if not batch:
+                    break
                 yield self.tuple_transform(batch)
-
 
     def update_ma(self, ma_lst: list, region="us"):
         """
@@ -173,11 +178,13 @@ class db_helper:
         with Session(self.engine) as sess:
             for i, row in enumerate(ma_lst):
                 sess.execute(
-                    text(f"""
+                    text(
+                        f"""
                     update us_daily_bars
                     set {set_cond}
                     where {where_cond}
-                    """),
+                    """
+                    ),
                     dict(zip(keys, row)),
                 )
                 if i % 10000 == 0:
@@ -198,11 +205,13 @@ class db_helper:
         with Session(self.engine) as sess:
             for i, row in enumerate(st_lst):
                 sess.execute(
-                    text(f"""
+                    text(
+                        f"""
                     update us_daily_bars
                     set {set_cond}
                     where {where_cond}
-                    """),
+                    """
+                    ),
                     dict(zip(keys, row)),
                 )
                 if i % 10000 == 0:
@@ -215,9 +224,11 @@ class db_helper:
         assert region in ["us", "cn", "hk"], "region is invalid"
         with Session(self.engine) as sess:
             res = sess.execute(
-                text(f"""
+                text(
+                    f"""
                     select dbo.get_last_trading_date(:region);
-                """),
+                """
+                ),
                 {"region": region},
             ).fetchall()
 
@@ -227,11 +238,13 @@ class db_helper:
         tname = self.__get_table_name(region=region, type="cal")
         with Session(self.engine) as sess:
             res = sess.execute(
-                text(f"""
+                text(
+                    f"""
                 select top 1
                 * from {tname}
                 order by trade_date desc;
-            """)
+            """
+                )
             ).fetchall()
 
         return res[0][0].strftime("%Y%m%d") if res else res
@@ -306,11 +319,13 @@ class db_helper:
                 insert_cols_str = "".join(insert_cols)
                 insert_params_str = "".join(insert_params)
                 res = sess.execute(
-                    text(f"""
+                    text(
+                        f"""
                     update {tname}
                     set {update_params_str}
                     where code = :code;
-                """),
+                """
+                    ),
                     params,
                 )
 
@@ -318,26 +333,32 @@ class db_helper:
                 if res.rowcount == 0:
                     # insert new row
                     sess.execute(
-                        text(f"""
+                        text(
+                            f"""
                         insert into {tname} ({insert_cols_str})
                         values ({insert_params_str});
-                        """),
+                        """
+                        ),
                         params,
                     )
 
             sess.commit()
 
-    def delist_stocks(self):    
+    def delist_stocks(self):
         with Session(self.engine) as sess:
-            last_day = sess.execute(text("""                
+            last_day = sess.execute(
+                text(
+                    """                
                 select max(trade_date)
                 from us_cal
-            """)).fetchone()[0]
+            """
+                )
+            ).fetchone()[0]
 
         if last_day != dt.now().date():
             print("skipping stock delisting as calendar is not up to date")
             return
-            
+
         with Session(self.engine) as sess:
             res = sess.execute(text("select * from dbo.get_delisted_stocks()"))
             stocks = res.fetchall()
@@ -348,16 +369,23 @@ class db_helper:
         with Session(self.engine) as sess:
             filter = "code"
             for s in stocks:
-                sess.execute(text(f"""
+                sess.execute(
+                    text(
+                        f"""
                     update us_stock_list
                     set is_delisted=1
                     where {filter} = :{filter};
             sess.commit()
-                """), {filter: s[1]})
-            
-        print("""stocks delisted: 
-            (last traded date, code, days not traded)\n""", stocks)
+                """
+                    ),
+                    {filter: s[1]},
+                )
 
+        print(
+            """stocks delisted: 
+            (last traded date, code, days not traded)\n""",
+            stocks,
+        )
 
     def get_stock_info(
         self,
@@ -375,12 +403,26 @@ class db_helper:
         limit_str = f"top {limit}" if limit else ""
         fetch_cols = "code" if only_pk else "*"
         with Session(self.engine) as sess:
-            res = sess.execute(text(
-                f"""
+            res = sess.execute(
+                text(
+                    f"""
                 select {limit_str} {fetch_cols} from {tname}
                 {condition_str};
-            """),
+            """
+                ),
                 params,
             ).all()
 
         return (n[0] for n in res)
+
+    def get_latest_bars(self):
+        with Session(self.engine) as sess:
+            res = sess.execute(
+                text(
+                    f"""
+                select * from get_all_last_dates;
+                """
+                )
+            ).all()
+
+        return res
