@@ -126,5 +126,5 @@ struct ST_Sample : Sample
     }
 };
 
-static PyObject *ma(PyObject *self, PyObject *args);
-static PyObject *day_streak(PyObject *self, PyObject *args);
+PyObject *ma(PyObject *self, PyObject *args);
+PyObject *day_streak(PyObject *self, PyObject *args);
