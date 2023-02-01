@@ -1,0 +1,5 @@
+#!/bin/bash
+
+black * | true
+# echo "running pre-commit hook for ipynb" # stdout might break vscode commit?
+find . -name "*.ipynb" | xargs jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace
