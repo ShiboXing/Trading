@@ -88,7 +88,7 @@ class db_helper:
     ):
         """
         use generator to fetch stock daily bars
-        get previous moving average in every row
+        get cross-row data in every row
         """
         batch_size = 1024 * 1024 * 100  # 100MB batch size
         row_cnt = 0
