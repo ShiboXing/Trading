@@ -1,7 +1,7 @@
 from .detes_helper import db_helper as db
 from .web_helper import ts_helper as th
 from datetime import datetime as dt, timedelta
-from pandas import DataFrame
+from pandas import DataFrame, concat
 
 
 class fetcher:
@@ -36,8 +36,13 @@ class fetcher:
                 self.db.renew_calendar(part_cal, region=r)
 
     def update_us_stock_lst(self):
-        df = self.th.get_stock_lst()
-        if df is None:
+        df = DataFrame({})
+        for next_df in self.th.get_stock_lst():
+            if not next_df:
+                break
+            df = concat((df, next_df))
+
+        if not len(df):
             print("[fetcher] stock list update skipped")
             return
         df = df.rename(columns={"ts_code": "code"})[["code"]]

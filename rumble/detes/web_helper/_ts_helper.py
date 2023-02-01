@@ -71,20 +71,21 @@ class ts_helper:
         return quotes
 
     @retry_wrapper
+    def __ts_get_lst(self, trade_date, offset, region="us"):
+        return _pro_ts.us_daily(trade_date=trade_date, offset=offset)
+        
+
     def get_stock_lst(self, region="us"):
         """
         request limitations:
             1. 5 times max per 24 hrs
             2. 2 times max per 1 min
         """
-
-        res = None
+        
         today = dt.now().date().strftime("%Y%m%d")
         for i in range(0, 24001, 6000):
-            res = pd.concat((res, _pro_ts.us_daily(trade_date=today, offset=i)))
+            yield self.__ts_get_lst(today, i)
             time.sleep(31)  # failed requests might be counted against quota
-
-        return res
 
     def get_stock_tickers(self, stocks=()):
         return Tickers(" ".join(stocks)).tickers
@@ -118,51 +119,6 @@ class ts_helper:
             if len(df) and df.index[0].to_pydatetime().date() < lo:
                 df = df.drop(df.index[0])
             yield df
-
-    # def get_stocks_hist(self, codes, start_date: list or str, end_date: list or str):
-    #     """
-    #     generator, to return the stock history data one by one
-    #     codes, start_date and end_date lists share the same indices
-    #     """
-    #     start_islst, end_islst = type(start_date) == list, type(end_date) == list
-    #     in_queue, wait_queue = [], []
-    #     if start_islst:
-    #         assert len(codes) == len(
-    #             start_date
-    #         ), "start dates length doesn't match codes"
-    #         for i in range(len(codes)):
-    #             pq.heappush(wait_queue, (start_date[i], i))
-    #     else:
-    #         wait_queue = [(start_date, i) for i in range(len(codes))]
-
-    #     if end_islst:
-    #         assert len(codes) == len(end_date), "end dates length doesn't match codes"
-    #         if start_islst:
-    #             assert len(start_date) == len(
-    #                 end_date
-    #             ), "end dates length doesn't match start dates"
-
-    #     curr_date = min(start_date) if start_islst else start_date
-    #     last_date = max(end_date) if end_islst else end_date
-    #     req_str = ""
-    #     while curr_date <= last_date:
-    #         if wait_queue and wait_queue[0][0] == curr_date:
-    #             while wait_queue and wait_queue[0][0] == curr_date:
-    #                 _, next_i = pq.heappop(wait_queue)
-    #                 if end_islst:
-    #                     pq.heappush(in_queue, (end_date[next_i], next_i))
-    #                 else:
-    #                     in_queue = [(end_date, i) for i in range(len(codes))]
-
-    #             req_str = " ".join(codes[i] for _, i in in_queue)
-
-    #         yield download(req_str, start=curr_date, end=curr_date + timedelta(days=1))
-
-    #         if in_queue and in_queue[0][0] == curr_date:
-    #             while in_queue and in_queue[0] == curr_date:
-    #                 pq.heappop(in_queue)
-
-    #             req_str = " ".join(in_queue)
 
     def get_real_time_quotes(self, codes: list):
         window = 30
