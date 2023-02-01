@@ -15,7 +15,6 @@ if __name__ == "__main__":
     ft.update_us_stock_lst()
     ft.update_stock_hist()
 
-    # TODO: implement stock delisting
     ft.update_option_status()
 
     tb = TechBuilder()
