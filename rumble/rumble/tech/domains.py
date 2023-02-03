@@ -7,6 +7,14 @@ class Domains(db_helper):
     def __init__(self):
         super().__init__()
 
+    def get_sector_rets(self):
+        with Session(self.engine) as sess:
+            res = sess.execute(text(
+                """
+                
+                """
+            ))
+
     def get_streak_odds(self):
         with Session(self.engine) as sess:
             streak5 = sess.execute(
