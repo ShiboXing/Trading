@@ -7,13 +7,21 @@ class Domains(db_helper):
     def __init__(self):
         super().__init__()
 
-    def get_sector_rets(self):
+    def get_sector_rets(self, sector: str, bar_date: str):
+        """Calculate the weighted log return of one sector"""
+
+        # get all the stock returns of the sector on a date
         with Session(self.engine) as sess:
-            res = sess.execute(text(
-                """
-                
-                """
-            ))
+            res = sess.execute(
+                text(
+                    """
+                        select * from get_sector_rets(:sector, :bar_date)
+                    """
+                ),
+                {"sector": sector, "bar_date": bar_date},
+            )
+
+            rets = res.fetchall()
 
     def get_streak_odds(self):
         with Session(self.engine) as sess:

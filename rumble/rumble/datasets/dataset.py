@@ -1,6 +1,7 @@
 from torch.utils.data import Dataset as DS
 from ..tech.domains import Domains
 
+
 class rumbleset(DS):
     def __init__(self):
         """
@@ -18,5 +19,5 @@ class rumbleset(DS):
         11. volume log return
         """
         self.dm = Domains()
-        
+
         pass

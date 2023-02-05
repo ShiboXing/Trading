@@ -5,8 +5,9 @@ import torch.nn.modules.module
 
 if __name__ == "__main__":
     d = Domains()
-    print(d.get_streak_odds())
-    vgg = VGG(input_c=1).cuda()
-    test = torch.rand((4, 1, 40, 200), dtype=torch.float).cuda()
-    res = vgg(test)
-    print(res)
+    print(d.get_sector_rets("Technology", "2023-01-10"))
+
+    # vgg = VGG(input_c=1).cuda()
+    # test = torch.rand((4, 1, 40, 200), dtype=torch.float).cuda()
+    # res = vgg(test)
+    # print(res)

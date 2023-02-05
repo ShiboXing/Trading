@@ -1,4 +1,3 @@
-
 import traceback, sys
 from .detes_helper import db_helper as db
 from .web_helper import ts_helper as th
@@ -73,19 +72,18 @@ class fetcher:
                     continue
 
                 meta["code"] = k
-                meta["exchange"] = None if "exchange" not in v.fast_info else v.fast_info["exchange"]
+                meta["exchange"] = (
+                    None if "exchange" not in v.fast_info else v.fast_info["exchange"]
+                )
                 meta["sector"] = None if "sector" not in v.info else v.info["sector"]
 
-                df = DataFrame(
-                    [meta]
-                )
+                df = DataFrame([meta])
                 self.db.renew_stock_list(df)
                 print(f"{k} info has been recorded")
             except KeyError as e:
                 print("KeyError: ", traceback.format_exc())
             except TypeError as e:
                 print("TypeError: ", traceback.format_exc())
-                
 
     def update_option_status(self):
         """
