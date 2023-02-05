@@ -18,8 +18,7 @@ class db_helper:
         """
         return list(map(tuple, rows))
 
-    def __connect_to_db(self, db_name="detes"):
-        creds_pth = os.path.join(self.__file_dir__, "db", ".sql_creds")
+    def __connect_to_db(self, creds_pth, db_name):
         with open(creds_pth, "r") as f:
             server, port, username, password, driver = f.readline().split(",")
 
@@ -42,25 +41,30 @@ class db_helper:
 
         return engine
 
-    def __run_sqlfile(self, engine, fname):
-        schema_pth = os.path.join(self.__file_dir__, "db", fname)
-        with Session(engine) as sess:
-            conn = engine.raw_connection()
-            with open(schema_pth, "r") as f:
-                sql_str = f.read()
-            for cmd in sql_str.split("\ngo\n"):
-                if cmd:
-                    conn.execute(cmd)
-                    conn.commit()
+    def __run_sqlfile(self, engine, schema_pth):
+        conn = engine.raw_connection()
+        with open(schema_pth, "r") as f:
+            sql_str = f.read()
+        for cmd in sql_str.split("\ngo\n"):
+            if cmd:
+                conn.execute(cmd)
+                conn.commit()
 
     def __init__(self):
-        self.__file_dir__ = os.path.dirname(__file__)
-        self.__schema_script__ = ""
-        tmp_engine = self.__connect_to_db("master")
-        self.__run_sqlfile(tmp_engine, "build_schema.sql")
-        self.engine = self.__connect_to_db()
-        self.__run_sqlfile(self.engine, "build_tables.sql")
-        self.__run_sqlfile(self.engine, "build_funcs.sql")
+        sql_dir = os.path.join(os.path.dirname(__file__), "sql")
+
+        # build db if needed
+        tmp_engine = self.__connect_to_db(
+            os.path.join(sql_dir, ".sql_creds"), db_name="master"
+        )
+        self.__run_sqlfile(tmp_engine, os.path.join(sql_dir, "build_schema.sql"))
+
+        # build tables and funcs if needed
+        self.engine = self.__connect_to_db(
+            os.path.join(sql_dir, ".sql_creds"), db_name="detes"
+        )
+        self.__run_sqlfile(self.engine, os.path.join(sql_dir, "build_tables.sql"))
+        self.__run_sqlfile(self.engine, os.path.join(sql_dir, "build_funcs.sql"))
 
     def __get_table_name(self, region="us", type="lst"):
         assert region in ("us", "cn", "hk"), "region parameter is incorrect"
@@ -367,22 +371,22 @@ class db_helper:
             return
 
         with Session(self.engine) as sess:
-            filter = "code"
             for s in stocks:
                 sess.execute(
                     text(
                         f"""
-                    update us_stock_list
-                    set is_delisted=1
-                    where {filter} = :{filter};
-            sess.commit()
-                """
+                        update us_stock_list
+                        set is_delisted=1
+                        where code = :code;
+                    """
                     ),
-                    {filter: s[1]},
+                    {"code": s[1]},
                 )
 
+            sess.commit()
+
         print(
-            """stocks delisted: 
+            f"""{len(stocks)} stocks delisted: 
             (last traded date, code, days not traded)\n""",
             stocks,
         )
