@@ -72,9 +72,12 @@ class fetcher:
                     continue
 
                 meta["code"] = k
-                if "exchange" in v.fast_info: meta["exchange"] = v.fast_info["exchange"]
-                if "sector" in v.info: meta["sector"] = v.info["sector"]
-                if "industry" in v.info: meta["industry"] = v.info["industry"]
+                if "exchange" in v.fast_info:
+                    meta["exchange"] = v.fast_info["exchange"]
+                if "sector" in v.info:
+                    meta["sector"] = v.info["sector"]
+                if "industry" in v.info:
+                    meta["industry"] = v.info["industry"]
 
                 df = DataFrame([meta])
                 self.db.renew_stock_list(df)
