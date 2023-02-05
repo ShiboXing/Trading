@@ -2,18 +2,6 @@ use detes;
 
 if not exists (select *
 from sys.tables
-where name='stocks')
-begin
-  CREATE TABLE stocks
-  (
-    [exchange] nvarchar(5) not null,
-    [code] nvarchar(6) not null,
-    primary key (exchange, code)
-  )
-end;
-
-if not exists (select *
-from sys.tables
 where name='us_cal')
 BEGIN
   create table us_cal
@@ -76,12 +64,11 @@ begin
   (
     [code] nvarchar(7) not null,
     [sector] nvarchar(25),
+    [industry] nvarchar(52),
     [exchange] nvarchar(5),
     [has_option] bit default null,
-    [is_delisted]
-      bit not null default 0,
-    primary key
-    (code)
+    [is_delisted] bit not null default 0,
+    primary key (code)
   )
 end;
 
@@ -104,7 +91,6 @@ BEGIN
     [streak] int,
     primary key (code, bar_date),
     constraint fk_code foreign key
-    (code) references us_stock_list
-    (code)
+    (code) references us_stock_list (code)
   )
 END;

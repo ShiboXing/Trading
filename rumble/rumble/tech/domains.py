@@ -2,11 +2,17 @@ from ...detes.detes_helper import db_helper
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 
+from os import path
 
 class Domains(db_helper):
     def __init__(self):
         super().__init__()
-
+        sql_dir = path.join(path.dirname(__file__), "sql")
+        self.engine = self.__connect_to_db(
+            path.join(sql_dir, ".sql_creds"), db_name="detes"
+        )
+        self.__run_sqlfile(self.engine, path.join(sql_dir, "build_funcs.sql"))
+        
     def get_sector_rets(self, sector: str, bar_date: str):
         """Calculate the weighted log return of one sector"""
 

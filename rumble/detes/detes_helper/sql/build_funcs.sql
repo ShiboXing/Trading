@@ -50,7 +50,3 @@ returns @old_stocks table (last_date date, code VARCHAR(7), diff int)
         return;
     end
 go
-
--- select dbo.get_last_trading_date('us')
--- select * from dbo.get_delisted_stocks()
--- select * from get_all_last_dates

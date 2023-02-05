@@ -58,7 +58,7 @@ class fetcher:
 
         # update stocks with missing info
         stocks = self.db.get_stock_info(
-            params={"exchange": None, "is_delisted": False}, only_pk=True
+            params={"industry": None, "is_delisted": False}, only_pk=True
         )
         tiks = self.th.get_stock_tickers(stocks)
 
@@ -72,14 +72,15 @@ class fetcher:
                     continue
 
                 meta["code"] = k
-                meta["exchange"] = (
-                    None if "exchange" not in v.fast_info else v.fast_info["exchange"]
-                )
-                meta["sector"] = None if "sector" not in v.info else v.info["sector"]
+                if "exchange" in v.fast_info: meta["exchange"] = v.fast_info["exchange"]
+                if "sector" in v.info: meta["sector"] = v.info["sector"]
+                if "industry" in v.info: meta["industry"] = v.info["industry"]
 
                 df = DataFrame([meta])
                 self.db.renew_stock_list(df)
                 print(f"{k} info has been recorded")
+
+            # prevent yfinance fatal errors
             except KeyError as e:
                 print("KeyError: ", traceback.format_exc())
             except TypeError as e:
