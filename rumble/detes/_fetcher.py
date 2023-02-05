@@ -1,3 +1,5 @@
+
+import traceback, sys
 from .detes_helper import db_helper as db
 from .web_helper import ts_helper as th
 from datetime import datetime as dt, timedelta
@@ -36,51 +38,54 @@ class fetcher:
                 self.db.renew_calendar(part_cal, region=r)
 
     def update_us_stock_lst(self):
+        """Add stocks and update their stock information
+        1. add new stocks traded today
+        2. update info for all stocks
+        """
+
+        # insert list of trade stocks today
         df = DataFrame({})
         for next_df in self.th.get_stock_lst():
-            if not next_df:
+            if next_df is None:
                 break
             df = concat((df, next_df))
 
-        if not len(df):
-            print("[fetcher] stock list update skipped")
-            return
-        df = df.rename(columns={"ts_code": "code"})[["code"]]
-        df = df[~(df.code.str.contains("\."))]  # drop codes with dot
-        self.db.renew_stock_list(df, region="us")
+        if len(df):
+            df = df.rename(columns={"ts_code": "code"})[["code"]]
+            df = df[~(df.code.str.contains("\."))]  # drop codes with dot
+            self.db.renew_stock_list(df, region="us")
+        else:
+            print("[fetcher] no added stocks")
 
-        # fill in stock list information
+        # update stocks with missing info
         stocks = self.db.get_stock_info(
             params={"exchange": None, "is_delisted": False}, only_pk=True
         )
         tiks = self.th.get_stock_tickers(stocks)
 
+        # iterate the above stocks and update one by one
         for k, v in tiks.items():
             """performs web request with getter"""
-            info = v.info
+            try:
+                meta = {}
+                if not v.info:
+                    print(f"no info for {k}, skipping")
+                    continue
 
-            if "sector" not in info:
-                info["sector"] = None
-            info["is_delisted"] = False
-            if "exchange" not in info:
-                info["exchange"] = None
-                info["is_delisted"] = True
-            elif (
-                "longName" in info
-                and info["longName"]
-                and "delisted" in info["longName"]
-            ):
-                info["is_delisted"] = True
-            if "quoteType" in info:  # ETFs don't have sector
-                info["sector"] = "ETF" if info["quoteType"] == "ETF" else info["sector"]
-            df = DataFrame(
-                {
-                    **{c: [info[c]] for c in ("sector", "exchange", "is_delisted")},
-                    **{"code": k},
-                }
-            )
-            self.db.renew_stock_list(df)
-            print(f"{k} info has been recorded")
+                meta["code"] = k
+                meta["exchange"] = None if "exchange" not in v.fast_info else v.fast_info["exchange"]
+                meta["sector"] = None if "sector" not in v.info else v.info["sector"]
+
+                df = DataFrame(
+                    [meta]
+                )
+                self.db.renew_stock_list(df)
+                print(f"{k} info has been recorded")
+            except KeyError as e:
+                print("KeyError: ", traceback.format_exc())
+            except TypeError as e:
+                print("TypeError: ", traceback.format_exc())
+                
 
     def update_option_status(self):
         """
