@@ -19,7 +19,6 @@ class db_helper:
         return list(map(tuple, rows))
 
     def connect_to_db(self, db_name):
-
         creds_pth = os.path.join(self.__sql_dir, ".sql_creds")
         with open(creds_pth, "r") as f:
             server, port, username, password, driver = f.readline().split(",")

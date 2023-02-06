@@ -9,7 +9,7 @@ if __name__ == "__main__":
     d = Domains()
     d.get_agg_rets("2023-01-10", "Technology", "sector")
     d.get_index_rets("2023-01-01", "2023-02-03")
-    
+
     # vgg = VGG(input_c=1).cuda()
     # test = torch.rand((4, 1, 40, 200), dtype=torch.float).cuda()
     # res = vgg(test)
