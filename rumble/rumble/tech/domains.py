@@ -15,6 +15,22 @@ class Domains(db_helper):
         self.engine = super().connect_to_db(db_name="detes")
         super().run_sqlfile(self.engine, path.join(sql_dir, "build_funcs.sql"))
 
+    def get_index_rets(self, start_date, end_date):
+        """Returns the simple average log returns of NASDAQ, DOW JONES, S&P 500"""
+        
+        with Session(self.engine) as sess:
+            for index in ('^IXIC', '^DJI', '^GSPC'):
+                res = sess.execute(text("""
+                    select ([close] / lag([close]) over (order by code asc, bar_date asc)),
+                    bar_date, code
+                    from us_daily_bars
+                    where code = :code and (bar_date between :s and :e)
+                    order by bar_date asc
+                """), {'code': index, 's': start_date, 'e': end_date})
+                rets = res.fetchall()
+            
+        return rets
+
     def get_agg_rets(
         self, bar_date: datetime or str, filter_val: str, filter_key="sector"
     ):
@@ -42,27 +58,3 @@ class Domains(db_helper):
         agg_ret = np.sum(rets[:, 0] * rets[:, 1])  # get weighted return
 
         return agg_ret, total_cap
-
-    def get_streak_odds(self):
-        with Session(self.engine) as sess:
-            streak5 = sess.execute(
-                text(
-                    """
-                select count(*) from us_daily_bars
-                where bar_date between '2022-01-01' and '2023-01-01' and
-                    streak > 4
-            """
-                )
-            ).fetchone()[0]
-
-            streak6 = sess.execute(
-                text(
-                    """
-                select count(*) from us_daily_bars
-                where bar_date between '2022-01-01' and '2023-01-01' and
-                    streak > 5
-            """
-                )
-            ).fetchone()[0]
-
-            return float(streak6) / streak5
