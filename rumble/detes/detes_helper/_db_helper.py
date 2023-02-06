@@ -18,7 +18,9 @@ class db_helper:
         """
         return list(map(tuple, rows))
 
-    def __connect_to_db(self, creds_pth, db_name):
+    def connect_to_db(self, db_name):
+
+        creds_pth = os.path.join(self.__sql_dir, ".sql_creds")
         with open(creds_pth, "r") as f:
             server, port, username, password, driver = f.readline().split(",")
 
@@ -41,7 +43,7 @@ class db_helper:
 
         return engine
 
-    def __run_sqlfile(self, engine, schema_pth):
+    def run_sqlfile(self, engine, schema_pth):
         conn = engine.raw_connection()
         with open(schema_pth, "r") as f:
             sql_str = f.read()
@@ -51,20 +53,19 @@ class db_helper:
                 conn.commit()
 
     def __init__(self):
-        sql_dir = os.path.join(os.path.dirname(__file__), "sql")
+        self.__sql_dir = os.path.join(os.path.dirname(__file__), "sql")
 
         # build db if needed
-        tmp_engine = self.__connect_to_db(
-            os.path.join(sql_dir, ".sql_creds"), db_name="master"
+        tmp_engine = self.connect_to_db(db_name="master"
         )
-        self.__run_sqlfile(tmp_engine, os.path.join(sql_dir, "build_schema.sql"))
+        self.run_sqlfile(tmp_engine, os.path.join(self.__sql_dir, "build_schema.sql"))
 
         # build tables and funcs if needed
-        self.engine = self.__connect_to_db(
-            os.path.join(sql_dir, ".sql_creds"), db_name="detes"
+        self.engine = self.connect_to_db(db_name="detes"
         )
-        self.__run_sqlfile(self.engine, os.path.join(sql_dir, "build_tables.sql"))
-        self.__run_sqlfile(self.engine, os.path.join(sql_dir, "build_funcs.sql"))
+        self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "build_tables.sql"))
+        self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "build_funcs.sql"))
+        self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "data_setup.sql"))
 
     def __get_table_name(self, region="us", type="lst"):
         assert region in ("us", "cn", "hk"), "region parameter is incorrect"
@@ -412,9 +413,9 @@ class db_helper:
             res = sess.execute(
                 text(
                     f"""
-                select {limit_str} {fetch_cols} from {tname}
-                {condition_str};
-            """
+                    select {limit_str} {fetch_cols} from {tname}
+                    {condition_str};
+                """
                 ),
                 params,
             ).all()
