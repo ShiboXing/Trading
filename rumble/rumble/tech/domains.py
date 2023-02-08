@@ -19,14 +19,19 @@ class Domains(db_helper):
         """Returns the log of mean returns of NASDAQ, DOW JONES, S&P 500"""
         rets = None
         with Session(self.engine) as sess:
-            rets = sess.execute(text("""
+            rets = sess.execute(
+                text(
+                    """
                 select avgret, avgvol from get_agg_index_rets(:start, :end)
                 order by bar_date
-            """), {
-                "start": start_date,
-                "end": end_date,
-            }).fetchall()
-            
+            """
+                ),
+                {
+                    "start": start_date,
+                    "end": end_date,
+                },
+            ).fetchall()
+
         return np.array(rets).transpose((1, 0))
 
     def get_agg_rets(
@@ -41,7 +46,10 @@ class Domains(db_helper):
         with Session(self.engine) as sess:
             res = sess.execute(
                 text(
+                    # set session properties to avoid division by zero error
                     f"""
+                    SET ARITHABORT OFF
+                    SET ANSI_WARNINGS OFF
                     select * from get_{filter_key}_rets(:filter_val, :bar_date)
                     """
                 ),

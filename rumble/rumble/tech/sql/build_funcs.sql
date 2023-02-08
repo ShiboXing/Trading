@@ -4,10 +4,11 @@ create or alter function get_sector_rets
     @query_date date
 )
 returns TABLE as return (
-    select (vol * [open]) capacity, close_ret
+    select (vol * [open]) capital, close_ret, vol_ret
     from us_stock_list usl inner join (
         select code, [open], bar_date, vol,
-        ([close] / lag([close]) over (order by code asc, bar_date asc)) close_ret
+        [close] / lag([close]) over (order by code asc, bar_date asc) close_ret, 
+        [vol] / lag([vol]) over (order by code asc, bar_date asc) vol_ret
         from us_daily_bars
     ) udb on udb.code = usl.code
     where bar_date = @query_date and sector = @sector
@@ -21,10 +22,11 @@ create or alter function get_industry_rets
     @query_date date
 )
 returns TABLE as return (
-    select (vol * [open]) capacity, close_ret
+    select (vol * [open]) capital, close_ret, vol_ret
     from us_stock_list usl inner join (
         select code, [open], bar_date, vol,
-        ([close] / lag([close]) over (order by code asc, bar_date asc)) close_ret
+        [close] / lag([close]) over (order by code asc, bar_date asc) close_ret,
+        [vol] / lag([vol]) over (order by code asc, bar_date asc) vol_ret
         from us_daily_bars
     ) udb on udb.code = usl.code
     where bar_date = @query_date and industry = @industry
@@ -39,8 +41,8 @@ create or alter function get_agg_index_rets
 returns table
     return (
         select log(avg(ret)) avgret, log(avg(volret)) avgvol, bar_date from (
-            select ([close] / lag([close]) over (order by code asc, bar_date asc)) ret, code, 
-            ([vol] / lag([vol]) over (order by code asc, bar_date asc)) volret, bar_date
+            select [close] / lag([close]) over (order by code asc, bar_date asc) ret, code, 
+            [vol] / lag([vol]) over (order by code asc, bar_date asc) volret, bar_date
             from us_daily_bars
             where code in ('^IXIC', '^DJI', '^GSPC') 
         ) res
