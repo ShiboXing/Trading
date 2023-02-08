@@ -16,25 +16,18 @@ class Domains(db_helper):
         super().run_sqlfile(self.engine, path.join(sql_dir, "build_funcs.sql"))
 
     def get_index_rets(self, start_date, end_date):
-        """Returns the simple average log returns of NASDAQ, DOW JONES, S&P 500"""
-
+        """Returns the log of mean returns of NASDAQ, DOW JONES, S&P 500"""
+        rets = None
         with Session(self.engine) as sess:
-            for index in ("^IXIC", "^DJI", "^GSPC"):
-                res = sess.execute(
-                    text(
-                        """
-                    select ([close] / lag([close]) over (order by code asc, bar_date asc)),
-                    bar_date, code
-                    from us_daily_bars
-                    where code = :code and (bar_date between :s and :e)
-                    order by bar_date asc
-                """
-                    ),
-                    {"code": index, "s": start_date, "e": end_date},
-                )
-                rets = res.fetchall()
-
-        return rets
+            rets = sess.execute(text("""
+                select avgret, avgvol from get_agg_index_rets(:start, :end)
+                order by bar_date
+            """), {
+                "start": start_date,
+                "end": end_date,
+            }).fetchall()
+            
+        return np.array(rets).transpose((1, 0))
 
     def get_agg_rets(
         self, bar_date: datetime or str, filter_val: str, filter_key="sector"

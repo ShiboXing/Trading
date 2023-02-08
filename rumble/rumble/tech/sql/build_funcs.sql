@@ -31,28 +31,20 @@ returns TABLE as return (
 );
 go
 
-create or alter function get_index_rets
+create or alter function get_agg_index_rets
 (
-    @industry VARCHAR(52),
-    @query_date date
+    @start_date date,
+    @end_date DATE
 )
-returns TABLE as return (
-    select (vol * [open]) capacity, close_ret
-    from us_stock_list usl inner join (
-        select code, [open], bar_date, vol,
-        ([close] / lag([close]) over (order by code asc, bar_date asc)) close_ret
-        from us_daily_bars
-    ) udb on udb.code = usl.code
-    where bar_date = @query_date and industry = @industry
-);
+returns table
+    return (
+        select log(avg(ret)) avgret, log(avg(volret)) avgvol, bar_date from (
+            select ([close] / lag([close]) over (order by code asc, bar_date asc)) ret, code, 
+            ([vol] / lag([vol]) over (order by code asc, bar_date asc)) volret, bar_date
+            from us_daily_bars
+            where code in ('^IXIC', '^DJI', '^GSPC') 
+        ) res
+        where bar_date between @start_date and @end_date
+        group by bar_date
+    )
 go
-
--- create or alter function get_avg_index_rets
--- (
---     @start_date date,
---     @end_date date,
--- )
--- returns table as return (
---     select 
--- )
-
