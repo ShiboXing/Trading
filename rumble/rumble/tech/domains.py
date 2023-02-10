@@ -57,10 +57,12 @@ class Domains(db_helper):
             )
             rets = res.fetchall()
 
-        rets = np.nan_to_num(np.array(rets, dtype=np.float_), nan=1.0, neginf=1.0, posinf=1.0)
-        rets[:, 2][rets[:, 2] == 0] = 1 # prevent inf log values 
+        rets = np.nan_to_num(
+            np.array(rets, dtype=np.float_), nan=1.0, neginf=1.0, posinf=1.0
+        )
+        rets[:, 2][rets[:, 2] == 0] = 1  # prevent inf log values
         rets[:, 1:] = np.log(rets[:, 1:])  # element-wise log on the ret columns
-        rets[:, 0] /= np.sum(rets[:, 0])  # get weight ratio, vol 
+        rets[:, 0] /= np.sum(rets[:, 0])  # get weight ratio, vol
         agg_ret = np.sum(rets[:, 0] * rets[:, 1])  # get weighted return
         vol_ret = np.sum(rets[:, 0] * rets[:, 2])  # get weighted volume return
 
