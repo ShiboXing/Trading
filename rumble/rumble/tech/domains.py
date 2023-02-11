@@ -14,6 +14,19 @@ class Domains(db_helper):
         sql_dir = path.join(path.dirname(__file__), "sql")
         self.engine = super().connect_to_db(db_name="detes")
         super().run_sqlfile(self.engine, path.join(sql_dir, "build_funcs.sql"))
+    
+    def streaks(self, num: int):
+        with Session(self.engine) as sess:
+            samples = sess.execute(text(
+                """
+                select code, bar_date from us_daily_bars
+                where streak = :streak
+                order by code asc, bar_date asc
+                """
+            ), {"streak": num}).fetchall()
+        
+        return samples
+
 
     def get_index_rets(self, start_date, end_date):
         """Returns the log of mean returns of NASDAQ, DOW JONES, S&P 500"""
@@ -37,7 +50,7 @@ class Domains(db_helper):
     def get_agg_rets(
         self, bar_date: datetime or str, filter_val: str, filter_key="sector"
     ):
-        """Get aggregate returns, through weighted averages of sector or industry"""
+        """Get aggregate statistics, through weighted averages of sector or industry"""
 
         if filter_key not in ("sector", "industry"):
             raise ValueError("filter key value invalid!")
@@ -60,10 +73,11 @@ class Domains(db_helper):
         rets = np.nan_to_num(
             np.array(rets, dtype=np.float_), nan=1.0, neginf=1.0, posinf=1.0
         )
+        cap_std, cap_mean = np.std(rets[:, 0]), np.mean(rets[:, 0]) # calculate statistics of traded capital
         rets[:, 2][rets[:, 2] == 0] = 1  # prevent inf log values
         rets[:, 1:] = np.log(rets[:, 1:])  # element-wise log on the ret columns
         rets[:, 0] /= np.sum(rets[:, 0])  # get weight ratio, vol
         agg_ret = np.sum(rets[:, 0] * rets[:, 1])  # get weighted return
         vol_ret = np.sum(rets[:, 0] * rets[:, 2])  # get weighted volume return
 
-        return agg_ret, vol_ret
+        return agg_ret, vol_ret, cap_mean, cap_std
