@@ -8,6 +8,7 @@ from os import path
 
 import numpy as np
 
+
 class rumbleset(DS, DB):
     def __init__(self):
         super(rumbleset, self).__init__()
@@ -15,7 +16,7 @@ class rumbleset(DS, DB):
 
         self.dm = Domains()
         self.dm_samples = self.dm.streaks(5, min_date="2001-01-02")
-        
+
     def __getitem__(self, index):
         """
         coefficient matrix: 32*126
@@ -29,7 +30,7 @@ class rumbleset(DS, DB):
             high to open log return
             low to open log return
             industry weighted log return
-            industry volume log return   
+            industry volume log return
             stock's # of std dev. to the mean capital traded in industry
             sector weighted log return
             sector volume log return
@@ -42,11 +43,11 @@ class rumbleset(DS, DB):
         code, bar_date = self.dm_samples[index]
         self.__build_sample(code, bar_date)
 
-
     def __build_sample(self, code, bar_date, day_offset: int = 0):
         with Session(self.engine) as sess:
-            half_mat = sess.execute(text(
-                """
+            half_mat = sess.execute(
+                text(
+                    """
                 select
                 log([close] / ([close] - [close_neg_ma14])) neg_ma_ret,
                 log([close] / ([close] - [close_pos_ma14])) pos_ma_ret, 
@@ -63,14 +64,16 @@ class rumbleset(DS, DB):
                 offset :offset rows
                 fetch next 126 rows only
                 """
-            ), {"code":  code, "offset": day_offset, "bar_date": bar_date}).fetchall()
+                ),
+                {"code": code, "offset": day_offset, "bar_date": bar_date},
+            ).fetchall()
 
         agg_mat = np.array([])
         for row in half_mat:
             t_date = row[-1]
             agg_ret = self.dm.get_agg_rets(t_date, code, "industry")
             agg_mat = np.hstack((agg_mat, agg_ret))
-        
+
         return agg_mat
 
     def __len__(self):

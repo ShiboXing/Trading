@@ -49,32 +49,36 @@ class Domains(db_helper):
 
         return np.array(rets).transpose((1, 0))
 
-    def get_agg_rets(
-        self, bar_date: datetime or str, code: str, scope="sector"
-    ):
+    def get_agg_rets(self, bar_date: datetime or str, code: str, scope="sector"):
         code = "AAA"
         bar_date = "2020-09-11"
         """Get aggregate statistics, through weighted averages of sector or industry"""
         if scope not in ("sector", "industry"):
             raise ValueError("filter key value invalid!")
-        
+
         # get all the stock returns of the sector on a date
         with Session(self.engine) as sess:
-            scope_val = sess.execute(text(
-                f"""
+            scope_val = sess.execute(
+                text(
+                    f"""
                 select {scope} 
                 from us_stock_list
                 where code = :code
                 """
-            ),  {"code": code}).fetchone()[0]
-            
-            code_cap = sess.execute(text(
-                """
+                ),
+                {"code": code},
+            ).fetchone()[0]
+
+            code_cap = sess.execute(
+                text(
+                    """
                 select ([vol] * [open])
                 from us_daily_bars
                 where code = :code and bar_date = :bar_date
                 """
-            ), {"code": code, "bar_date": bar_date}).fetchone()[0]
+                ),
+                {"code": code, "bar_date": bar_date},
+            ).fetchone()[0]
 
             if scope_val:
                 res = sess.execute(
@@ -89,9 +93,10 @@ class Domains(db_helper):
                     {"filter_val": scope_val, "bar_date": bar_date},
                 )
                 rets = res.fetchall()
-            else: # get single return values if scope info unavailable
-                rets = sess.execute(text(
-                    """
+            else:  # get single return values if scope info unavailable
+                rets = sess.execute(
+                    text(
+                        """
                     SET ARITHABORT OFF
                     SET ANSI_WARNINGS OFF        
                     select cap, close_ret, vol_ret from (
@@ -102,7 +107,9 @@ class Domains(db_helper):
                     ) res
                     where bar_date = :bar_date
                     """
-                ), {"code": code, "bar_date": bar_date}).fetchall()
+                    ),
+                    {"code": code, "bar_date": bar_date},
+                ).fetchall()
 
         rets = np.nan_to_num(
             np.array(rets, dtype=np.float_), nan=1.0, neginf=1.0, posinf=1.0
@@ -116,5 +123,8 @@ class Domains(db_helper):
         agg_ret = np.sum(rets[:, 0] * rets[:, 1])  # get weighted return
         vol_ret = np.sum(rets[:, 0] * rets[:, 2])  # get weighted volume return
 
-        return agg_ret, vol_ret, \
-            np.log(1 + max(min((code_cap - cap_mean) / cap_std / 10, 0.4), -0.4)) # a weirdly regularized stddev. counts
+        return (
+            agg_ret,
+            vol_ret,
+            np.log(1 + max(min((code_cap - cap_mean) / cap_std / 10, 0.4), -0.4)),
+        )  # a weirdly regularized stddev. counts
