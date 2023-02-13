@@ -6,6 +6,7 @@ from copy import copy
 
 import rumble_cpp as rc
 
+
 class TechBuilder:
     def __init__(self):
         self.db = db()

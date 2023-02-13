@@ -56,7 +56,9 @@ class db_helper:
 
         # build db if needed
         tmp_engine = self.connect_to_db(db_name="master")
-        self.run_sqlfile(tmp_engine, os.path.join(self.__sql_dir, "schema", "build_schema.sql"))
+        self.run_sqlfile(
+            tmp_engine, os.path.join(self.__sql_dir, "schema", "build_schema.sql")
+        )
 
         # build tables and funcs if needed
         self.engine = self.connect_to_db(db_name="detes")

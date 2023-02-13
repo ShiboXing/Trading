@@ -20,5 +20,3 @@ if __name__ == "__main__":
     # tb = TechBuilder()
     # tb.update_ma()
     # tb.update_streaks()
-
-    
