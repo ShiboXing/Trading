@@ -97,16 +97,16 @@ class Domains(db_helper):
                 rets = sess.execute(
                     text(
                         """
-                    SET ARITHABORT OFF
-                    SET ANSI_WARNINGS OFF        
-                    select cap, close_ret, vol_ret from (
-                        select bar_date, ([vol] * [open]) cap,
-                        [close] / lag([close]) over (order by code asc, bar_date asc) close_ret, 
-                        [vol] / lag([vol]) over (order by code asc, bar_date asc) vol_ret
-                        from us_daily_bars
-                    ) res
-                    where bar_date = :bar_date
-                    """
+                        SET ARITHABORT OFF
+                        SET ANSI_WARNINGS OFF        
+                        select cap, close_ret, vol_ret from (
+                            select bar_date, ([vol] * [open]) cap,
+                            [close] / lag([close]) over (order by code asc, bar_date asc) close_ret, 
+                            [vol] / lag([vol]) over (order by code asc, bar_date asc) vol_ret
+                            from us_daily_bars
+                        ) res
+                        where bar_date = :bar_date
+                        """
                     ),
                     {"code": code, "bar_date": bar_date},
                 ).fetchall()

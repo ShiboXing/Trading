@@ -12,11 +12,13 @@ if __name__ == "__main__":
     time.tzset()
 
     ft = fetcher("20000101", "us")
-    ft.update_cal()
+    # ft.update_cal()
     # ft.update_us_stock_lst()
-    ft.update_stock_hist()
-    ft.update_option_status()
+    # ft.update_stock_hist()
+    # ft.update_option_status()
 
     # tb = TechBuilder()
     # tb.update_ma()
     # tb.update_streaks()
+
+    

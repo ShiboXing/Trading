@@ -1,20 +1,18 @@
 
 if not exists (select *
 from sys.tables
-where name='us_stock_signals')
+where name='us_industry_signals')
 BEGIN
-    create table us_stock_signals
+    create table us_industry_signals
     (
-        [code] nvarchar(7) not null,
+        [industry] nvarchar(52) not null,
         [bar_date] date not null,
-        [ind_vol_ret] float, -- industry scores
-        [ind_close_ret] float,
-        [ind_stddev_cnt] float,
-        [sec_vol_ret] float, -- sector scores
-        [sec_close_ret] float,
-        [sec_stddev_cnt] float,
-        primary key (code, bar_date),
-        constraint fk_signal_code foreign key
-        (code) references us_stock_list (code)
+        [vol_ret] float, -- volume weighted average return
+        [close_ret] float, -- close price weighted average return
+        [vol_stddev] float, -- volume standard deviation
+        [close_stddev] float, -- close price return standard deviation
+        primary key (industry, bar_date)
+
     )
 end;
+

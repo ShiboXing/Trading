@@ -56,13 +56,12 @@ class db_helper:
 
         # build db if needed
         tmp_engine = self.connect_to_db(db_name="master")
-        self.run_sqlfile(tmp_engine, os.path.join(self.__sql_dir, "build_schema.sql"))
+        self.run_sqlfile(tmp_engine, os.path.join(self.__sql_dir, "schema", "build_schema.sql"))
 
         # build tables and funcs if needed
         self.engine = self.connect_to_db(db_name="detes")
-        self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "build_tables.sql"))
-        self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "build_funcs.sql"))
-        self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "data_setup.sql"))
+        for f in os.listdir(os.path.join(self.__sql_dir, "data")):
+            self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "data", f))
 
     def __get_table_name(self, region="us", type="lst"):
         assert region in ("us", "cn", "hk"), "region parameter is incorrect"

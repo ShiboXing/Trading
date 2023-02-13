@@ -6,20 +6,6 @@ from copy import copy
 
 import rumble_cpp as rc
 
-
-class StockSet(Dataset):
-    def __init__(self):
-        self.db = db()
-
-    def __getitem__(self, idx):
-        pass
-
-
-def rsi(avgs):
-    avg_pos, avg_neg = avgs
-    return 100 - 100 / (1 + avg_pos / abs(avg_neg))
-
-
 class TechBuilder:
     def __init__(self):
         self.db = db()
