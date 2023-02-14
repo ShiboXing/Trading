@@ -48,10 +48,28 @@ class Domains(db_helper):
             ).fetchall()
 
         return np.array(rets).transpose((1, 0))
+    
+    def update_sector_dates(self):
+        with Session(self.engine) as sess:
+            sess.execute(text(
+                """
+                insert into us_industry_signals (industry, bar_date)
+                select distinct industry, trade_date
+                from us_stock_list, us_cal
+                where industry is not null 
+                    and industry != ''
+                    and is_open = 1
+                except
+                select distinct industry, bar_date
+                from us_industry_signals
+                """
+            ))
+            sess.commit()
+    
+    def update_sector_stats(self):
+        pass
 
     def get_agg_rets(self, bar_date: datetime or str, code: str, scope="sector"):
-        code = "AAA"
-        bar_date = "2020-09-11"
         """Get aggregate statistics, through weighted averages of sector or industry"""
         if scope not in ("sector", "industry"):
             raise ValueError("filter key value invalid!")

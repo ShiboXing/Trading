@@ -141,27 +141,27 @@ class db_helper:
                 res = sess.execute(
                     text(
                         f"""
-                    select {cols_str} from
-                    (
-                        select *, lag([close_pos_ma14]) over
-                        (order by code asc, bar_date asc) as pos_prevma,
-                        lag([close_neg_ma14]) over
-                        (order by code asc, bar_date asc) as neg_prevma,
-                        lag([streak]) over
-                        (order by code asc, bar_date asc) as prev_streak,
-                        lag([close]) over
-                        (order by code asc, bar_date asc) as prev_close1,
-                        lag([close], 2) over
-                        (order by code asc, bar_date asc) as prev_close2,
-                        lag([open]) over
-                        (order by code asc, bar_date asc) as prev_open1,
-                        lag([open], 2) over
-                        (order by code asc, bar_date asc) as prev_open2
-                        from us_daily_bars
-                    ) {res_alias}
-                    {filter}
-                    order by code asc, bar_date asc
-                """
+                        select {cols_str} from
+                        (
+                            select *, lag([close_pos_ma14]) over
+                            (order by code asc, bar_date asc) as pos_prevma,
+                            lag([close_neg_ma14]) over
+                            (order by code asc, bar_date asc) as neg_prevma,
+                            lag([streak]) over
+                            (order by code asc, bar_date asc) as prev_streak,
+                            lag([close]) over
+                            (order by code asc, bar_date asc) as prev_close1,
+                            lag([close], 2) over
+                            (order by code asc, bar_date asc) as prev_close2,
+                            lag([open]) over
+                            (order by code asc, bar_date asc) as prev_open1,
+                            lag([open], 2) over
+                            (order by code asc, bar_date asc) as prev_open2
+                            from us_daily_bars
+                        ) {res_alias}
+                        {filter}
+                        order by code asc, bar_date asc
+                        """
                     )
                 )
                 batch = res.fetchmany(row_cnt)

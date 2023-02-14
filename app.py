@@ -7,7 +7,8 @@ import torch.nn.modules.module
 
 
 if __name__ == "__main__":
-    # d = Domains()
+    d = Domains()
+    d.update_sector_dates()
     # agg_rets = d.get_agg_rets("2023-01-10", "Technology", "sector")
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")
 
