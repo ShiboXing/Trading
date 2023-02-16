@@ -37,9 +37,9 @@ class Domains(db_helper):
             rets = sess.execute(
                 text(
                     """
-                select avgret, avgvol from get_agg_index_rets(:start, :end)
-                order by bar_date
-            """
+                    select avgret, avgvol from get_agg_index_rets(:start, :end)
+                    order by bar_date
+                """
                 ),
                 {
                     "start": start_date,
@@ -48,25 +48,39 @@ class Domains(db_helper):
             ).fetchall()
 
         return np.array(rets).transpose((1, 0))
-    
+
     def update_sector_dates(self):
         with Session(self.engine) as sess:
-            sess.execute(text(
-                """
-                insert into us_industry_signals (industry, bar_date)
-                select distinct industry, trade_date
-                from us_stock_list, us_cal
-                where industry is not null 
-                    and industry != ''
-                    and is_open = 1
-                except
-                select distinct industry, bar_date
-                from us_industry_signals
-                """
-            ))
+            sess.execute(
+                text(
+                    """
+                    insert into us_industry_signals (industry, bar_date)
+                    select distinct industry, trade_date
+                    from us_stock_list, us_cal
+                    where industry is not null 
+                        and industry != ''
+                        and is_open = 1
+                    except
+                    select distinct industry, bar_date
+                    from us_industry_signals
+                    """
+                )
+            )
             sess.commit()
-    
-    def update_sector_stats(self):
+
+    def iter_sector_hist(self, filter_vol=True):
+        """Fetch daily hist data of sector"""
+        if filter_vol:
+            filter_str = "where vol_ret is null"
+        with Session(self.engine) as sess:
+            res = sess.execute(
+                text(
+                    f"""
+                select * from us_industry_signals
+                {filter_str}
+                """
+                )
+            )
         pass
 
     def get_agg_rets(self, bar_date: datetime or str, code: str, scope="sector"):
