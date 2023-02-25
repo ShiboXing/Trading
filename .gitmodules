@@ -4,6 +4,6 @@
 	branch = main
 	
 [submodule "SOTA"]
-	path = sota/
+	path = sota
 	url = https://github.com/ShiboXing/SOTA
 	branch = main
