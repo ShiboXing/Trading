@@ -16,7 +16,7 @@ echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# install devtoolset
+# install ubuntu packages
 sudo apt-get update
 sudo apt-get remove docker docker-engine docker.io containerd runc
 sudo apt-get install -y build-essential \
@@ -34,6 +34,18 @@ sudo apt-get install -y build-essential \
     docker-compose-plugin \
     nvidia-driver-525 \
     cuda-drivers-fabricmanager-525
+
+# start servives
+if [ -z $(ps -e | grep dockerd)]
+then
+    sudo systemctl stop docker
+    rm -f /var/run/docker.pid
+    sudo groupadd docker | true
+    newgrp docker
+    sudo dockerd & # run docker daemon
+    sudo chmod 666 /var/run/docker.sock 
+    docker images
+fi
 
 # install cuda toolkit
 if [ -z $(apt list --installed | grep cuda) ]
@@ -76,11 +88,16 @@ mamba install -y ipdb \
     numpy \
     pandas \
     matplotlib \
+    sqlalchemy \
     python=3.10 \
     pytorch \
     pytorch-cuda=11.7 \
     -c pytorch \
     -c nvidia
+pip install jupyterlab notebook yahooquery tushare
 
-pip install jupyterlab notebook yahooquery
+# install rumble
+rm -rf build/ rumble.egg-info
+pip install .
+
 
