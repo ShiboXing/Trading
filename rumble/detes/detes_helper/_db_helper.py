@@ -62,7 +62,7 @@ class db_helper:
 
         # build tables and funcs if needed
         self.engine = self.connect_to_db(db_name="detes")
-        for f in os.listdir(os.path.join(self.__sql_dir, "data")):
+        for f in sorted(os.listdir(os.path.join(self.__sql_dir, "data"))):
             self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "data", f))
 
     def __get_table_name(self, region="us", type="lst"):
