@@ -3,6 +3,7 @@
 *.pyc
 __pycache__
 
+*.deb
 *.egg-info
 build/
 
