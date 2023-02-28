@@ -294,8 +294,6 @@ class db_helper:
     ):
         """Upsert stocks into stock list table"""
 
-        # _us_stock_list_cols = _stock_table_cols["list"][region]
-        # new_df = self.__expand_cols(new_df, _us_stock_list_cols)
         tname = self.__get_table_name(region=region, type="lst")
 
         # upsert into the stock list table

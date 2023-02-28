@@ -50,7 +50,6 @@ class fetcher:
 
         if len(df):
             df = df.rename(columns={"ts_code": "code"})[["code"]]
-            df = df[~(df.code.str.contains("\."))]  # drop codes with dot
             self.db.renew_stock_list(df, region="us")
         else:
             print("[fetcher] no added stocks")
