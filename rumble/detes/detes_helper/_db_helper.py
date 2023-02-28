@@ -294,12 +294,9 @@ class db_helper:
     ):
         """Upsert stocks into stock list table"""
 
-        _us_stock_list_cols = _stock_table_cols["list"][region]
-        new_df = self.__expand_cols(new_df, _us_stock_list_cols)
+        # _us_stock_list_cols = _stock_table_cols["list"][region]
+        # new_df = self.__expand_cols(new_df, _us_stock_list_cols)
         tname = self.__get_table_name(region=region, type="lst")
-        assert sorted(list(new_df.columns)) == sorted(
-            list(_us_stock_list_cols)
-        ), f"column parameters have conflicts with {tname}"
 
         # upsert into the stock list table
         with Session(self.engine) as sess:
@@ -326,10 +323,10 @@ class db_helper:
                 res = sess.execute(
                     text(
                         f"""
-                    update {tname}
-                    set {update_params_str}
-                    where code = :code;
-                """
+                        update {tname}
+                        set {update_params_str}
+                        where code = :code;
+                        """
                     ),
                     params,
                 )
@@ -340,9 +337,9 @@ class db_helper:
                     sess.execute(
                         text(
                             f"""
-                        insert into {tname} ({insert_cols_str})
-                        values ({insert_params_str});
-                        """
+                            insert into {tname} ({insert_cols_str})
+                            values ({insert_params_str});
+                            """
                         ),
                         params,
                     )
@@ -354,9 +351,9 @@ class db_helper:
             last_day = sess.execute(
                 text(
                     """                
-                select max(trade_date)
-                from us_cal
-            """
+                    select max(trade_date)
+                    from us_cal
+                    """
                 )
             ).fetchone()[0]
 
@@ -379,7 +376,7 @@ class db_helper:
                         update us_stock_list
                         set is_delisted=1
                         where code = :code;
-                    """
+                        """
                     ),
                     {"code": s[1]},
                 )
@@ -413,7 +410,7 @@ class db_helper:
                     f"""
                     select {limit_str} {fetch_cols} from {tname}
                     {condition_str};
-                """
+                    """
                 ),
                 params,
             ).all()

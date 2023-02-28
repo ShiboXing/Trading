@@ -1,9 +1,8 @@
-import traceback, sys
+import traceback
 from .detes_helper import db_helper as db
 from .web_helper import ts_helper as th
 from datetime import datetime as dt, timedelta
 from pandas import DataFrame, concat
-
 
 class fetcher:
     def __init__(self, start_date, region):
@@ -63,25 +62,18 @@ class fetcher:
         tiks = self.th.get_stock_tickers(stocks)
 
         # iterate the above stocks and update one by one
-        for k, v in tiks.items():
-            """performs web request with getter"""
+        for code, profile in tiks:
             try:
                 meta = {}
-                if not v.info:
-                    print(f"no info for {k}, skipping")
-                    continue
-
-                meta["code"] = k
-                if "exchange" in v.fast_info:
-                    meta["exchange"] = v.fast_info["exchange"]
-                if "sector" in v.info:
-                    meta["sector"] = v.info["sector"]
-                if "industry" in v.info:
-                    meta["industry"] = v.info["industry"]
+                meta["code"] = code
+                if "sector" in profile:
+                    meta["sector"] = profile["sector"]
+                if "industry" in profile:
+                    meta["industry"] = profile["industry"]
 
                 df = DataFrame([meta])
                 self.db.renew_stock_list(df)
-                print(f"{k} info has been recorded")
+                print(f"{code} info has been recorded")
 
             # prevent yfinance fatal errors
             except KeyError as e:

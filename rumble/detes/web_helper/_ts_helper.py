@@ -2,7 +2,8 @@
 import tushare as _ts
 import pandas as pd
 import time
-from yfinance import Tickers, download
+from yahooquery import Ticker
+from yfinance import download
 from re import search
 from urllib.error import URLError
 from datetime import date, timedelta, datetime as dt
@@ -89,8 +90,11 @@ class ts_helper:
             time.sleep(31)  # failed requests might be counted against quota
 
     def get_stock_tickers(self, stocks=()):
-        return Tickers(" ".join(stocks)).tickers
-
+        """Generator for ticker info, makes call during next()"""
+        for code in stocks:
+            tk = Ticker(code)
+            yield code, tk.asset_profile[code]
+            
     def fetch_stocks_hist(
         self, codes, start_date: list or date, end_date: list or date
     ):
