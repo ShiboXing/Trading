@@ -3,12 +3,11 @@ import os
 
 from sys import getsizeof
 from datetime import datetime as dt
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, column
 from sqlalchemy.sql import text
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import Session
 from . import _stock_table_cols
-
 
 class db_helper:
     @staticmethod
@@ -253,16 +252,16 @@ class db_helper:
         return res[0][0].strftime("%Y%m%d") if res else res
 
     @staticmethod
-    def build_cond_args(params):
-        conditions = []
-        if not params:
-            return ""
-        for k, v in params.items():
-            if v is None:
-                conditions.append(f"{k} is null")
-            else:
-                conditions.append(f"{k} = :{k}")
-        return "where " + " and ".join(conditions)
+    def build_cond_str(keys, sep="and", use_null=False):
+        """Get conditional SQL str"""
+        assign = "is" if use_null else '='
+        return f" {sep} ".join(f"{k} {assign} :{k}" for k in keys)
+
+    @staticmethod
+    def build_val_str(keys):
+        """Get insert values SQL strs"""
+        return ", ".join(keys), \
+            ", ".join(f":{k}" for k in keys)
 
     def renew_calendar(self, dates: pd.DataFrame, region="us"):
         dates = dates.filter(items=["cal_date", "is_open"])
@@ -303,21 +302,7 @@ class db_helper:
                 params = row.to_dict()
 
                 # update the not-null values from the new dataframe
-                update_params = []
-                insert_cols = []
-                insert_params = []
-                for k, v in params.items():
-                    if v != None:
-                        if update_params:
-                            update_params.append(", ")
-                            insert_cols.append(", ")
-                            insert_params.append(", ")
-                        update_params.append(f"{k} = :{k}")
-                        insert_cols.append(k)
-                        insert_params.append(f":{k}")
-                update_params_str = "".join(update_params)
-                insert_cols_str = "".join(insert_cols)
-                insert_params_str = "".join(insert_params)
+                update_params_str = self.build_cond_str(params.keys(), sep = ",")
                 res = sess.execute(
                     text(
                         f"""
@@ -330,13 +315,14 @@ class db_helper:
                 )
 
                 # if no rows are updated, insert this new stock
+                val_str1, val_str2 = self.build_val_str(params.keys())
                 if res.rowcount == 0:
                     # insert new row
                     sess.execute(
                         text(
                             f"""
-                            insert into {tname} ({insert_cols_str})
-                            values ({insert_params_str});
+                            insert into {tname} ({val_str1})
+                            values ({val_str2});
                             """
                         ),
                         params,
@@ -391,23 +377,17 @@ class db_helper:
         self,
         params={},
         only_pk=False,
-        limit: int or None = None,
         region="us",
     ):
         tname = self.__get_table_name(region=region, type="lst")
-        assert set(params.keys()).issubset(
-            set(_stock_table_cols["list"][region])
-        ), f"column parameters have conflicts with {tname}"
-
-        condition_str = self.build_cond_args(params)
-        limit_str = f"top {limit}" if limit else ""
+        condition_str = self.build_cond_str(params.keys(), sep="or", use_null=True)
         fetch_cols = "code" if only_pk else "*"
         with Session(self.engine) as sess:
             res = sess.execute(
                 text(
                     f"""
-                    select {limit_str} {fetch_cols} from {tname}
-                    {condition_str};
+                    select {fetch_cols} from {tname}
+                    where is_delisted is 0 and ({condition_str}) 
                     """
                 ),
                 params,
@@ -420,8 +400,8 @@ class db_helper:
             res = sess.execute(
                 text(
                     f"""
-                select * from get_all_last_dates;
-                """
+                    select * from get_all_last_dates;
+                    """
                 )
             ).all()
 

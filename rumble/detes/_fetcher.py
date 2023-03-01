@@ -36,12 +36,9 @@ class fetcher:
                 self.db.renew_calendar(part_cal, region=r)
 
     def update_us_stock_lst(self):
-        """Add stocks and update their stock information
-        1. add new stocks traded today
-        2. update info for all stocks
-        """
+        """Insert new stocks and/or update info for all unfilled stocks"""
 
-        # insert list of trade stocks today
+        # fetch trade list of stocks today (tushare)
         df = DataFrame({})
         for next_df in self.th.get_stock_lst():
             if next_df is None:
@@ -54,9 +51,9 @@ class fetcher:
         else:
             print("[fetcher] no added stocks")
 
-        # update stocks with missing info
+        # update info for unfilled stocks
         stocks = self.db.get_stock_info(
-            params={"industry": None, "is_delisted": False}, only_pk=True
+            params={"industry": None,  "sector": None, "has_option": None}, only_pk=True
         )
         tiks = self.th.get_stock_tickers(stocks)
 
@@ -85,8 +82,7 @@ class fetcher:
         record in the dataset whether each stock has options listed or not, (doesn't apply to cn region)
         """
         stocks = self.db.get_stock_info(params={"has_option": None}, only_pk=True)
-        tiks = self.th.get_stock_tickers(stocks)
-        for k, v in tiks.items():
+        for code, profile in self.th.get_stock_tickers(stocks):
             """perform web request with options getter"""
             df = DataFrame({"code": [k], "has_option": [bool(v.options)]})
             self.db.renew_stock_list(df, region="us")
