@@ -252,10 +252,9 @@ class db_helper:
         return res[0][0].strftime("%Y%m%d") if res else res
 
     @staticmethod
-    def build_cond_str(keys, sep="and", use_null=False):
+    def build_cond_str(keys, sep="and"):
         """Get conditional SQL str"""
-        assign = "is" if use_null else '='
-        return f" {sep} ".join(f"{k} {assign} :{k}" for k in keys)
+        return f" {sep} ".join(f"{k} = :{k}" for k in keys)
 
     @staticmethod
     def build_val_str(keys):
@@ -380,17 +379,18 @@ class db_helper:
         region="us",
     ):
         tname = self.__get_table_name(region=region, type="lst")
-        condition_str = self.build_cond_str(params.keys(), sep="or", use_null=True)
+        condition_str = self.build_cond_str(params.keys(), sep="or")
         fetch_cols = "code" if only_pk else "*"
         with Session(self.engine) as sess:
+            # null parameter syntax: https://learn.microsoft.com/en-us/sql/t-sql/statements/set-ansi-nulls-transact-sql?redirectedfrom=MSDN&view=sql-server-ver16
             res = sess.execute(
                 text(
                     f"""
+                    SET ANSI_NULLS OFF
                     select {fetch_cols} from {tname}
-                    where is_delisted is 0 and ({condition_str}) 
+                    where is_delisted = 0 and ({condition_str})
                     """
-                ),
-                params,
+                ).bindparams(**params)
             ).all()
 
         return (n[0] for n in res)
