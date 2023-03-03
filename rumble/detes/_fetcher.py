@@ -3,6 +3,8 @@ from .detes_helper import db_helper as db
 from .web_helper import ts_helper as th
 from datetime import datetime as dt, timedelta
 from pandas import DataFrame, concat
+from requests.exceptions import ConnectionError
+
 
 class fetcher:
     def __init__(self, start_date, region):
@@ -53,13 +55,15 @@ class fetcher:
 
         # update info for unfilled stocks
         stocks = self.db.get_stock_info(
-            params={"industry": None,  "sector": None, "has_option": None}, only_pk=True
+            params={"industry": None, "sector": None, "has_option": None}, only_pk=True
         )
         tiks = self.th.get_stock_tickers(stocks)
 
         # iterate the above stocks and update one by one
-        for code, sector, industry, has_option in tiks:
+        while True:
             try:
+                # make yahooquery call
+                code, sector, industry, has_option = next(tiks)
                 meta = {}
                 meta["code"] = code
                 meta["sector"] = sector
@@ -69,11 +73,16 @@ class fetcher:
                 self.db.renew_stock_list(df)
                 print(f"{code} info has been recorded")
 
-            # prevent yfinance fatal errors
+            # prevent yahoo request fatal errors
+            except ConnectionError as e:
+                print("MaxRetryError: ", e, traceback.format_exc(), f"sleeping for {secs} seconds")
             except KeyError as e:
-                print("KeyError: ", traceback.format_exc())
+                print("KeyError: ", e, traceback.format_exc())
             except TypeError as e:
-                print("TypeError: ", traceback.format_exc())
+                print("TypeError: ", e, traceback.format_exc())
+            except StopIteration:
+                print("stock list update completed")
+                break
 
     def update_option_status(self):
         """

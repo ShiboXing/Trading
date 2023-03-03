@@ -9,6 +9,7 @@ from sqlalchemy.engine import URL
 from sqlalchemy.orm import Session
 from . import _stock_table_cols
 
+
 class db_helper:
     @staticmethod
     def tuple_transform(rows):
@@ -259,8 +260,7 @@ class db_helper:
     @staticmethod
     def build_val_str(keys):
         """Get insert values SQL strs"""
-        return ", ".join(keys), \
-            ", ".join(f":{k}" for k in keys)
+        return ", ".join(keys), ", ".join(f":{k}" for k in keys)
 
     def renew_calendar(self, dates: pd.DataFrame, region="us"):
         dates = dates.filter(items=["cal_date", "is_open"])
@@ -301,7 +301,7 @@ class db_helper:
                 params = row.to_dict()
 
                 # update the not-null values from the new dataframe
-                update_params_str = self.build_cond_str(params.keys(), sep = ",")
+                update_params_str = self.build_cond_str(params.keys(), sep=",")
                 res = sess.execute(
                     text(
                         f"""
@@ -390,7 +390,8 @@ class db_helper:
                     select {fetch_cols} from {tname}
                     where is_delisted = 0 and ({condition_str})
                     """
-                ), params
+                ),
+                params,
             ).all()
 
         return (n[0] for n in res)

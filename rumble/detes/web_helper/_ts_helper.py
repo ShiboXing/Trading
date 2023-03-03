@@ -9,6 +9,7 @@ from urllib.error import URLError
 from datetime import date, timedelta, datetime as dt
 from . import _TOKEN
 from requests.exceptions import ConnectionError
+from random import random
 
 
 def retry_wrapper(func):
@@ -97,16 +98,18 @@ class ts_helper:
             sector = ap["sector"] if "sector" in ap else None
             industry = ap["industry"] if "industry" in ap else None
             options = tk.option_chain
-            
+
             if type(options) == pd.DataFrame:
                 has_option = True
             elif options == "No option chain data found":
                 has_option = False
             else:
                 raise Exception("Yahoo has changed web response, please patch!")
-            
+
             yield code, sector, industry, has_option
             
+            time.sleep(random() * 3)
+
     def fetch_stocks_hist(
         self, codes, start_date: list or date, end_date: list or date
     ):
