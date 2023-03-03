@@ -93,7 +93,19 @@ class ts_helper:
         """Generator for ticker info, makes call during next()"""
         for code in stocks:
             tk = Ticker(code)
-            yield code, tk.asset_profile[code]
+            ap = tk.asset_profile[code]
+            sector = ap["sector"] if "sector" in ap else None
+            industry = ap["industry"] if "industry" in ap else None
+            options = tk.option_chain
+            
+            if type(options) == pd.DataFrame:
+                has_option = True
+            elif options == "No option chain data found":
+                has_option = False
+            else:
+                raise Exception("Yahoo has changed web response, please patch!")
+            
+            yield code, sector, industry, has_option
             
     def fetch_stocks_hist(
         self, codes, start_date: list or date, end_date: list or date

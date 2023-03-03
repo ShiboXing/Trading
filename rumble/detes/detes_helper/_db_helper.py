@@ -390,7 +390,7 @@ class db_helper:
                     select {fetch_cols} from {tname}
                     where is_delisted = 0 and ({condition_str})
                     """
-                ).bindparams(**params)
+                ), params
             ).all()
 
         return (n[0] for n in res)

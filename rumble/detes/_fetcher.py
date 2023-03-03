@@ -58,15 +58,13 @@ class fetcher:
         tiks = self.th.get_stock_tickers(stocks)
 
         # iterate the above stocks and update one by one
-        for code, profile in tiks:
+        for code, sector, industry, has_option in tiks:
             try:
                 meta = {}
                 meta["code"] = code
-                if "sector" in profile:
-                    meta["sector"] = profile["sector"]
-                if "industry" in profile:
-                    meta["industry"] = profile["industry"]
-
+                meta["sector"] = sector
+                meta["industry"] = industry
+                meta["has_option"] = has_option
                 df = DataFrame([meta])
                 self.db.renew_stock_list(df)
                 print(f"{code} info has been recorded")
