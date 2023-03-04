@@ -389,6 +389,7 @@ class db_helper:
                     SET ANSI_NULLS OFF
                     select {fetch_cols} from {tname}
                     where is_delisted = 0 and ({condition_str})
+                    order by code
                     """
                 ),
                 params,

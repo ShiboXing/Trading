@@ -87,7 +87,12 @@ class ts_helper:
         """
         today = dt.now().date().strftime("%Y%m%d")
         for i in range(0, 24001, 6000):
-            yield self.__ts_get_lst(today, i)
+            res = self.__ts_get_lst(today, i)
+            if res is None:
+                print(f"tushare did not fetch any rows")
+            else:
+                print(f"tushare fetched {len(res)} rows")
+            yield res
             time.sleep(31)  # failed requests might be counted against quota
 
     def get_stock_tickers(self, stocks=()):
@@ -97,7 +102,10 @@ class ts_helper:
             ap = tk.asset_profile[code]
             sector = ap["sector"] if "sector" in ap else None
             industry = ap["industry"] if "industry" in ap else None
-            options = tk.option_chain
+            try:
+                options = tk.option_chain
+            except KeyError as e:
+                print(f"{code}'s option data is corrupted, skipping")
 
             if type(options) == pd.DataFrame:
                 has_option = True

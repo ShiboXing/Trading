@@ -75,25 +75,10 @@ class fetcher:
 
             # prevent yahoo request fatal errors
             except ConnectionError as e:
-                print("MaxRetryError: ", e, traceback.format_exc(), f"sleeping for {secs} seconds")
-            except KeyError as e:
-                print("KeyError: ", e, traceback.format_exc())
-            except TypeError as e:
-                print("TypeError: ", e, traceback.format_exc())
+                print("MaxRetryError: ", e, traceback.format_exc())
             except StopIteration:
                 print("stock list update completed")
                 break
-
-    def update_option_status(self):
-        """
-        record in the dataset whether each stock has options listed or not, (doesn't apply to cn region)
-        """
-        stocks = self.db.get_stock_info(params={"has_option": None}, only_pk=True)
-        for code, profile in self.th.get_stock_tickers(stocks):
-            """perform web request with options getter"""
-            df = DataFrame({"code": [k], "has_option": [bool(v.options)]})
-            self.db.renew_stock_list(df, region="us")
-            print(f"{k} option has been recorded")
 
     def update_stock_hist(self):
         """
