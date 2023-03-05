@@ -78,9 +78,25 @@ class db_helper:
     def __format_filter_str(self, keys, sep="and"):
         return f" {sep} ".join([f"{k}= :{k}" for k in keys])
 
+    @staticmethod
+    def iter_batch(func):
+        def wrapper(*args, **kwargs):
+            query, engine = func(*args, **kwargs)
+            batch_size = 1024 * 1024 * 100  # 100MB batch size
+            with Session(engine) as sess:
+                res = sess.execute(query)
+                batch = res.fetchone()
+                row_cnt = batch_size // getsizeof(batch)
+
+            with Session(engine) as sess:
+                res = sess.execute(query)
+                yield db_helper.tuple_transform(res.fetchmany(row_cnt))
+
+        return wrapper
+
+    @iter_batch
     def iter_stocks_hist(
         self,
-        price_lag=0,
         nullma_filter=False,
         nullstreak_filter=False,
         select_close=False,
@@ -93,22 +109,6 @@ class db_helper:
         use generator to fetch stock daily bars
         get cross-row data in every row
         """
-        batch_size = 1024 * 1024 * 100  # 100MB batch size
-        row_cnt = 0
-
-        # get row count in each batch based row mem size
-        with Session(self.engine) as sess:
-            first_row = sess.execute(
-                text(
-                    f"""
-                select top 1 * from us_daily_bars
-                """
-                )
-            ).fetchone()
-            row_size = 0
-            for n in first_row:
-                row_size += getsizeof(n)
-            row_cnt = int(batch_size // row_size)
 
         filter = ""
         res_alias = "bars_res"
@@ -136,38 +136,33 @@ class db_helper:
             cols.append(f"{res_alias}.[prev_streak]")
 
         cols_str = ", ".join(cols) if cols else "*"
-        while True:
-            with Session(self.engine) as sess:
-                res = sess.execute(
-                    text(
-                        f"""
-                        select {cols_str} from
-                        (
-                            select *, lag([close_pos_ma14]) over
-                            (order by code asc, bar_date asc) as pos_prevma,
-                            lag([close_neg_ma14]) over
-                            (order by code asc, bar_date asc) as neg_prevma,
-                            lag([streak]) over
-                            (order by code asc, bar_date asc) as prev_streak,
-                            lag([close]) over
-                            (order by code asc, bar_date asc) as prev_close1,
-                            lag([close], 2) over
-                            (order by code asc, bar_date asc) as prev_close2,
-                            lag([open]) over
-                            (order by code asc, bar_date asc) as prev_open1,
-                            lag([open], 2) over
-                            (order by code asc, bar_date asc) as prev_open2
-                            from us_daily_bars
-                        ) {res_alias}
-                        {filter}
-                        order by code asc, bar_date asc
-                        """
-                    )
-                )
-                batch = res.fetchmany(row_cnt)
-                if not batch:
-                    break
-                yield self.tuple_transform(batch)
+        return (
+            text(
+                f"""
+                select {cols_str} from
+                (
+                    select *, lag([close_pos_ma14]) over
+                    (order by code asc, bar_date asc) as pos_prevma,
+                    lag([close_neg_ma14]) over
+                    (order by code asc, bar_date asc) as neg_prevma,
+                    lag([streak]) over
+                    (order by code asc, bar_date asc) as prev_streak,
+                    lag([close]) over
+                    (order by code asc, bar_date asc) as prev_close1,
+                    lag([close], 2) over
+                    (order by code asc, bar_date asc) as prev_close2,
+                    lag([open]) over
+                    (order by code asc, bar_date asc) as prev_open1,
+                    lag([open], 2) over
+                    (order by code asc, bar_date asc) as prev_open2
+                    from us_daily_bars
+                ) {res_alias}
+                {filter}
+                order by code asc, bar_date asc
+                """
+            ),
+            self.engine,
+        )
 
     def update_ma(self, ma_lst: list, region="us"):
         """
