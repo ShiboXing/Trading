@@ -11,10 +11,10 @@ if __name__ == "__main__":
     os.environ["TZ"] = "US/Eastern"
     time.tzset()
 
-    ft = fetcher("20000101", "us")
-    ft.update_cal()
-    ft.update_us_stock_lst() # weekly task
-    ft.update_stock_hist()
+    # ft = fetcher("20000101", "us")
+    # ft.update_cal()
+    # ft.update_us_stock_lst() # weekly task
+    # ft.update_stock_hist()
 
     tb = TechBuilder()
     tb.update_ma()

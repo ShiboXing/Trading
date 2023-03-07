@@ -115,7 +115,7 @@ class ts_helper:
                 raise Exception("Yahoo has changed web response, please patch!")
 
             yield code, sector, industry, has_option
-            
+
             time.sleep(random() * 3)
 
     def fetch_stocks_hist(

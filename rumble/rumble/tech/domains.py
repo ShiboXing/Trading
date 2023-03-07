@@ -2,7 +2,7 @@ from ...detes.detes_helper import db_helper
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 
-from os import path
+from os import path, listdir
 from datetime import datetime
 
 import numpy as np
@@ -13,17 +13,18 @@ class Domains(db_helper):
         super().__init__()
         sql_dir = path.join(path.dirname(__file__), "sql")
         self.engine = super().connect_to_db(db_name="detes")
-        super().run_sqlfile(self.engine, path.join(sql_dir, "build_funcs.sql"))
+        for sql_file in listdir(sql_dir):        
+            super().run_sqlfile(self.engine, path.join(sql_dir, sql_file))
 
     def streaks(self, num: int, min_date="2000-01-01"):
         with Session(self.engine) as sess:
             samples = sess.execute(
                 text(
                     """
-                select code, bar_date from us_daily_bars
-                where streak = :streak and bar_date >= :min_date
-                order by code asc, bar_date asc
-                """
+                    select code, bar_date from us_daily_bars
+                    where streak = :streak and bar_date >= :min_date
+                    order by code asc, bar_date asc
+                    """
                 ),
                 {"streak": num, "min_date": min_date},
             ).fetchall()
@@ -49,20 +50,22 @@ class Domains(db_helper):
 
         return np.array(rets).transpose((1, 0))
 
-    def update_sector_dates(self):
+    def update_agg_dates(self, is_industry=True):
+        """Insert the missing trading dates to aggregate signal tables"""
+        agg = "industry" if is_industry else "sector"
         with Session(self.engine) as sess:
             sess.execute(
                 text(
-                    """
-                    insert into us_industry_signals (industry, bar_date)
-                    select distinct industry, trade_date
+                    f"""
+                    insert into us_{agg}_signals ({agg}, bar_date)
+                    select distinct {agg}, trade_date
                     from us_stock_list, us_cal
-                    where industry is not null 
-                        and industry != ''
+                    where {agg} is not null
+                        and {agg} != ''
                         and is_open = 1
                     except
-                    select distinct industry, bar_date
-                    from us_industry_signals
+                    select distinct {agg}, bar_date
+                    from us_{agg}_signals
                     """
                 )
             )
@@ -76,9 +79,9 @@ class Domains(db_helper):
             res = sess.execute(
                 text(
                     f"""
-                select * from us_industry_signals
-                {filter_str}
-                """
+                    select * from us_industry_signals
+                    {filter_str}
+                    """
                 )
             )
         pass

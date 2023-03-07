@@ -8,13 +8,15 @@ import torch.nn.modules.module
 
 if __name__ == "__main__":
     d = Domains()
-    d.update_sector_dates()
-    # agg_rets = d.get_agg_rets("2023-01-10", "Technology", "sector")
+    d.update_agg_dates(is_industry=True)
+    d.update_agg_dates(is_industry=False)
+    
+    agg_rets = d.get_agg_rets("2023-01-10", "Technology", "sector")
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")
 
-    rb = rumbleset()
-    print(rb[3000])
-    vgg = VGG(input_c=1).cuda()
-    test = torch.rand((4, 1, 32, 200), dtype=torch.float).cuda()
-    res = vgg(test)
-    print(res)
+    # rb = rumbleset()
+    # print(rb[3000])
+    # vgg = VGG(input_c=1).cuda()
+    # test = torch.rand((4, 1, 32, 200), dtype=torch.float).cuda()
+    # res = vgg(test)
+    # print(res)
