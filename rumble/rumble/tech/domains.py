@@ -86,80 +86,38 @@ class Domains(db_helper):
             )
         pass
 
-    def get_agg_rets(self, bar_date: datetime or str, code: str, scope="sector"):
-        """Get aggregate statistics, through weighted averages of sector or industry"""
-        if scope not in ("sector", "industry"):
-            raise ValueError("filter key value invalid!")
-
-        # get all the stock returns of the sector on a date
+    def fetch_agg_rets(self, bar_date: datetime or str, scope_val: str, is_sector=True):
+        scope = "sector" if is_sector else "industry"
         with Session(self.engine) as sess:
-            scope_val = sess.execute(
+            res = sess.execute(
                 text(
+                    # set session properties to avoid division by zero error
                     f"""
-                select {scope} 
-                from us_stock_list
-                where code = :code
-                """
-                ),
-                {"code": code},
-            ).fetchone()[0]
-
-            code_cap = sess.execute(
-                text(
+                    SET ARITHABORT OFF
+                    SET ANSI_WARNINGS OFF
+                    select * from get_{scope}_rets(:filter_val, :bar_date)
                     """
-                select ([vol] * [open])
-                from us_daily_bars
-                where code = :code and bar_date = :bar_date
-                """
                 ),
-                {"code": code, "bar_date": bar_date},
-            ).fetchone()[0]
+                {"filter_val": scope_val, "bar_date": bar_date},
+            )
+            return res.fetchall()
 
-            if scope_val:
-                res = sess.execute(
-                    text(
-                        # set session properties to avoid division by zero error
-                        f"""
-                        SET ARITHABORT OFF
-                        SET ANSI_WARNINGS OFF
-                        select * from get_{scope}_rets(:filter_val, :bar_date)
-                        """
-                    ),
-                    {"filter_val": scope_val, "bar_date": bar_date},
-                )
-                rets = res.fetchall()
-            else:  # get single return values if scope info unavailable
-                rets = sess.execute(
-                    text(
-                        """
-                        SET ARITHABORT OFF
-                        SET ANSI_WARNINGS OFF        
-                        select cap, close_ret, vol_ret from (
-                            select bar_date, ([vol] * [open]) cap,
-                            [close] / lag([close]) over (order by code asc, bar_date asc) close_ret, 
-                            [vol] / lag([vol]) over (order by code asc, bar_date asc) vol_ret
-                            from us_daily_bars
-                        ) res
-                        where bar_date = :bar_date
-                        """
-                    ),
-                    {"code": code, "bar_date": bar_date},
-                ).fetchall()
-
+    def update_agg_rets(self, bar_date: datetime or str, scope_val: str, is_sector=True):
+        """Calculate and fill the daily aggregate signals"""
+        rets = self.fetch_agg_rets(bar_date, scope_val, is_sector=is_sector)
         rets = np.nan_to_num(
             np.array(rets, dtype=np.float_), nan=1.0, neginf=1.0, posinf=1.0
         )
+        # ret: [capital traded, close price return pct, volume return pct]
+        # calculate statistics of traded capital
         cap_std, cap_mean = np.std(rets[:, 0]), np.mean(
             rets[:, 0]
-        )  # calculate statistics of traded capital
-        rets[:, 2][rets[:, 2] == 0] = 1  # prevent inf log values
-        rets[:, 1:] = np.log(rets[:, 1:])  # element-wise log on the ret columns
+        )
+
         rets[:, 0] /= np.sum(rets[:, 0])  # get weight ratio, vol
+        rets[:, 2][rets[:, 2] == 0] = 1  # prevent inf log values in vol returns (sometimes vol is 0)
+        rets[:, 1:] = np.log(rets[:, 1:])  # element-wise log on the ret columns
         agg_ret = np.sum(rets[:, 0] * rets[:, 1])  # get weighted return
         vol_ret = np.sum(rets[:, 0] * rets[:, 2])  # get weighted volume return
-
-        return (
-            agg_ret,
-            vol_ret,
-            np.log(1 + max(min((code_cap - cap_mean) / cap_std / 10, 0.4), -0.4)),
-        )  # a weirdly regularized stddev. counts
+        
+        pass
