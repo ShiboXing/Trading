@@ -13,7 +13,7 @@ class Domains(db_helper):
         super().__init__()
         sql_dir = path.join(path.dirname(__file__), "sql")
         self.engine = super().connect_to_db(db_name="detes")
-        for sql_file in listdir(sql_dir):        
+        for sql_file in listdir(sql_dir):
             super().run_sqlfile(self.engine, path.join(sql_dir, sql_file))
 
     def streaks(self, num: int, min_date="2000-01-01"):
@@ -102,7 +102,9 @@ class Domains(db_helper):
             )
             return res.fetchall()
 
-    def update_agg_rets(self, bar_date: datetime or str, scope_val: str, is_sector=True):
+    def update_agg_rets(
+        self, bar_date: datetime or str, scope_val: str, is_sector=True
+    ):
         """Calculate and fill the daily aggregate signals"""
         rets = self.fetch_agg_rets(bar_date, scope_val, is_sector=is_sector)
         rets = np.nan_to_num(
@@ -110,14 +112,22 @@ class Domains(db_helper):
         )
         # ret: [capital traded, close price return pct, volume return pct]
         # calculate statistics of traded capital
-        cap_std, cap_mean = np.std(rets[:, 0]), np.mean(
-            rets[:, 0]
-        )
+        cap_std, cap_mean = np.std(rets[:, 0]), np.mean(rets[:, 0])
 
         rets[:, 0] /= np.sum(rets[:, 0])  # get weight ratio, vol
-        rets[:, 2][rets[:, 2] == 0] = 1  # prevent inf log values in vol returns (sometimes vol is 0)
+        rets[:, 2][
+            rets[:, 2] == 0
+        ] = 1  # prevent inf log values in vol returns (sometimes vol is 0)
         rets[:, 1:] = np.log(rets[:, 1:])  # element-wise log on the ret columns
-        agg_ret = np.sum(rets[:, 0] * rets[:, 1])  # get weighted return
-        vol_ret = np.sum(rets[:, 0] * rets[:, 2])  # get weighted volume return
-        
+        rets[:, 1] *= rets[:, 0]  # get weighted vol returns
+        rets[:, 2] *= rets[:, 0]  # get weighted close returns
+        close_mean = np.sum(rets[:, 1])  # get weighted close return
+        vol_mean = np.sum(rets[:, 2])  # get weighted volume return
+        close_cv = (
+            np.std(rets[:, 1]) / close_mean
+        )  # get weighted close coefficient of variation
+        vol_cv = (
+            np.std(rets[:, 1]) / vol_mean
+        )  # get weighted vol return coefficient of variation
+
         pass
