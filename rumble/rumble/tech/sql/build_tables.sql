@@ -9,8 +9,8 @@ BEGIN
         [bar_date] date not null,
         [vol_ret] float, -- volume weighted average return
         [close_ret] float, -- close price weighted average return
-        [vol_stddev] float, -- volume standard deviation
-        [close_stddev] float, -- close price return standard deviation
+        [vol_cv] float, -- volume standard deviation
+        [close_cv] float, -- close price return standard deviation
         primary key (industry, bar_date)
     )
 end;
@@ -25,8 +25,8 @@ BEGIN
         [bar_date] date not null,
         [vol_ret] float, -- volume weighted average return
         [close_ret] float, -- close price weighted average return
-        [vol_stddev] float, -- volume standard deviation
-        [close_stddev] float, -- close price return standard deviation
+        [vol_cv] float, -- volume standard deviation
+        [close_cv] float, -- close price return standard deviation
         primary key (sector, bar_date)
     )
 end;
