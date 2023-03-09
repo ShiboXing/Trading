@@ -101,7 +101,7 @@ class Domains(db_helper):
             )
             return res.fetchall()
 
-    def update_agg_rets(
+    def write_agg_rets(
         self, bar_date: datetime or str, scope_val: str, is_sector=True
     ):
         """Calculate and fill the daily aggregate signals"""
@@ -111,33 +111,33 @@ class Domains(db_helper):
             np.array(rets, dtype=np.float_), nan=1.0, neginf=1.0, posinf=1.0
         )
 
-        rets[:, 0] /= np.sum(rets[:, 0])  # get weight ratio, vol
         rets[:, 2][
             rets[:, 2] == 0
         ] = 1  # prevent inf log values in vol returns (sometimes vol is 0)
         rets[:, 1:] = np.log(rets[:, 1:])  # element-wise log on the ret columns
-        rets[:, 1] *= rets[:, 0]  # get weighted vol returns
-        rets[:, 2] *= rets[:, 0]  # get weighted close returns
+        rets[:, 0] /= np.sum(rets[:, 0])  # get weight ratio, vol
+        rets[:, 1] *= rets[:, 0]  # get weighted close returns
+        rets[:, 2] *= rets[:, 0]  # get weighted vol returns
         close_ret = np.sum(rets[:, 1])  # get weighted close return
         vol_ret = np.sum(rets[:, 2])  # get weighted volume return
         close_cv = (
             np.std(rets[:, 1]) / close_ret
         )  # get weighted close coefficient of variation
         vol_cv = (
-            np.std(rets[:, 1]) / vol_ret
+            np.std(rets[:, 2]) / vol_ret
         )  # get weighted vol return coefficient of variation
 
-        with Session(self.enging) as sess:
+        with Session(self.engine) as sess:
             sess.execute(
                 text(
                     f"""
                 update us_{scope}_signals
-                set vol_ret := vol_ret, 
-                    close_ret := close_ret,
-                    vol_cv := vol_cv,
-                    close_cv := close_cv
-                where bar_date := bar_date and
-                    {scope} := scope
+                set vol_ret = :vol_ret, 
+                    close_ret = :close_ret,
+                    vol_cv = :vol_cv,
+                    close_cv = :close_cv
+                where bar_date = :bar_date and
+                    {scope} = :scope_val
                 """
                 ),
                 {
@@ -145,7 +145,27 @@ class Domains(db_helper):
                     "close_ret": close_ret,
                     "vol_cv": vol_cv,
                     "close_cv": close_cv,
-                    "scope": scope,
+                    "scope_val": scope_val,
+                    "bar_date": bar_date,
                 },
             )
-        pass
+            sess.commit()
+
+    def update_agg_signals(self, is_industry=True):
+        """Fetch unfilled agg signals rows and update"""
+        scope = "industry" if is_industry else "sector"
+        while True:
+            with Session(self.engine) as sess:
+                res = sess.execute(
+                    f"""
+                    select * from us_{scope}_signals
+                        where vol_ret is null or
+                            close_ret is null or
+                            vol_cv is null or
+                            close_cv is null
+                    """
+                )
+                rows = res.fetchmany(100)
+                if not rows:
+                    break
+                pass
