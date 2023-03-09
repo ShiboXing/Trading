@@ -11,6 +11,7 @@ from . import _stock_table_cols
 
 
 class db_helper:
+    __BATCH_SIZE = 1024 * 1024 * 100  # 100MB batch size
     @staticmethod
     def tuple_transform(rows):
         """
@@ -82,15 +83,29 @@ class db_helper:
     def iter_batch(func):
         def wrapper(*args, **kwargs):
             query, engine = func(*args, **kwargs)
-            batch_size = 1024 * 1024 * 100  # 100MB batch size
             with Session(engine) as sess:
                 res = sess.execute(query)
                 batch = res.fetchone()
-                row_cnt = batch_size // getsizeof(batch)
+                row_cnt = db_helper.__BATCH_SIZE // getsizeof(batch)
 
             with Session(engine) as sess:
                 res = sess.execute(query)
                 yield db_helper.tuple_transform(res.fetchmany(row_cnt))
+
+        return wrapper
+    
+    @staticmethod
+    def fetch_one_batch(func):
+        def wrapper(*args, **kwargs):
+            query, engine = func(*args, **kwargs)
+            with Session(engine) as sess:
+                res = sess.execute(query)
+                batch = res.fetchone()
+                row_cnt = db_helper.__BATCH_SIZE // getsizeof(batch)
+
+            with Session(engine) as sess:
+                res = sess.execute(query)
+                return db_helper.tuple_transform(res.fetchmany(row_cnt))
 
         return wrapper
 
