@@ -101,11 +101,8 @@ class Domains(db_helper):
             )
             return res.fetchall()
 
-    def write_agg_rets(
-        self, bar_date: datetime or str, scope_val: str, is_sector=True
-    ):
+    def write_agg_rets(self, bar_date: datetime or str, scope: str, scope_val: str):
         """Calculate and fill the daily aggregate signals"""
-        scope = "sector" if is_sector else "industry"
         rets = self.fetch_agg_rets(bar_date, scope_val, scope)
         rets = np.nan_to_num(
             np.array(rets, dtype=np.float_), nan=1.0, neginf=1.0, posinf=1.0
@@ -131,14 +128,14 @@ class Domains(db_helper):
             sess.execute(
                 text(
                     f"""
-                update us_{scope}_signals
-                set vol_ret = :vol_ret, 
-                    close_ret = :close_ret,
-                    vol_cv = :vol_cv,
-                    close_cv = :close_cv
-                where bar_date = :bar_date and
-                    {scope} = :scope_val
-                """
+                    update us_{scope}_signals
+                    set vol_ret = :vol_ret, 
+                        close_ret = :close_ret,
+                        vol_cv = :vol_cv,
+                        close_cv = :close_cv
+                    where bar_date = :bar_date and
+                        {scope} = :scope_val
+                    """
                 ),
                 {
                     "vol_ret": vol_ret,
@@ -152,20 +149,23 @@ class Domains(db_helper):
             sess.commit()
 
     def update_agg_signals(self, is_industry=True):
-        """Fetch unfilled agg signals rows and update"""
         scope = "industry" if is_industry else "sector"
-        while True:
-            with Session(self.engine) as sess:
-                res = sess.execute(
-                    f"""
-                    select * from us_{scope}_signals
-                        where vol_ret is null or
-                            close_ret is null or
-                            vol_cv is null or
-                            close_cv is null
-                    """
-                )
-                rows = res.fetchmany(100)
-                if not rows:
-                    break
-                pass
+        for rows in self.__iter_unfilled_agg_signals(scope):
+            pass
+
+    @db_helper.iter_batch
+    def __iter_unfilled_agg_signals(self, scope):
+        """Fetch unfilled agg signals rows and update"""
+
+        return (
+            text(
+                f"""
+                select {scope}, bar_date from us_{scope}_signals
+                    where vol_ret is null or
+                        close_ret is null or
+                        vol_cv is null or
+                        close_cv is null
+                """
+            ),
+            self.engine,
+        )
