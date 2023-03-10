@@ -108,6 +108,10 @@ class Domains(db_helper):
             np.array(rets, dtype=np.float_), nan=1.0, neginf=1.0, posinf=1.0
         )
 
+        # not data for the (bar_date, scope_val)
+        if len(rets) == 0:
+            return
+        
         rets[:, 2][
             rets[:, 2] == 0
         ] = 1  # prevent inf log values in vol returns (sometimes vol is 0)
@@ -151,7 +155,10 @@ class Domains(db_helper):
     def update_agg_signals(self, is_industry=True):
         scope = "industry" if is_industry else "sector"
         for rows in self.__iter_unfilled_agg_signals(scope):
-            pass
+            for i, r in enumerate(rows):
+                self.write_agg_rets(r[1], scope, r[0])
+                if not (i % 100):
+                    print(f" finish update {100} {scope} signals ", end='')
 
     @db_helper.iter_batch
     def __iter_unfilled_agg_signals(self, scope):
@@ -161,10 +168,11 @@ class Domains(db_helper):
             text(
                 f"""
                 select {scope}, bar_date from us_{scope}_signals
-                    where vol_ret is null or
-                        close_ret is null or
-                        vol_cv is null or
-                        close_cv is null
+                where vol_ret is null or
+                    close_ret is null or
+                    vol_cv is null or
+                    close_cv is null
+                order by bar_date asc
                 """
             ),
             self.engine,
