@@ -123,10 +123,10 @@ class Domains(db_helper):
         vol_ret = np.sum(rets[:, 2])  # get weighted volume return
         close_cv = (
             np.std(rets[:, 1]) / close_ret
-        )  # get weighted close coefficient of variation
+        ) if close_ret != 0 else 0 # get weighted close coefficient of variation
         vol_cv = (
             np.std(rets[:, 2]) / vol_ret
-        )  # get weighted vol return coefficient of variation
+        ) if vol_ret != 0 else 0 # get weighted vol return coefficient of variation
 
         with Session(self.engine) as sess:
             sess.execute(
