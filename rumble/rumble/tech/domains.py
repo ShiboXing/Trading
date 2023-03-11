@@ -70,6 +70,7 @@ class Domains(db_helper):
                 )
             )
             sess.commit()
+            print(f"finished writing to us_{agg}_signals")
 
     def iter_sector_hist(self, filter_vol=True):
         """Fetch daily hist data of sector"""
@@ -154,11 +155,12 @@ class Domains(db_helper):
 
     def update_agg_signals(self, is_industry=True):
         scope = "industry" if is_industry else "sector"
+        print(f"started {scope} signals writing")
         for rows in self.__iter_unfilled_agg_signals(scope):
             for i, r in enumerate(rows):
                 self.write_agg_rets(r[1], scope, r[0])
                 if not (i % 100):
-                    print(f" finish update {100} {scope} signals ", end='')
+                    print(f"finished updating {100} {scope} signals ", end='')
 
     @db_helper.iter_batch
     def __iter_unfilled_agg_signals(self, scope):

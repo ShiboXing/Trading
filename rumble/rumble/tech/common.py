@@ -1,11 +1,5 @@
 from pandas import DataFrame as DF
 
 
-def make_rsi(avg: int):
-    def rsi(DF):
-        """
-        TODO: use TA-lib to implement rsi filter
-        """
-        pass
-
-    return rsi
+def rsi(avg_gain, avg_loss):
+    return 100 - (100 / (1 + avg_gain / float(abs(avg_loss))))
