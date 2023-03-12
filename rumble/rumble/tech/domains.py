@@ -117,11 +117,17 @@ class Domains(db_helper):
             rets[:, 2] == 0
         ] = 1  # prevent inf log values in vol returns (sometimes vol is 0)
         rets[:, 1:] = np.log(rets[:, 1:])  # element-wise log on the ret columns
-        rets[:, 0] /= np.sum(rets[:, 0])  # get weight ratio, vol
+        
+        all_cap = np.sum(rets[:, 0])
+        if all_cap == 0: # no trade then full weight ratio
+            rets[:, 0] = 1   
+        else: # get weight ratio, vol
+            rets[:, 0] /= all_cap
+
         rets[:, 1] *= rets[:, 0]  # get weighted close returns
         rets[:, 2] *= rets[:, 0]  # get weighted vol returns
         close_ret = np.sum(rets[:, 1])  # get weighted close return
-        vol_ret = np.sum(rets[:, 2])  # get weighted volume return
+        vol_ret = np.sum(rets[:, 2])  # get weighted volumre return
         close_cv = (
             np.std(rets[:, 1]) / close_ret
         ) if close_ret != 0 else 0 # get weighted close coefficient of variation
@@ -155,11 +161,10 @@ class Domains(db_helper):
 
     def update_agg_signals(self, is_industry=True):
         scope = "industry" if is_industry else "sector"
-        print(f"started {scope} signals writing")
         for rows in self.__iter_unfilled_agg_signals(scope):
             for i, r in enumerate(rows):
                 self.write_agg_rets(r[1], scope, r[0])
-                if not (i % 100):
+                if i and not (i % 100):
                     print(f"finished updating {100} {scope} signals ", end='')
 
     @db_helper.iter_batch
