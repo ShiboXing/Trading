@@ -70,7 +70,7 @@ class Domains(db_helper):
                 )
             )
             sess.commit()
-            print(f"finished writing to us_{agg}_signals")
+            print(f"finished adding dates to us_{agg}_signals")
 
     def iter_sector_hist(self, filter_vol=True):
         """Fetch daily hist data of sector"""
@@ -111,29 +111,29 @@ class Domains(db_helper):
 
         # not data for the (bar_date, scope_val)
         if len(rets) == 0:
-            return
-        
-        rets[:, 2][
-            rets[:, 2] == 0
-        ] = 1  # prevent inf log values in vol returns (sometimes vol is 0)
-        rets[:, 1:] = np.log(rets[:, 1:])  # element-wise log on the ret columns
-        
-        all_cap = np.sum(rets[:, 0])
-        if all_cap == 0: # no trade then full weight ratio
-            rets[:, 0] = 1   
-        else: # get weight ratio, vol
-            rets[:, 0] /= all_cap
+            close_cv, vol_cv, vol_ret, close_ret = 0, 0, 0, 0
+        else:
+            rets[:, 2][
+                rets[:, 2] == 0
+            ] = 1  # prevent inf log values in vol returns (sometimes vol is 0)
+            rets[:, 1:] = np.log(rets[:, 1:])  # element-wise log on the ret columns
 
-        rets[:, 1] *= rets[:, 0]  # get weighted close returns
-        rets[:, 2] *= rets[:, 0]  # get weighted vol returns
-        close_ret = np.sum(rets[:, 1])  # get weighted close return
-        vol_ret = np.sum(rets[:, 2])  # get weighted volumre return
-        close_cv = (
-            np.std(rets[:, 1]) / close_ret
-        ) if close_ret != 0 else 0 # get weighted close coefficient of variation
-        vol_cv = (
-            np.std(rets[:, 2]) / vol_ret
-        ) if vol_ret != 0 else 0 # get weighted vol return coefficient of variation
+            all_cap = np.sum(rets[:, 0])
+            if all_cap == 0:  # no trade then full weight ratio
+                rets[:, 0] = 1
+            else:  # get weight ratio, vol
+                rets[:, 0] /= all_cap
+
+            rets[:, 1] *= rets[:, 0]  # get weighted close returns
+            rets[:, 2] *= rets[:, 0]  # get weighted vol returns
+            close_ret = np.sum(rets[:, 1])  # get weighted close return
+            vol_ret = np.sum(rets[:, 2])  # get weighted volumre return
+            close_cv = (
+                (np.std(rets[:, 1]) / close_ret) if close_ret != 0 else 0
+            )  # get weighted close coefficient of variation
+            vol_cv = (
+                (np.std(rets[:, 2]) / vol_ret) if vol_ret != 0 else 0
+            )  # get weighted vol return coefficient of variation
 
         with Session(self.engine) as sess:
             sess.execute(
@@ -158,14 +158,13 @@ class Domains(db_helper):
                 },
             )
             sess.commit()
+            print(f"update us_{scope}_signals for {scope_val}, {bar_date}")
 
     def update_agg_signals(self, is_industry=True):
         scope = "industry" if is_industry else "sector"
         for rows in self.__iter_unfilled_agg_signals(scope):
             for i, r in enumerate(rows):
                 self.write_agg_rets(r[1], scope, r[0])
-                if i and not (i % 100):
-                    print(f"finished updating {100} {scope} signals ", end='')
 
     @db_helper.iter_batch
     def __iter_unfilled_agg_signals(self, scope):
