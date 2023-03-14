@@ -10,6 +10,13 @@ from sqlalchemy.orm import Session
 from . import _stock_table_cols
 
 
+def update_rows(engine, query):
+    """TODO: implement, standalone function,
+    execute the write query, to be used for multiprocessing.
+    map iterated rows to this SQL write function"""
+    pass
+
+
 class db_helper:
     __BATCH_SIZE = 1024 * 1024 * 100  # 100MB batch size
 

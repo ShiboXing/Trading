@@ -27,6 +27,7 @@ if __name__ == "__main__":
     d = Domains()
     d.update_agg_dates(is_industry=True)
     d.update_agg_dates(is_industry=False)
+
     d.update_agg_signals(is_industry=True)
     d.update_agg_signals(is_industry=False)
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")
