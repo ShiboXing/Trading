@@ -2,14 +2,24 @@
 
 set -e 
 
+# install fundamental apt packages
+apt-get install -y build-essential \
+    g++ \
+    python3-dev \
+    autotools-dev \
+    libboost-all-dev \
+    curl \
+    ca-certificates 
+
 ### ADD GPG REPO KEYS ###
 
 # nvidia
-# sudo apt-key del 7fa2af80
-# source /etc/os-release
-# distro=$ID`lsb_release -rs | sed 's/\.//'`; arch=$(uname -m); curl -o nvidia-keyring.deb -L https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda-keyring_1.0-1_all.deb
-# sudo dpkg -i nvidia-keyring.deb
-# rm nvidia-keyring.deb
+sudo apt-key del 7fa2af80
+source /etc/os-release
+distro=$ID`lsb_release -rs | sed 's/\.//'`; arch=$(uname -m); curl -o nvidia-keyring.deb -L https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda-keyring_1.0-1_all.deb
+sudo dpkg -i nvidia-keyring.deb
+rm nvidia-keyring.deb
+sudo apt-get update
 
 # docker
 sudo mkdir -m 0755 -p /etc/apt/keyrings
@@ -34,6 +44,7 @@ sudo ACCEPT_EULA=Y apt-get install -y build-essential \
     python3-dev \
     autotools-dev \
     libboost-all-dev \
+    curl \
     ca-certificates \
     gnupg \
     lsb-release \
@@ -65,6 +76,7 @@ wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/
 sudo sh cuda_11.8.0_520.61.05_linux.run --silent
 rm cuda_11.8.0_520.61.05_linux.run
 export CUDA_HOME=/usr/local/cuda
+sudo apt-get install -y cuda-cudart-11-8
     
 # install mamba
 if [ ! -d "/home/ubuntu/mambaforge" ]
