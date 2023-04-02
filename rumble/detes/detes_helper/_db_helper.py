@@ -180,8 +180,7 @@ class db_helper:
         keys = ["code", "bar_date", "close_pos_ma14", "close_neg_ma14"]
         set_cond = self.__format_filter_str(keys[2:], sep=",")
         where_cond = self.__format_filter_str(keys[:2], sep="and")
-
-        with Session(self.engine) as sess:
+        with Session(self.engine.execution_options(isolation_level="REPEATABLE READ")) as sess:
             for i, row in enumerate(ma_lst):
                 sess.execute(
                     text(
@@ -195,7 +194,7 @@ class db_helper:
                 )
                 if i % 10000 == 0:
                     sess.commit()
-                    print(f"commit: {i}", end=" ", flush=True)
+                    print(f"{dt.now()} update_ma: commit: {i}", flush=True)
             sess.commit()
             print(f"finished updating {len(ma_lst)} MAs")
 
@@ -208,7 +207,7 @@ class db_helper:
         set_cond = self.__format_filter_str(keys[2:], sep=",")
         where_cond = self.__format_filter_str(keys[:2], sep="and")
 
-        with Session(self.engine) as sess:
+        with Session(self.engine.execution_options(isolation_level="REPEATABLE READ")) as sess:
             for i, row in enumerate(st_lst):
                 sess.execute(
                     text(
@@ -222,7 +221,7 @@ class db_helper:
                 )
                 if i % 10000 == 0:
                     sess.commit()
-                    print(f"commit: {i}", end=" ", flush=True)
+                    print(f"{dt.now()} update_streaks: commit: {i}", flush=True)
             sess.commit()
             print(f"finished updating {len(st_lst)} streaks")
 
