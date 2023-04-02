@@ -17,7 +17,7 @@ ls -ahl latest.tar
 popd
 make
 ./neutralizer Storage
-rm Storage/latest.tar
+rm -f Storage/latest.tar
 
 # upload
 pushd Storage
@@ -28,5 +28,5 @@ git push origin detes
 popd
 
 # free filesystem
-rm -r Storage
+rm -rf Storage
 popd

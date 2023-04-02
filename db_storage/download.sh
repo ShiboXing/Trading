@@ -27,3 +27,4 @@ docker exec sql1 /opt/mssql-tools/bin/sqlcmd \
 
 # free the filesystem
 rm -rf Storage
+popd
