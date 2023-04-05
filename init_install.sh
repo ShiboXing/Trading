@@ -3,7 +3,7 @@
 set -e 
 
 # install fundamental apt packages
-apt-get install -y build-essential \
+sudo apt-get install -y build-essential \
     g++ \
     python3-dev \
     autotools-dev \
@@ -15,11 +15,10 @@ apt-get install -y build-essential \
 
 # nvidia
 sudo apt-key del 7fa2af80
-source /etc/os-release
-distro=$ID`lsb_release -rs | sed 's/\.//'`; arch=$(uname -m); curl -o nvidia-keyring.deb -L https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda-keyring_1.0-1_all.deb
-sudo dpkg -i nvidia-keyring.deb
-rm nvidia-keyring.deb
-sudo apt-get update
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
+wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb
+sudo dpkg -i cuda-keyring_1.0-1_all.deb
+rm cuda-keyring_1.0-1_all.deb*
 
 # docker
 sudo mkdir -m 0755 -p /etc/apt/keyrings
@@ -34,11 +33,11 @@ echo \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/mssql.gpg] https://packages.microsoft.com/ubuntu/22.04/prod \
     $(lsb_release -cs) main" \ | sudo tee /etc/apt/sources.list.d/mssql-release.list > /dev/null
 
+sudo apt-get update
 #########################
 
 # install ubuntu packages
-sudo apt-get update
-sudo apt-get remove docker docker-engine docker.io containerd runc
+sudo apt-get remove -y docker docker-engine docker.io containerd runc
 sudo ACCEPT_EULA=Y apt-get install -y build-essential \
     g++ \
     python3-dev \
@@ -68,16 +67,15 @@ then
         && sudo rm -rf boost_1_81_0.tar.gz boost_1_81_0
 fi
 
-# reinstall cuda driver and toolkit
-# sudo /usr/local/cuda-11.8/bin/cuda-uninstaller | true
-sudo apt-get autoremove
-sudo apt-get purge -y *nvidia* *cuda*
-wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
-sudo sh cuda_11.8.0_520.61.05_linux.run --silent
-rm cuda_11.8.0_520.61.05_linux.run
-export CUDA_HOME=/usr/local/cuda
-sudo apt-get install -y cuda-cudart-11-8
-    
+# install nvidia driver
+if ! nvidia-smi &> /dev/null; then
+    sudo apt-get autoremove
+    sudo apt-get purge -y *nvidia* *cuda*
+    distribution=$(. /etc/os-release; echo $ID$VERSION_ID | sed -e 's/\.//g')
+    sudo apt-get install -y linux-headers-$(uname -r)
+    sudo apt-get install -y nvidia-driver-525
+fi
+
 # install mamba
 if [ ! -d "/home/ubuntu/mambaforge" ]
 then
@@ -101,6 +99,7 @@ mamba install -y \
     pyodbc \
     pytorch \
     pytorch-cuda=11.8 \
+    cuda-toolkit=11.8 \
     -c pytorch \
     -c nvidia
 pip install jupyterlab notebook yahooquery tushare
