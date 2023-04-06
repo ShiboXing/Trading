@@ -135,7 +135,7 @@ class Domains(db_helper):
                 (np.std(rets[:, 2]) / vol_ret) if vol_ret != 0 else 0
             )  # get weighted vol return coefficient of variation
 
-        with Session(self.engine) as sess:
+        with Session(self.engine.execution_options(isolation_level="REPEATABLE READ")) as sess:
             sess.execute(
                 text(
                     f"""
@@ -158,27 +158,33 @@ class Domains(db_helper):
                 },
             )
             sess.commit()
-            print(f"update us_{scope}_signals for {scope_val}, {bar_date}")
+            print(f"[{datetime.now()}] updated us_{scope}_signals for {scope_val}, {bar_date}", flush=True)
 
     def update_agg_signals(self, is_industry=True):
         scope = "industry" if is_industry else "sector"
-        for rows in self.__iter_unfilled_agg_signals(scope):
-            for i, r in enumerate(rows):
-                self.write_agg_rets(r[1], scope, r[0])
+        # single row fetch (computation bound function)
+        rows = next(self.__iter_unfilled_agg_signals(scope))
+        if len(rows) == 0:
+            return False
+        else:
+            key = rows[0]
+            self.write_agg_rets(key[1], scope, key[0])
+            return True
+
 
     @db_helper.iter_batch
     def __iter_unfilled_agg_signals(self, scope):
         """Fetch unfilled agg signals rows and update"""
-
+        
         return (
             text(
                 f"""
-                select {scope}, bar_date from us_{scope}_signals
-                where vol_ret is null or
+                select top 1 {scope}, bar_date from us_{scope}_signals
+                where (vol_ret is null or
                     close_ret is null or
                     vol_cv is null or
-                    close_cv is null
-                order by bar_date asc
+                    close_cv is null)
+                order by newid()
                 """
             ),
             self.engine,

@@ -3,11 +3,17 @@ import time, os, argparse
 from rumble.detes import fetcher
 from rumble.detes._loader import TechBuilder
 from rumble.rumble.tech.domains import Domains
-from rumble.rumble.datasets.dataset import rumbleset
-from sota.computer_vision.models.vgg import VGG
-from datetime import datetime
-from yfinance import Tickers, download
+from multiprocessing import Pool
 
+
+def __update_agg(is_industry: bool):
+    """Update single row where agg data is unfilled till there are no more such rows"""
+    d = Domains()
+    row_cnt = 0
+    while d.update_agg_signals(is_industry=is_industry):
+        row_cnt += 1
+        
+    print(f"pid {os.getpid()} finished updating {row_cnt} rows")
 
 if __name__ == "__main__":
     """Just Die"""
@@ -17,6 +23,8 @@ if __name__ == "__main__":
     parser.add_argument("--list", help="update stock list", action="store_true")
     parser.add_argument("--ma", help="update moving average signals", action="store_true")
     parser.add_argument("--streak", help="update daily streak signals", action="store_true")
+    parser.add_argument("--industry", help="update industry signals", action="store_true")
+    parser.add_argument("--sector", help="update sector signals", action="store_true")
     args = parser.parse_args()
     # os.environ["TZ"] = "Asia/Shanghai"
     os.environ["TZ"] = "US/Eastern"
@@ -36,10 +44,14 @@ if __name__ == "__main__":
     if args.streak:
         tb.update_streaks()
 
-    # d = Domains()
-    # d.update_agg_dates(is_industry=True)
-    # d.update_agg_dates(is_industry=False)
-
-    # d.update_agg_signals(is_industry=True)
-    # d.update_agg_signals(is_industry=False)
+    d = Domains()
+    if args.industry or args.sector:
+        d.update_agg_dates(is_industry=args.industry)
+        nproc = os.cpu_count() // 2
+        pool = Pool(nproc)
+        res = pool.imap_unordered(__update_agg, [args.industry] * nproc)
+        pool.close()
+        pool.join()
+        print(res)
+        # __update_agg(d, is_industry=args.industry)
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")
