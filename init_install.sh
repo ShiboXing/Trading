@@ -93,7 +93,7 @@ mamba install -y \
     black \
     yfinance \
     numpy \
-    pandas \
+    "pandas<2.0" \
     matplotlib \
     sqlalchemy \
     pyodbc \

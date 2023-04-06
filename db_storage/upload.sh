@@ -2,30 +2,33 @@
 
 set -e
 
-git submodule update --init --recursive
+pushd db_storage
+git clone https://github.com/ShiboXing/Storage -b main --single-branch --depth 1
 
 # write to disk 
-pushd db_storage/Storage
+pushd Storage
 git clone https://github.com/ShiboXing/Storage -b detes --single-branch --depth 1
-pushd Storage
-git checkout -f detes
-rm part_*
-docker export sql1 > latest.tar
-ls -ahl latest.tar
 
-# discretize
-popd
-make
-./neutralizer Storage
-rm -f Storage/latest.tar
+    # export docker
+    pushd Storage
+    git checkout -f detes
+    rm part_*
+    docker export sql1 > latest.tar
+    ls -ahl latest.tar
+    popd
 
-# upload
-pushd Storage
-echo "git ops start"
-git add .
-git commit -m "latest"
-git push origin detes
-popd
+    # discretize
+    make
+    ./neutralizer Storage
+    rm -f Storage/latest.tar
+
+    # upload
+    pushd Storage
+    echo "git ops start"
+    git add .
+    git commit -m "latest"
+    git push origin detes
+    popd
 
 # free filesystem
 rm -rf Storage
