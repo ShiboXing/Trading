@@ -1,10 +1,10 @@
 from ...detes.detes_helper import db_helper
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
-
-from os import path, listdir
+from os import path, listdir, getenv
 from datetime import datetime
 
+import torch
 import numpy as np
 
 
@@ -15,6 +15,12 @@ class Domains(db_helper):
         self.engine = super().connect_to_db(db_name="detes")
         for sql_file in listdir(sql_dir):
             super().run_sqlfile(self.engine, path.join(sql_dir, sql_file))
+
+        device_id = getenv("RANK")
+        if device_id:
+            self.device = torch.device(f"cuda:{device_id}")
+        else:
+            self.device = torch.device("cpu")
 
     def streaks(self, num: int, min_date="2000-01-01"):
         with Session(self.engine) as sess:
@@ -97,6 +103,7 @@ class Domains(db_helper):
                     SET ANSI_WARNINGS OFF
                     select * from get_{scope}_rets(:filter_val, :bar_date)
                     """
+                    # (for debugging) order by 1, 2, 3 
                 ),
                 {"filter_val": scope_val, "bar_date": bar_date},
             )
@@ -105,10 +112,8 @@ class Domains(db_helper):
     def write_agg_rets(self, bar_date: datetime or str, scope: str, scope_val: str):
         """Calculate and fill the daily aggregate signals"""
         rets = self.fetch_agg_rets(bar_date, scope_val, scope)
-        rets = np.nan_to_num(
-            np.array(rets, dtype=np.float_), nan=1.0, neginf=1.0, posinf=1.0
-        )
-
+        rets = torch.tensor(np.array(rets, dtype=np.float32), dtype=torch.float32, device=self.device)
+        rets = rets.nan_to_num(nan=1.0, neginf=1.0, posinf=1.0)
         # not data for the (bar_date, scope_val)
         if len(rets) == 0:
             close_cv, vol_cv, vol_ret, close_ret = 0, 0, 0, 0
@@ -116,9 +121,9 @@ class Domains(db_helper):
             rets[:, 2][
                 rets[:, 2] == 0
             ] = 1  # prevent inf log values in vol returns (sometimes vol is 0)
-            rets[:, 1:] = np.log(rets[:, 1:])  # element-wise log on the ret columns
+            rets[:, 1:] = torch.log(rets[:, 1:])  # element-wise log on the ret columns
 
-            all_cap = np.sum(rets[:, 0])
+            all_cap = torch.sum(rets[:, 0])
             if all_cap == 0:  # no trade then full weight ratio
                 rets[:, 0] = 1
             else:  # get weight ratio, vol
@@ -126,13 +131,13 @@ class Domains(db_helper):
 
             rets[:, 1] *= rets[:, 0]  # get weighted close returns
             rets[:, 2] *= rets[:, 0]  # get weighted vol returns
-            close_ret = np.sum(rets[:, 1])  # get weighted close return
-            vol_ret = np.sum(rets[:, 2])  # get weighted volumre return
+            close_ret = torch.sum(rets[:, 1])  # get weighted close return
+            vol_ret = torch.sum(rets[:, 2])  # get weighted volume return
             close_cv = (
-                (np.std(rets[:, 1]) / close_ret) if close_ret != 0 else 0
+                (torch.std(rets[:, 1]) / close_ret) if close_ret != 0 else 0
             )  # get weighted close coefficient of variation
             vol_cv = (
-                (np.std(rets[:, 2]) / vol_ret) if vol_ret != 0 else 0
+                (torch.std(rets[:, 2]) / vol_ret) if vol_ret != 0 else 0
             )  # get weighted vol return coefficient of variation
 
         with Session(self.engine.execution_options(isolation_level="REPEATABLE READ")) as sess:

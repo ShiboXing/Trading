@@ -1,4 +1,5 @@
 import time, os, argparse
+import torch
 
 from rumble.detes import fetcher
 from rumble.detes._loader import TechBuilder
@@ -6,13 +7,15 @@ from rumble.rumble.tech.domains import Domains
 from multiprocessing import Pool
 
 
-def __update_agg(is_industry: bool):
+def __update_agg(args):
     """Update single row where agg data is unfilled till there are no more such rows"""
+    is_industry, rank = args
+    os.environ["RANK"] = str(rank)
     d = Domains()
     row_cnt = 0
     while d.update_agg_signals(is_industry=is_industry):
         row_cnt += 1
-        
+    
     print(f"pid {os.getpid()} finished updating {row_cnt} rows")
 
 if __name__ == "__main__":
@@ -47,11 +50,10 @@ if __name__ == "__main__":
     d = Domains()
     if args.industry or args.sector:
         d.update_agg_dates(is_industry=args.industry)
-        nproc = os.cpu_count() // 2
-        pool = Pool(nproc)
-        res = pool.imap_unordered(__update_agg, [args.industry] * nproc)
-        pool.close()
-        pool.join()
-        print(res)
-        # __update_agg(d, is_industry=args.industry)
+        nproc = torch.cuda.device_count() or os.cpu_count() // 2
+        print("nproce: ", nproc)
+        with Pool(nproc) as pool:
+            print("args: ", [(args.industry, i) for i in range(nproc)])
+            res = pool.imap_unordered(__update_agg, [(args.industry, i) for i in range(nproc)])
+            print("update res: ", list(res))
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")
