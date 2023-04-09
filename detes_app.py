@@ -10,8 +10,8 @@ from multiprocessing import Pool
 def __update_agg(args):
     """Update single row where agg data is unfilled till there are no more such rows"""
     is_industry, rank = args
-    os.environ["RANK"] = str(rank)
-    d = Domains()
+    os.environ["RANK"] = str(rank % 4)
+    d = Domains(initialize_db=False)
     row_cnt = 0
     while d.update_agg_signals(is_industry=is_industry):
         row_cnt += 1
@@ -47,13 +47,12 @@ if __name__ == "__main__":
     if args.streak:
         tb.update_streaks()
 
-    d = Domains()
     if args.industry or args.sector:
-        d.update_agg_dates(is_industry=args.industry)
-        nproc = torch.cuda.device_count() or os.cpu_count() // 2
-        print("nproce: ", nproc)
+        d = Domains()
+        nproc = 4
+        print("nproc: ", nproc)
         with Pool(nproc) as pool:
-            print("args: ", [(args.industry, i) for i in range(nproc)])
+            print("args: ", [(args.industry, i) for i in range(nproc)], flush=True)
             res = pool.imap_unordered(__update_agg, [(args.industry, i) for i in range(nproc)])
             print("update res: ", list(res))
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")

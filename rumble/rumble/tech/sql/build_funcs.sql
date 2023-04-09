@@ -48,5 +48,5 @@ returns table
         ) res
         where bar_date between @start_date and @end_date
         group by bar_date
-    )
+    );
 go

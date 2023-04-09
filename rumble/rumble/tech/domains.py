@@ -4,24 +4,27 @@ from sqlalchemy.sql import text
 from os import path, listdir, getenv
 from datetime import datetime
 
+import time
 import torch
+import decimal
 import numpy as np
 
 
 class Domains(db_helper):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, initialize_db=True):
+        super().__init__(initialize_db=initialize_db)
         sql_dir = path.join(path.dirname(__file__), "sql")
         self.engine = super().connect_to_db(db_name="detes")
-        for sql_file in listdir(sql_dir):
-            super().run_sqlfile(self.engine, path.join(sql_dir, sql_file))
+        if initialize_db:
+            for sql_file in listdir(sql_dir):
+                super().run_sqlfile(self.engine, path.join(sql_dir, sql_file))
 
         device_id = getenv("RANK")
         if device_id:
             self.device = torch.device(f"cuda:{device_id}")
         else:
             self.device = torch.device("cpu")
-
+    
     def streaks(self, num: int, min_date="2000-01-01"):
         with Session(self.engine) as sess:
             samples = sess.execute(
@@ -111,12 +114,16 @@ class Domains(db_helper):
 
     def write_agg_rets(self, bar_date: datetime or str, scope: str, scope_val: str):
         """Calculate and fill the daily aggregate signals"""
+        start_time = time.time()
         rets = self.fetch_agg_rets(bar_date, scope_val, scope)
         rets = torch.tensor(np.array(rets, dtype=np.float32), dtype=torch.float32, device=self.device)
         rets = rets.nan_to_num(nan=1.0, neginf=1.0, posinf=1.0)
         # not data for the (bar_date, scope_val)
         if len(rets) == 0:
-            close_cv, vol_cv, vol_ret, close_ret = 0, 0, 0, 0
+            close_cv, vol_cv, vol_ret, close_ret = torch.tensor(0, dtype=torch.float32), \
+                torch.tensor(0, dtype=torch.float32), \
+                torch.tensor(0, dtype=torch.float32), \
+                torch.tensor(0, dtype=torch.float32)
         else:
             rets[:, 2][
                 rets[:, 2] == 0
@@ -134,13 +141,15 @@ class Domains(db_helper):
             close_ret = torch.sum(rets[:, 1])  # get weighted close return
             vol_ret = torch.sum(rets[:, 2])  # get weighted volume return
             close_cv = (
-                (torch.std(rets[:, 1]) / close_ret) if close_ret != 0 else 0
+                (torch.std(rets[:, 1]) / close_ret) if close_ret != 0 else torch.tensor(0, dtype=torch.float32)
             )  # get weighted close coefficient of variation
             vol_cv = (
-                (torch.std(rets[:, 2]) / vol_ret) if vol_ret != 0 else 0
+                (torch.std(rets[:, 2]) / vol_ret) if vol_ret != 0 else torch.tensor(0, dtype=torch.float32)
             )  # get weighted vol return coefficient of variation
-
+        comp_time = time.time() - start_time
+        start_time = time.time()
         with Session(self.engine.execution_options(isolation_level="REPEATABLE READ")) as sess:
+            dec_qunat = decimal.Decimal('.0000000001')
             sess.execute(
                 text(
                     f"""
@@ -154,16 +163,17 @@ class Domains(db_helper):
                     """
                 ),
                 {
-                    "vol_ret": vol_ret,
-                    "close_ret": close_ret,
-                    "vol_cv": vol_cv,
-                    "close_cv": close_cv,
+                    "vol_ret": decimal.Decimal(vol_ret.item()).quantize(dec_qunat),
+                    "close_ret": decimal.Decimal(close_ret.item()).quantize(dec_qunat),
+                    "vol_cv": decimal.Decimal(vol_cv.item()).quantize(dec_qunat),
+                    "close_cv": decimal.Decimal(close_cv.item()).quantize(dec_qunat),
                     "scope_val": scope_val,
                     "bar_date": bar_date,
                 },
             )
             sess.commit()
-            print(f"[{datetime.now()}] updated us_{scope}_signals for {scope_val}, {bar_date}", flush=True)
+            sql_time = time.time() - start_time
+            print(f"[{datetime.now()}] updated us_{scope}_signals for {scope_val}, {bar_date}, device: {self.device}, comp_time: {comp_time}, sql_io_time: {sql_time}", flush=True)
 
     def update_agg_signals(self, is_industry=True):
         scope = "industry" if is_industry else "sector"

@@ -1,4 +1,3 @@
-
 if not exists (select *
 from sys.tables
 where name='us_industry_signals')

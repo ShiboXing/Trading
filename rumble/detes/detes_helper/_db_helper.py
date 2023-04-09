@@ -52,27 +52,30 @@ class db_helper:
         return engine
 
     def run_sqlfile(self, engine, schema_pth):
-        conn = engine.raw_connection()
         with open(schema_pth, "r") as f:
             sql_str = f.read()
-        for cmd in sql_str.split("\ngo\n"):
-            if cmd:
-                conn.execute(cmd)
-                conn.commit()
+        with Session(engine.execution_options(isolation_level="SERIALIZABLE")) as sess:
+            for cmd in sql_str.split("\ngo\n"):
+                if cmd:
+                    sess.execute(text(cmd))
+                    sess.commit()
 
-    def __init__(self):
+    def __init__(self, initialize_db=True):
         self.__sql_dir = os.path.join(os.path.dirname(__file__), "sql")
 
         # build db if needed
-        tmp_engine = self.connect_to_db(db_name="master")
-        self.run_sqlfile(
-            tmp_engine, os.path.join(self.__sql_dir, "schema", "build_schema.sql")
-        )
+        if initialize_db:
+            tmp_engine = self.connect_to_db(db_name="master")
+            self.run_sqlfile(
+                tmp_engine, os.path.join(self.__sql_dir, "schema", "build_schema.sql")
+            )
 
-        # build tables and funcs if needed
-        self.engine = self.connect_to_db(db_name="detes")
-        for f in sorted(os.listdir(os.path.join(self.__sql_dir, "data"))):
-            self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "data", f))
+            # build tables and funcs if needed
+            self.engine = self.connect_to_db(db_name="detes")
+            for f in sorted(os.listdir(os.path.join(self.__sql_dir, "data"))):
+                self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "data", f))
+        else:
+            self.engine = self.connect_to_db(db_name="detes")
 
     def __get_table_name(self, region="us", type="lst"):
         assert region in ("us", "cn", "hk"), "region parameter is incorrect"
