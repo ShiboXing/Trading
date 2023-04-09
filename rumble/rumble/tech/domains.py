@@ -141,10 +141,10 @@ class Domains(db_helper):
             close_ret = torch.sum(rets[:, 1])  # get weighted close return
             vol_ret = torch.sum(rets[:, 2])  # get weighted volume return
             close_cv = (
-                (torch.std(rets[:, 1]) / close_ret) if close_ret != 0 else torch.tensor(0, dtype=torch.float32)
+                (torch.std(rets[:, 1]).nan_to_num(nan=.0) / close_ret) if close_ret != 0 else torch.tensor(0, dtype=torch.float32)
             )  # get weighted close coefficient of variation
             vol_cv = (
-                (torch.std(rets[:, 2]) / vol_ret) if vol_ret != 0 else torch.tensor(0, dtype=torch.float32)
+                (torch.std(rets[:, 2]).nan_to_num(nan=.0) / vol_ret) if vol_ret != 0 else torch.tensor(0, dtype=torch.float32)
             )  # get weighted vol return coefficient of variation
         comp_time = time.time() - start_time
         start_time = time.time()

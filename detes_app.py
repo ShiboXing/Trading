@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     if args.industry or args.sector:
         d = Domains()
-        nproc = 4
+        nproc = 16
         print("nproc: ", nproc)
         with Pool(nproc) as pool:
             print("args: ", [(args.industry, i) for i in range(nproc)], flush=True)
