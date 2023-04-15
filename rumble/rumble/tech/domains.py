@@ -24,7 +24,7 @@ class Domains(db_helper):
             self.device = torch.device(f"cuda:{device_id}")
         else:
             self.device = torch.device("cpu")
-    
+
     def streaks(self, num: int, min_date="2000-01-01"):
         with Session(self.engine) as sess:
             samples = sess.execute(
@@ -106,7 +106,7 @@ class Domains(db_helper):
                     SET ANSI_WARNINGS OFF
                     select * from get_{scope}_rets(:filter_val, :bar_date)
                     """
-                    # (for debugging) order by 1, 2, 3 
+                    # (for debugging) order by 1, 2, 3
                 ),
                 {"filter_val": scope_val, "bar_date": bar_date},
             )
@@ -116,14 +116,20 @@ class Domains(db_helper):
         """Calculate and fill the daily aggregate signals"""
         start_time = time.time()
         rets = self.fetch_agg_rets(bar_date, scope_val, scope)
-        rets = torch.tensor(np.array(rets, dtype=np.float32), dtype=torch.float32, device=self.device)
+        sql1_time = time.time() - start_time
+        start_time = time.time()
+        rets = torch.tensor(
+            np.array(rets, dtype=np.float32), dtype=torch.float32, device=self.device
+        )
         rets = rets.nan_to_num(nan=1.0, neginf=1.0, posinf=1.0)
         # not data for the (bar_date, scope_val)
         if len(rets) == 0:
-            close_cv, vol_cv, vol_ret, close_ret = torch.tensor(0, dtype=torch.float32), \
-                torch.tensor(0, dtype=torch.float32), \
-                torch.tensor(0, dtype=torch.float32), \
-                torch.tensor(0, dtype=torch.float32)
+            close_cv, vol_cv, vol_ret, close_ret = (
+                torch.tensor(0, dtype=torch.float32),
+                torch.tensor(0, dtype=torch.float32),
+                torch.tensor(0, dtype=torch.float32),
+                torch.tensor(0, dtype=torch.float32),
+            )
         else:
             rets[:, 2][
                 rets[:, 2] == 0
@@ -141,15 +147,21 @@ class Domains(db_helper):
             close_ret = torch.sum(rets[:, 1])  # get weighted close return
             vol_ret = torch.sum(rets[:, 2])  # get weighted volume return
             close_cv = (
-                (torch.std(rets[:, 1]).nan_to_num(nan=.0) / close_ret) if close_ret != 0 else torch.tensor(0, dtype=torch.float32)
+                (torch.std(rets[:, 1]).nan_to_num(nan=0.0) / close_ret)
+                if close_ret != 0
+                else torch.tensor(0, dtype=torch.float32)
             )  # get weighted close coefficient of variation
             vol_cv = (
-                (torch.std(rets[:, 2]).nan_to_num(nan=.0) / vol_ret) if vol_ret != 0 else torch.tensor(0, dtype=torch.float32)
+                (torch.std(rets[:, 2]).nan_to_num(nan=0.0) / vol_ret)
+                if vol_ret != 0
+                else torch.tensor(0, dtype=torch.float32)
             )  # get weighted vol return coefficient of variation
         comp_time = time.time() - start_time
         start_time = time.time()
-        with Session(self.engine.execution_options(isolation_level="REPEATABLE READ")) as sess:
-            dec_qunat = decimal.Decimal('.0000000001')
+        with Session(
+            self.engine.execution_options(isolation_level="REPEATABLE READ")
+        ) as sess:
+            dec_qunat = decimal.Decimal(".0000000001")
             sess.execute(
                 text(
                     f"""
@@ -172,8 +184,11 @@ class Domains(db_helper):
                 },
             )
             sess.commit()
-            sql_time = time.time() - start_time
-            print(f"[{datetime.now()}] updated us_{scope}_signals for {scope_val}, {bar_date}, device: {self.device}, comp_time: {comp_time}, sql_io_time: {sql_time}", flush=True)
+            sql2_time = time.time() - start_time
+            print(
+                f"[{datetime.now()}] updated us_{scope}_signals for {scope_val}, {bar_date}, device: {self.device}, comp_time: {comp_time}, sql_select_io_tim:{sql1_time}, sql_update_io_time: {sql2_time}",
+                flush=True,
+            )
 
     def update_agg_signals(self, is_industry=True):
         scope = "industry" if is_industry else "sector"
@@ -186,11 +201,10 @@ class Domains(db_helper):
             self.write_agg_rets(key[1], scope, key[0])
             return True
 
-
     @db_helper.iter_batch
     def __iter_unfilled_agg_signals(self, scope):
         """Fetch unfilled agg signals rows and update"""
-        
+
         return (
             text(
                 f"""
