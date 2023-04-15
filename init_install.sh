@@ -15,13 +15,13 @@ sudo apt-get install -y build-essential \
 # nvidia
 sudo apt-key del 7fa2af80
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
-wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb
+curl -fsSLO https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb
 sudo dpkg -i cuda-keyring_1.0-1_all.deb
 rm cuda-keyring_1.0-1_all.deb*
 
 # nvidia docker
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
-    && curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+    && curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor --yes -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
     && curl -fsL https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
         sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
         sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
@@ -34,7 +34,7 @@ echo \
     $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # msft odbc
-sudo curl https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/mssql.gpg
+sudo curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/mssql.gpg
 echo \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/mssql.gpg] https://packages.microsoft.com/ubuntu/22.04/prod \
     $(lsb_release -cs) main" \ | sudo tee /etc/apt/sources.list.d/mssql-release.list > /dev/null
@@ -50,6 +50,7 @@ sudo ACCEPT_EULA=Y apt-get install -y \
     docker-ce \
     docker-ce-cli \
     containerd.io \
+    docker-compose \
     docker-buildx-plugin \
     docker-compose-plugin \
     nvidia-container-toolkit \
@@ -68,7 +69,8 @@ fi
 # install mamba
 if [ ! -d "/home/ubuntu/mambaforge" ]
 then
-    curl -L -o mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/23.1.0-1/Mambaforge-23.1.0-1-Linux-x86_64.sh \
+    mamba_version="23.1.0-1"
+    curl -L -o mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${mamba_version}/Mambaforge-${mamba_version}-Linux-x86_64.sh \
         && bash mambaforge.sh -b -u \
         && rm mambaforge.sh \
         && /home/ubuntu/mambaforge/bin/mamba init \
@@ -82,7 +84,7 @@ mamba install -y \
     black \
     yfinance \
     numpy \
-    "pandas<2.0" \
+    pandas \
     matplotlib \
     sqlalchemy \
     pyodbc \

@@ -46,7 +46,10 @@ class db_helper:
         )
 
         engine = create_engine(
-            connect_url, echo=False, isolation_level="READ COMMITTED"
+            connect_url,
+            echo=False,
+            isolation_level="READ COMMITTED",
+            pool_pre_ping=True,
         )
 
         return engine
@@ -183,7 +186,9 @@ class db_helper:
         keys = ["code", "bar_date", "close_pos_ma14", "close_neg_ma14"]
         set_cond = self.__format_filter_str(keys[2:], sep=",")
         where_cond = self.__format_filter_str(keys[:2], sep="and")
-        with Session(self.engine.execution_options(isolation_level="REPEATABLE READ")) as sess:
+        with Session(
+            self.engine.execution_options(isolation_level="REPEATABLE READ")
+        ) as sess:
             for i, row in enumerate(ma_lst):
                 sess.execute(
                     text(
@@ -210,7 +215,9 @@ class db_helper:
         set_cond = self.__format_filter_str(keys[2:], sep=",")
         where_cond = self.__format_filter_str(keys[:2], sep="and")
 
-        with Session(self.engine.execution_options(isolation_level="REPEATABLE READ")) as sess:
+        with Session(
+            self.engine.execution_options(isolation_level="REPEATABLE READ")
+        ) as sess:
             for i, row in enumerate(st_lst):
                 sess.execute(
                     text(

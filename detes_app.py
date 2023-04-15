@@ -15,29 +15,36 @@ def __update_agg(args):
     row_cnt = 0
     while d.update_agg_signals(is_industry=is_industry):
         row_cnt += 1
-    
+
     print(f"pid {os.getpid()} finished updating {row_cnt} rows")
+
 
 if __name__ == "__main__":
     """Just Die"""
     parser = argparse.ArgumentParser(description="specify the arguments of detes app")
-    parser.add_argument('--cal', help='update the calendar', action="store_true")
+    parser.add_argument("--cal", help="update the calendar", action="store_true")
     parser.add_argument("--hist", help="update history price", action="store_true")
     parser.add_argument("--list", help="update stock list", action="store_true")
-    parser.add_argument("--ma", help="update moving average signals", action="store_true")
-    parser.add_argument("--streak", help="update daily streak signals", action="store_true")
-    parser.add_argument("--industry", help="update industry signals", action="store_true")
+    parser.add_argument(
+        "--ma", help="update moving average signals", action="store_true"
+    )
+    parser.add_argument(
+        "--streak", help="update daily streak signals", action="store_true"
+    )
+    parser.add_argument(
+        "--industry", help="update industry signals", action="store_true"
+    )
     parser.add_argument("--sector", help="update sector signals", action="store_true")
     args = parser.parse_args()
     # os.environ["TZ"] = "Asia/Shanghai"
     os.environ["TZ"] = "US/Eastern"
     time.tzset()
-    
+
     ft = fetcher("20000101", "us")
     if args.cal:
         ft.update_cal()
     if args.list:
-        ft.update_us_stock_lst() # weekly task
+        ft.update_us_stock_lst()  # weekly task
     if args.hist:
         ft.update_stock_hist()
 
@@ -53,6 +60,8 @@ if __name__ == "__main__":
         print("nproc: ", nproc)
         with Pool(nproc) as pool:
             print("args: ", [(args.industry, i) for i in range(nproc)], flush=True)
-            res = pool.imap_unordered(__update_agg, [(args.industry, i) for i in range(nproc)])
+            res = pool.imap_unordered(
+                __update_agg, [(args.industry, i) for i in range(nproc)]
+            )
             print("update res: ", list(res))
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")
