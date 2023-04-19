@@ -22,7 +22,6 @@ def __update_agg(args):
 if __name__ == "__main__":
     """Just Die"""
     parser = argparse.ArgumentParser(description="specify the arguments of detes app")
-    parser.add_argument("--cal", help="update the calendar", action="store_true")
     parser.add_argument("--hist", help="update history price", action="store_true")
     parser.add_argument("--list", help="update stock list", action="store_true")
     parser.add_argument(
@@ -41,11 +40,10 @@ if __name__ == "__main__":
     time.tzset()
 
     ft = fetcher("20000101", "us")
-    if args.cal:
-        ft.update_cal()
     if args.list:
         ft.update_us_stock_lst()  # weekly task
     if args.hist:
+        ft.update_cal()
         ft.update_stock_hist()
 
     tb = TechBuilder()
