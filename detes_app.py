@@ -56,12 +56,14 @@ if __name__ == "__main__":
 
     if args.industry or args.sector:
         d = Domains()
+        d.update_agg_dates(is_industry=True)
+        d.update_agg_dates(is_industry=False)
         nproc = 16
         print("nproc: ", nproc)
         with Pool(nproc) as pool:
-            print("args: ", [(args.industry, i) for i in range(nproc)], flush=True)
-            res = pool.imap_unordered(
+            for res in pool.imap_unordered(
                 __update_agg, [(args.industry, i) for i in range(nproc)]
-            )
-            print("update res: ", list(res))
+            ):
+                print("executing process")
+            
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")
