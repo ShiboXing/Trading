@@ -23,7 +23,7 @@ create or alter function get_industry_rets
     @query_date date
 )
 returns TABLE as return (
-    select usl.code code, (vol * [open]) capital, close_ret, vol_ret
+    select (vol * [open]) capital, close_ret, vol_ret
     from us_stock_list usl inner join (
         select code, [open], bar_date, vol,
         [close] / lag([close]) over (partition by code order by bar_date asc) close_ret,
