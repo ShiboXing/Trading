@@ -63,5 +63,5 @@ if __name__ == "__main__":
                 __update_agg, [(args.industry, i) for i in range(nproc)]
             ):
                 print("executing process")
-            
+
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")

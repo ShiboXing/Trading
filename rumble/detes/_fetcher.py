@@ -24,18 +24,18 @@ class fetcher:
         else:
             self.quotes = self.ch.load_data()
 
-    def update_cal(self):
-        for r in ["us", "cn"]:
-            date = self.db.fetch_cal_last_date(region=r)
-            if not date:
-                date = self.__START_DATE
-            start_date, end_date = date, dt.now().date().strftime("%Y%m%d")
-            start_date = (
-                dt.strptime(start_date, "%Y%m%d") + timedelta(days=1)
-            ).strftime("%Y%m%d")
-            if end_date >= start_date:
-                part_cal = self.th.get_dates(start_date, end_date, region=r)
-                self.db.renew_calendar(part_cal, region=r)
+    def update_cal(self, region="us"):
+        date = self.db.fetch_cal_last_date(region=region)
+        if not date:
+            date = self.__START_DATE
+        start_date, end_date = date, dt.now().date().strftime("%Y%m%d")
+        start_date = (dt.strptime(start_date, "%Y%m%d") + timedelta(days=1)).strftime(
+            "%Y%m%d"
+        )
+        if end_date >= start_date:
+            part_cal = self.th.get_dates(start_date, end_date, region=region)
+            self.db.renew_calendar(part_cal, region=region)
+        print(f"calendar update for {region} region completed")
 
     def update_us_stock_lst(self):
         """Insert new stocks and/or update info for all unfilled stocks"""

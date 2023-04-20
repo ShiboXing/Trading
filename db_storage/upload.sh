@@ -3,7 +3,6 @@
 set -e
 
 pushd db_storage
-git clone https://github.com/ShiboXing/Storage -b main --single-branch --depth 1
 
 # write to disk 
 pushd Storage
