@@ -63,7 +63,7 @@ class db_helper:
                     sess.execute(text(cmd))
                     sess.commit()
 
-    def __init__(self, initialize_db=True):
+    def __init__(self, initialize_db=False):
         self.__sql_dir = os.path.join(os.path.dirname(__file__), "sql")
 
         # build db if needed

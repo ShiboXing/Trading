@@ -11,7 +11,7 @@ import numpy as np
 
 
 class Domains(db_helper):
-    def __init__(self, initialize_db=True):
+    def __init__(self, initialize_db=False):
         super().__init__(initialize_db=initialize_db)
         sql_dir = path.join(path.dirname(__file__), "sql")
         self.engine = super().connect_to_db(db_name="detes")
