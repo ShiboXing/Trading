@@ -22,7 +22,9 @@ def __update_agg(args):
 if __name__ == "__main__":
     """Just Die"""
     parser = argparse.ArgumentParser(description="specify the arguments of detes app")
-    parser.add_argument("--init", help="initialize the database/schema", action="store_true")
+    parser.add_argument(
+        "--init", help="initialize the database/schema", action="store_true"
+    )
     parser.add_argument("--hist", help="update history price", action="store_true")
     parser.add_argument("--list", help="update stock list", action="store_true")
     parser.add_argument(
@@ -41,7 +43,7 @@ if __name__ == "__main__":
     time.tzset()
     
     # create all sql objects, re-define funcs, procs and views
-    if args.__init__:
+    if args.init:
         Domains(initialize_db=True)
 
     ft = fetcher("20000101", "us")
@@ -68,6 +70,6 @@ if __name__ == "__main__":
             for res in pool.imap_unordered(
                 __update_agg, [(args.industry, i) for i in range(nproc)]
             ):
-                print("finished executing process")
+                pass
 
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")

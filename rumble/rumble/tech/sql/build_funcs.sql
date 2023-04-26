@@ -29,7 +29,7 @@ returns TABLE as return (
         [close] / lag([close]) over (partition by code order by bar_date asc) close_ret,
         [vol] / lag([vol]) over (partition by code order by bar_date asc) vol_ret
         from us_daily_bars
-        where bar_date between DATEADD(day, -8, '2023-01-20') and '2023-01-20'
+        where bar_date between DATEADD(day, -8, @query_date) and @query_date
     ) udb on udb.code = usl.code
     where bar_date = @query_date and industry = @industry
 );
