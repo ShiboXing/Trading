@@ -20,7 +20,7 @@ class Domains(db_helper):
                 super().run_sqlfile(self.engine, path.join(sql_dir, sql_file))
 
         device_id = getenv("RANK")
-        if device_id:
+        if device_id and torch.cuda.is_available():
             self.device = torch.device(f"cuda:{device_id}")
         else:
             self.device = torch.device("cpu")
@@ -69,9 +69,7 @@ class Domains(db_helper):
                     insert into us_{agg}_signals ({agg}, bar_date)
                     select distinct {agg}, trade_date
                     from us_stock_list, us_cal
-                    where {agg} is not null
-                        and {agg} != ''
-                        and is_open = 1
+                    where is_open = 1
                     except
                     select distinct {agg}, bar_date
                     from us_{agg}_signals
