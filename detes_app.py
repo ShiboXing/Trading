@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # os.environ["TZ"] = "Asia/Shanghai"
     os.environ["TZ"] = "US/Eastern"
     time.tzset()
-    
+
     # create all sql objects, re-define funcs, procs and views
     if args.init:
         Domains(initialize_db=True)

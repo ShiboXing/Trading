@@ -4,9 +4,9 @@ set -e
 
 pushd db_storage
 
-# write to disk 
-pushd Storage
-git clone https://github.com/ShiboXing/Storage -b detes --single-branch --depth 1
+    # write to disk 
+    pushd Storage
+    git clone https://github.com/ShiboXing/Storage -b detes --single-branch --depth 1
 
     # export docker
     pushd Storage
