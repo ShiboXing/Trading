@@ -1,9 +1,8 @@
 import time, os, argparse
-import torch
 
-from rumble.detes import fetcher
-from rumble.detes._loader import TechBuilder
-from rumble.rumble.tech.domains import Domains
+from rumble_detes import fetcher
+from rumble_detes._loader import TechBuilder
+from rumble_detes.tech.domains import Domains
 from multiprocessing import Pool, cpu_count
 
 
