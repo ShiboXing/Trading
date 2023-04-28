@@ -1,4 +1,4 @@
-from ...detes.detes_helper import db_helper
+from ..detes_helper import db_helper
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from os import path, listdir, getenv
