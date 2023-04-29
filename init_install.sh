@@ -53,12 +53,16 @@ sudo ACCEPT_EULA=Y apt-get install -y \
     docker-compose \
     docker-buildx-plugin \
     docker-compose-plugin \
-    nvidia-container-toolkit \
     msodbcsql18 \
     mssql-tools18 
 
+if lspci | grep -i NVIDIA &>/dev/null; then
+	sudo apt-get install -y nvidia-container-toolkit
+fi
+
 # install nvidia driver
-if ! nvidia-smi &> /dev/null; then
+if (lspci | grep -i NVIDIA) && ! nvidia-smi &>/dev/null; then
+    echo "NVIDIA GPU exists but nvidia-smi doesn't work"
     sudo apt-get autoremove -y
     sudo apt-get purge -y *nvidia* *cuda*
     sudo apt-get install -y linux-headers-$(uname -r)
@@ -73,13 +77,13 @@ then
     curl -L -o mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${mamba_version}/Mambaforge-${mamba_version}-Linux-x86_64.sh \
         && bash mambaforge.sh -b -u \
         && rm mambaforge.sh \
-        && /home/ubuntu/mambaforge/bin/mamba init \
+        && $HOME/mambaforge/bin/mamba init \
         && source ~/.bashrc
 fi
 
 # install python packages
 mamba install -y \
-    python=3.10 \
+    python=3.11 \
     ipdb \
     black \
     yfinance \
@@ -88,11 +92,15 @@ mamba install -y \
     matplotlib \
     sqlalchemy \
     pyodbc \
-    pytorch \
-    pytorch-cuda=11.8 \
-    cuda-toolkit=11.8 \
-    -c pytorch \
-    -c nvidia
+    pip
+
+if lspci | grep -i NVIDIA &>/dev/null; then
+    mamba install -y pytorch pytorch-cuda=11.8 \
+        -c pytorch -c nvidia
+else
+    mamba install -y pytorch cpuonly -c pytorch
+fi
+
 pip install jupyterlab notebook yahooquery tushare
 
 # start servives
