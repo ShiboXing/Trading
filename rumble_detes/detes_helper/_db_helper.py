@@ -102,9 +102,13 @@ class db_helper:
                 batch = res.fetchone()
                 row_cnt = db_helper.__BATCH_SIZE // getsizeof(batch)
 
-            with Session(engine) as sess:
-                res = sess.execute(query)
-                yield db_helper.tuple_transform(res.fetchmany(row_cnt))
+            while True: 
+                with Session(engine) as sess:
+                    res = sess.execute(query)
+                    rows = res.fetchmany(row_cnt)
+                    if len(rows) == 0:
+                        break
+                    yield db_helper.tuple_transform(rows)
 
         return wrapper
 
