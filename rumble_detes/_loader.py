@@ -18,11 +18,14 @@ class TechBuilder:
             nullma_filter=True,
             select_pk=True,
         ):
+            print(f"ma data fetched: {len(rows)} rows", flush=True)
             # get moving averages from c++
             averages = rc.ma(copy(rows))  # copy rows since it will be deferenced in cpp
             # reformat the data
             rows = [(*rows[i][:2], *averages[i][:2]) for i in range(len(rows))]
-            self.db.update_ma(rows)
+            step = 100000
+            for i in range(0, len(rows), step):
+                self.db.update_ma(rows[i:min(len(rows), i+step)])
 
     def update_streaks(self):
         for rows in self.db.iter_stocks_hist(
@@ -32,6 +35,7 @@ class TechBuilder:
             nullstreak_filter=True,
             select_prevstreak=True,
         ):
+            print(f"streak data fetched: {len(rows)} rows", flush=True)
             # get streak counts from c++
             num_streaks = rc.day_streak(
                 copy(rows)
@@ -39,3 +43,6 @@ class TechBuilder:
             # reformat the data
             rows = [(*r[:2], num_streaks[i]) for i, r in enumerate(rows)]
             self.db.update_streaks(rows)
+            step = 100000
+            for i in range(0, len(rows), step):
+                self.db.update_streaks(rows[i:min(len(rows), i+step)])
