@@ -78,6 +78,21 @@ class Domains(db_helper):
             )
             sess.commit()
             print(f"finished adding dates to us_{agg}_signals")
+    
+    def process_agg_signals(self, is_industry=True):
+        "initialize all the null scope value with empty string"
+        agg = "industry" if is_industry else "sector"
+        with Session(
+            self.engine.execution_options(isolation_level="REPEATABLE READ")
+        ) as sess:
+            sess.execute(text(
+                f"""
+                update us_stock_list
+                set {agg} = ''
+                where {agg} is null
+                """
+            ))
+            sess.commit()
 
     def iter_sector_hist(self, filter_vol=True):
         """Fetch daily hist data of sector"""
@@ -184,7 +199,7 @@ class Domains(db_helper):
             sess.commit()
             sql2_time = time.time() - start_time
             print(
-                f"[{datetime.now()}] updated us_{scope}_signals for {scope_val}, {bar_date}, device: {self.device}, comp_time: {comp_time}, sql_select_io_tim:{sql1_time}, sql_update_io_time: {sql2_time}",
+                f"[{datetime.now()}] updated us_{scope}_signals for {scope_val}, {bar_date}, device: {self.device}, comp_time: {comp_time}, sql_select_io_time:{sql1_time}, sql_update_io_time: {sql2_time}",
                 flush=True,
             )
 

@@ -60,6 +60,8 @@ if __name__ == "__main__":
 
     if args.industry or args.sector:
         d = Domains()
+        d.process_agg_signals(is_industry=True)
+        d.process_agg_signals(is_industry=False)
         d.update_agg_dates(is_industry=True)
         d.update_agg_dates(is_industry=False)
         del d

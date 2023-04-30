@@ -12,11 +12,11 @@ class fetcher:
         self.th = th()
         self.__START_DATE = start_date
         self.region = region
-
+    
     @staticmethod
     def format_date(date):
         return date.strftime("%Y%m%d")
-
+        
     def update_quotes(self):
         if self.ch.cache_is_expired(type="quotes"):
             self.quotes = self.th.get_all_quotes()
