@@ -25,7 +25,7 @@ class TechBuilder:
             rows = [(*rows[i][:2], *averages[i][:2]) for i in range(len(rows))]
             step = 100000
             for i in range(0, len(rows), step):
-                self.db.update_ma(rows[i:min(len(rows), i+step)])
+                self.db.update_ma(rows[i : min(len(rows), i + step)])
 
     def update_streaks(self):
         for rows in self.db.iter_stocks_hist(
@@ -45,4 +45,4 @@ class TechBuilder:
             self.db.update_streaks(rows)
             step = 100000
             for i in range(0, len(rows), step):
-                self.db.update_streaks(rows[i:min(len(rows), i+step)])
+                self.db.update_streaks(rows[i : min(len(rows), i + step)])

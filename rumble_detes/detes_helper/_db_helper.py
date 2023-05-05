@@ -102,7 +102,7 @@ class db_helper:
                 batch = res.fetchone()
                 row_cnt = db_helper.__BATCH_SIZE // getsizeof(batch)
 
-            while True: 
+            while True:
                 with Session(engine) as sess:
                     res = sess.execute(query)
                     rows = res.fetchmany(row_cnt)
