@@ -13,6 +13,7 @@ setup(
             include_dirs=[
                 "/usr/local/Cellar/boost/1.79.0_2/include/",
                 "/usr/local/include/",
+                "C:/boost_1_82_0/boost_1_82_0/",
             ],
             sources=[
                 "cpp/tech/module.cpp",
