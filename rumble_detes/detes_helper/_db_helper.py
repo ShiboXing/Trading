@@ -63,6 +63,20 @@ class db_helper:
                     sess.execute(text(cmd))
                     sess.commit()
 
+
+    def write_all_table_names(self, pth="db_storage/tables.txt"):
+        with Session(self.engine) as sess:
+            res = sess.execute(text(
+                """
+                SELECT [name] AS TableName
+                FROM sys.tables;
+                """
+            ))
+            table_lst = res.fetchall()
+            with open(pth, 'w') as f:
+                for n in table_lst: f.write(n[0] + '\n')
+            
+
     def __init__(self, initialize_db=False):
         self.__sql_dir = os.path.join(os.path.dirname(__file__), "sql")
 

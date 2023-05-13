@@ -1,6 +1,7 @@
 import time, os, argparse
 
 from rumble_detes import fetcher
+from rumble_detes.detes_helper import db_helper
 from rumble_detes._loader import TechBuilder
 from rumble_detes.tech.domains import Domains
 from multiprocessing import Pool, cpu_count
@@ -36,6 +37,7 @@ if __name__ == "__main__":
         "--industry", help="update industry signals", action="store_true"
     )
     parser.add_argument("--sector", help="update sector signals", action="store_true")
+    parser.add_argument("--export-tables", help="load all the tables to .csv files", action="store_true")
     args = parser.parse_args()
     # os.environ["TZ"] = "Asia/Shanghai"
     os.environ["TZ"] = "US/Eastern"
@@ -72,5 +74,9 @@ if __name__ == "__main__":
                 __update_agg, [(args.industry, i) for i in range(nproc)]
             ):
                 pass
+    
+    if args.export_tables:
+        db = db_helper()
+        db.write_all_table_names()
 
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")
