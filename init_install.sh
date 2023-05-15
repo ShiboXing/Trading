@@ -8,11 +8,11 @@ sudo apt-get install -y build-essential \
     autotools-dev \
     libboost-all-dev \
     curl \
-    ca-certificates \
-    python3.11 \
-    python3-pip
-     
-### ADD GPG REPO KEYS ###
+    ca-certificates 
+
+### ADD GPG REPOS ###
+# python
+sudo add-apt-repository ppa:deadsnakes/ppa 
 
 # nvidia
 # sudo apt-key del 7fa2af80
@@ -22,18 +22,21 @@ sudo apt-get install -y build-essential \
 # rm cuda-keyring_1.0-1_all.deb*
 
 # msft odbc
-sudo curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/mssql.gpg
-echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/mssql.gpg] https://packages.microsoft.com/ubuntu/22.04/prod \
-    $(lsb_release -cs) main" \ | sudo tee /etc/apt/sources.list.d/mssql-release.list > /dev/null
-
+curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/20.04/mssql-server-2022.list)"
 sudo apt-get update
 #########################
 
 # install other ubuntu packages
-# sudo apt-get install \
-#     msodbcsql18 \
-#     mssql-tools18 
+sudo ACCEPT_EULA=Yes apt-get install \
+    python3.11 \
+    python3-pip \
+    mssql-tools \
+    unixodbc-dev 
+    # mssql-server \
+
+sudo rm /usr/bin/python \
+    && sudo ln -s /usr/bin/python3.11 /usr/bin/python
 
 # if lspci | grep -i NVIDIA &>/dev/null; then
 # 	sudo apt-get install -y nvidia-container-toolkit
@@ -51,6 +54,7 @@ sudo apt-get update
 
 # install python packages
 pip install \
+    ipython \
     ipdb \
     black \
     yfinance \
@@ -59,11 +63,10 @@ pip install \
     matplotlib \
     sqlalchemy \
     pyodbc \
-    torch \
     jupyterlab \
     notebook \
     yahooquery \
-    tushare
+    tushare 
 
 # set up odbc driver
 if [[ ! $PATH == *"/opt/mssql-tools18/bin"* ]];
