@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # install fundamental apt packages
-sudo apt-get update -y 
-sudo apt-get install -y build-essential \
+sudo apt update -y 
+sudo apt install -y build-essential \
     g++ \
-    python3-dev \
+    python3.11-dev \
     autotools-dev \
     libboost-all-dev \
     curl \
@@ -23,20 +23,27 @@ sudo add-apt-repository ppa:deadsnakes/ppa
 
 # msft odbc
 curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
 sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/20.04/mssql-server-2022.list)"
-sudo apt-get update
+sudo apt update
 #########################
 
 # install other ubuntu packages
-sudo ACCEPT_EULA=Yes apt-get install \
+sudo apt install -y \
     python3.11 \
-    python3-pip \
+    mssql-server \
     mssql-tools \
-    unixodbc-dev 
-    # mssql-server \
+    unixodbc-dev
+sudo /opt/mssql/bin/mssql-conf setup
 
-sudo rm /usr/bin/python \
+sudo rm -f /usr/bin/python \
     && sudo ln -s /usr/bin/python3.11 /usr/bin/python
+
+if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+    curl https://bootstrap.pypa.io/get-pip.py | python
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+    source ~/.bashrc
+fi
 
 # if lspci | grep -i NVIDIA &>/dev/null; then
 # 	sudo apt-get install -y nvidia-container-toolkit
