@@ -12,7 +12,9 @@ sudo apt install -y build-essential \
 
 ### ADD GPG REPOS ###
 # python
-sudo add-apt-repository ppa:deadsnakes/ppa 
+if [ ! -e /usr/bin/python3.11 ]; then
+    sudo add-apt-repository -y ppa:deadsnakes/ppa 
+fi
 
 # nvidia
 # sudo apt-key del 7fa2af80
@@ -34,7 +36,6 @@ sudo apt install -y \
     mssql-server \
     mssql-tools \
     unixodbc-dev
-sudo /opt/mssql/bin/mssql-conf setup
 
 sudo rm -f /usr/bin/python \
     && sudo ln -s /usr/bin/python3.11 /usr/bin/python
@@ -44,6 +45,22 @@ if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
     source ~/.bashrc
 fi
+
+# set up mssql
+if [[ ! $PATH == *"/opt/mssql/bin"* ]];
+then
+    echo 'export PATH="$PATH:/opt/mssql/bin:/opt/mssql-tools/bin/' >> ~/.bashrc
+    source ~/.bashrc
+    sudo /opt/mssql/bin/mssql-conf setup
+    sudo systemctl start mssql-server
+    sudo systemctl status mssql-server
+fi
+
+# start mssql server
+if ! ps -e | grep -q "sqlservr"; then
+    sudo ACCEPT_EULA=Y MSSQL_SA_PASSWORD="<YourStrong@Passw0rd>" sqlservr &
+fi
+
 
 # if lspci | grep -i NVIDIA &>/dev/null; then
 # 	sudo apt-get install -y nvidia-container-toolkit
@@ -73,14 +90,10 @@ pip install \
     jupyterlab \
     notebook \
     yahooquery \
-    tushare 
+    tushare \
+    torch \
+    --index-url https://download.pytorch.org/whl/cpu
 
-# set up odbc driver
-if [[ ! $PATH == *"/opt/mssql-tools18/bin"* ]];
-then
-    echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
-    source ~/.bashrc
-fi
 
 # install rumble
 rm -rf build/ rumble.egg-info
