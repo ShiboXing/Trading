@@ -35,6 +35,7 @@ sudo apt install -y \
     python3.11 \
     mssql-server \
     mssql-tools \
+    unixodbc \
     unixodbc-dev
 
 sudo rm -f /usr/bin/python \
@@ -54,13 +55,14 @@ then
     sudo /opt/mssql/bin/mssql-conf setup
     sudo systemctl start mssql-server
     sudo systemctl status mssql-server
+
+    echo 'sudo ACCEPT_EULA=Y MSSQL_SA_PASSWORD="<YourStrong@Passw0rd>" sqlservr &' >> ~/.bashrc
+    source ~/.bashrc
 fi
 
-# start mssql server
-if ! ps -e | grep -q "sqlservr"; then
-    sudo ACCEPT_EULA=Y MSSQL_SA_PASSWORD="<YourStrong@Passw0rd>" sqlservr &
-fi
-
+# install mssql driver
+curl https://packages.microsoft.com/ubuntu/20.04/prod/pool/main/m/msodbcsql18/msodbcsql18_18.2.1.1-1_amd64.deb \
+    -o msodbc.deb && sudo dpkg -i msodbc.deb && rm msodbc.deb
 
 # if lspci | grep -i NVIDIA &>/dev/null; then
 # 	sudo apt-get install -y nvidia-container-toolkit

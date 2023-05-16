@@ -62,10 +62,10 @@ begin
   (
     [code] nvarchar(7) not null,
     [sector] nvarchar(25),
-    [industry] nvarchar(52),
     [exchange] nvarchar(5),
-    [has_option] bit default null,
     [is_delisted] bit not null default 0,
+    [has_option] bit default null,
+    [industry] nvarchar(52),
     primary key (code),
   )
 end;

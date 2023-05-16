@@ -37,7 +37,8 @@ if __name__ == "__main__":
         "--industry", help="update industry signals", action="store_true"
     )
     parser.add_argument("--sector", help="update sector signals", action="store_true")
-    parser.add_argument("--export-tables", help="load all the tables to .csv files", action="store_true")
+    parser.add_argument("--export-tables", help="export all the tables to .csv files", action="store_true")
+    parser.add_argument("--load-tables", help="load all the csv files to sql tables", action="store_true")
     args = parser.parse_args()
     # os.environ["TZ"] = "Asia/Shanghai"
     os.environ["TZ"] = "US/Eastern"
@@ -79,4 +80,8 @@ if __name__ == "__main__":
         db = db_helper()
         db.write_all_table_names()
 
+    if args.load_tables:
+        db = db_helper()
+        db.load_data_into_table(os.path.expanduser("~/Trading-Detes/db_storage/storage/sql_data"))
+        
     # index_rets = d.get_index_rets("2023-01-03", "2023-02-03")

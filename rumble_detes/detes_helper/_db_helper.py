@@ -63,7 +63,26 @@ class db_helper:
                     sess.execute(text(cmd))
                     sess.commit()
 
+    def load_data_into_table(self, pth):
+        for f in ["us_cal.csv", "us_stock_list.csv", "us_daily_bars.csv"]:
+            table_name = f.split(".csv")[0]
+            full_pth = os.path.join(pth, f)
 
+            with Session(self.engine.execution_options(isolation_level="REPEATABLE READ")) as sess:
+                sess.execute(text(
+                    f"""
+                    BULK INSERT {table_name}
+                    FROM '{full_pth}'
+                    WITH (
+                        FIRSTROW = 1,
+                        FIELDTERMINATOR = ',',
+                        ROWTERMINATOR = '\n'
+                    );
+                    """
+                ))
+                sess.commit()
+            print(f"table {table_name} has been loaded")
+                
     def write_all_table_names(self, pth="db_storage/tables.txt"):
         with Session(self.engine) as sess:
             res = sess.execute(text(
@@ -89,6 +108,7 @@ class db_helper:
             # build tables and funcs if needed
             self.engine = self.connect_to_db(db_name="detes")
             for f in sorted(os.listdir(os.path.join(self.__sql_dir, "data"))):
+                print(f"executing {f}")
                 self.run_sqlfile(self.engine, os.path.join(self.__sql_dir, "data", f))
         else:
             self.engine = self.connect_to_db(db_name="detes")

@@ -29,3 +29,12 @@ BEGIN
         primary key (sector, bar_date)
     )
 end;
+
+-- drop table us_industry_signals
+-- drop table cn_cal
+-- drop table us_sector_signals
+-- drop table us_daily_bars
+-- drop table hk_cal
+-- drop table cn_stock_list
+-- drop table us_stock_list
+-- drop table us_cal
