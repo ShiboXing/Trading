@@ -37,7 +37,7 @@ class db_helper:
             username=username,
             password=password,
             host=server,
-            port=port,
+            # port=port,
             database=db_name,
             query=dict(
                 driver=driver,
@@ -57,9 +57,9 @@ class db_helper:
     def run_sqlfile(self, engine, schema_pth):
         with open(schema_pth, "r") as f:
             sql_str = f.read()
-        with Session(engine.execution_options(isolation_level="SERIALIZABLE")) as sess:
+        with Session(engine.execution_options(isolation_level="AUTOCOMMIT")) as sess:
             for cmd in sql_str.split("\ngo\n"):
-                if cmd:
+                if cmd: 
                     sess.execute(text(cmd))
                     sess.commit()
 
@@ -86,7 +86,6 @@ class db_helper:
             self.run_sqlfile(
                 tmp_engine, os.path.join(self.__sql_dir, "schema", "build_schema.sql")
             )
-
             # build tables and funcs if needed
             self.engine = self.connect_to_db(db_name="detes")
             for f in sorted(os.listdir(os.path.join(self.__sql_dir, "data"))):

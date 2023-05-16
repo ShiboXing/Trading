@@ -1,5 +1,3 @@
-use detes;
-
 if not exists (select *
 from sys.tables
 where name='us_cal')

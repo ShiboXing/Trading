@@ -1,5 +1,3 @@
-USE master;
-
 IF NOT EXISTS (
    SELECT name
 FROM sys.databases
