@@ -18,4 +18,8 @@ pushd db_storage
 popd
 
 # insert data into sql server
+python detes_app.py --init
 python detes_app.py --load-tables
+
+# clean storage files
+rm -rf db_storage/storage*
