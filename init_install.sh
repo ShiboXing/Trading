@@ -56,7 +56,11 @@ then
     sudo systemctl start mssql-server
     sudo systemctl status mssql-server
 
-    echo 'sudo ACCEPT_EULA=Y MSSQL_SA_PASSWORD="<YourStrong@Passw0rd>" sqlservr &' >> ~/.bashrc
+    echo \
+    "if ! ps -e | grep -q sqlservr; then
+        bash -c 'sudo ACCEPT_EULA=Y MSSQL_SA_PASSWORD=\"<YourStrong@Passw0rd>\" /opt/mssql/bin/sqlservr 2>&1 &'
+    fi" >> ~/.bashrc
+    # echo 'sudo ACCEPT_EULA=Y MSSQL_SA_PASSWORD="<YourStrong@Passw0rd>" sqlservr &' >> ~/.bashrc
     source ~/.bashrc
 fi
 
