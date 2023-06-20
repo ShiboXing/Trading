@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+import traceback, time, random
 import tushare as _ts
 import pandas as pd
 import time
@@ -9,6 +10,7 @@ from urllib.error import URLError
 from datetime import date, timedelta, datetime as dt
 from . import _TOKEN
 from requests.exceptions import ConnectionError
+from urllib3.exceptions import ReadTimeoutError
 from random import random
 
 
@@ -92,31 +94,43 @@ class ts_helper:
                 print(f"tushare did not fetch any rows")
             else:
                 print(f"tushare fetched {len(res)} rows")
+
             yield res
+            if len(res) < 6000: break # last pagez
             time.sleep(31)  # failed requests might be counted against quota
 
     def get_stock_tickers(self, stocks=()):
         """Generator for ticker info, makes call during next()"""
         for code in stocks:
-            tk = Ticker(code)
-            ap = tk.asset_profile[code]
-            sector = ap["sector"] if "sector" in ap else None
-            industry = ap["industry"] if "industry" in ap else None
-            try:
-                options = tk.option_chain
-            except KeyError as e:
-                print(f"{code}'s option data is corrupted, skipping")
+            for _ in range(3):
+                try:
+                    tk = Ticker(code)
+                    ap = tk.asset_profile[code]
+                    sector = ap["sector"] if "sector" in ap else None
+                    industry = ap["industry"] if "industry" in ap else None
+                    try:
+                        options = tk.option_chain
+                    except KeyError as e:
+                        print(f"{code}'s option data is corrupted, skipping")
 
-            if type(options) == pd.DataFrame:
-                has_option = True
-            elif options == "No option chain data found":
-                has_option = False
-            else:
-                raise Exception("Yahoo has changed web response, please patch!")
+                    if type(options) == pd.DataFrame:
+                        has_option = True
+                    elif options == "No option chain data found":
+                        has_option = False
+                    else:
+                        raise Exception("Yahoo has changed web response, please patch!")
 
-            yield code, sector, industry, has_option
+                    yield code, sector, industry, has_option
+                    break
+                # prevent yahoo request fatal errors
+                except ReadTimeoutError as e:
+                    print("retrying: " + str(code), e, traceback.format_exc())
+                    time.sleep(random() * 3 + 10)
+                except ConnectionError as e:
+                    print("retrying: " + str(code), e, traceback.format_exc())
+                    time.sleep(random() * 3 + 10)
 
-            time.sleep(random() * 3)
+            time.sleep(1 + random() * 2)
 
     def fetch_stocks_hist(
         self, codes, start_date: list or date, end_date: list or date

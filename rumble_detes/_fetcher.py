@@ -1,10 +1,7 @@
-import traceback
 from .detes_helper import db_helper as db
 from .web_helper import ts_helper as th
 from datetime import datetime as dt, timedelta
 from pandas import DataFrame, concat
-from requests.exceptions import ConnectionError
-
 
 class fetcher:
     def __init__(self, start_date, region):
@@ -73,9 +70,6 @@ class fetcher:
                 self.db.renew_stock_list(df)
                 print(f"{code} info has been recorded")
 
-            # prevent yahoo request fatal errors
-            except ConnectionError as e:
-                print("MaxRetryError: ", e, traceback.format_exc())
             except StopIteration:
                 print("stock list update completed")
                 break
