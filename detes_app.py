@@ -45,6 +45,7 @@ if __name__ == "__main__":
     time.tzset()
 
     # create all sql objects, re-define funcs, procs and views
+    """DO NOT EXECUTE DURING UPDATING AS FUNCTIONS WILL BE DELETED"""
     if args.init:
         Domains(initialize_db=True)
 

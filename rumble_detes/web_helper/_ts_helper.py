@@ -74,7 +74,7 @@ class ts_helper:
 
     @retry_wrapper
     def __ts_get_lst(self, trade_date, offset, region="us"):
-        return _pro_ts.us_daily(trade_date=trade_date, offset=offset)
+        return _pro_ts.us_basic(offset=offset)
 
     def get_stock_lst(self, region="us"):
         """
