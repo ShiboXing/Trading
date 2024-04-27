@@ -1,16 +1,19 @@
-import yfinance as yf
 import requests
-from lxml import html
+from lxml import etree
 
 class web_helper:
     def __init__(self):
-        pass
+        self.spy_ids = []
 
-# Create a Session object
-session = requests.Session()
 
-# Make the request
-res = session.get("https://www.slickcharts.com/sp500", headers={
-    "User-agent": "*"
-})
+    def _get_spy_():
+        """Retrive the list of stocks in spy"""
+        session = requests.Session()
 
+        res = session.get("https://www.slickcharts.com/sp500", headers={
+            "User-agent": "*"
+        })
+        page = etree.HTML(res.content)
+        symbols_a = page.xpath("//td[3]/a[contains(@href, '/symbol/')]")
+        symbols = [s.text for s in symbols_a]
+        
