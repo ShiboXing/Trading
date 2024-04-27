@@ -6,4 +6,11 @@ class web_helper:
     def __init__(self):
         pass
 
-res = requests.get("https://www.slickcharts.com/sp500")
+# Create a Session object
+session = requests.Session()
+
+# Make the request
+res = session.get("https://www.slickcharts.com/sp500", headers={
+    "User-agent": "*"
+})
+
