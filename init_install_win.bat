@@ -8,7 +8,6 @@
 @REM )
 
 
-
 @REM install python packages
 pip install ipdb ^
     ipython ^
@@ -26,6 +25,8 @@ pip install ipdb ^
 
 @REM install pytorch
 pip3 install torch
+
+@REM NEED TO INSTALL MSSQL SERVER FIRST!!!
 
 @REM install odbc driver
 reg query "HKLM\SOFTWARE\ODBC\ODBCINST.INI\ODBC Driver 18 for SQL Server" > nul
