@@ -1,3 +1,3 @@
 # Trading
 
-worlds will collide
+Send me the deets
